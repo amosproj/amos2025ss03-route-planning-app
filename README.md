@@ -38,14 +38,14 @@ A full-stack **route planning application** that leverages Google Maps APIs, Rea
 ```bash
 git clone https://github.com/amosproj/amos2025ss03-route-planning-app.git
 cd amos2025ss03-route-planning-app
-````
+```
 
 ### 3. Add environment variables
 
 Create and fill in:
 
-* `frontend/.env`
-* `backend/.env`
+- `frontend/.env`
+- `backend/.env`
 
 ### 4. Build and run containers
 
@@ -55,8 +55,8 @@ docker-compose up --build
 
 ### 5. Access the applications
 
-* Frontend: [http://localhost:3000](http://localhost:3000)
-* Backend: [http://localhost:8080](http://localhost:8080)
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend: [http://localhost:8080](http://localhost:8080)
 
 ---
 
@@ -108,6 +108,7 @@ FastAPI automatically generates interactive API documentation:
 
 - Swagger UI: `http://localhost:8080/docs`
 - ReDoc: `http://localhost:8080/redoc`
+
 ---
 
 ## 🏗️ Build Frontend for Production
@@ -140,5 +141,5 @@ GOOGLE_MAPS_API_KEY=supersecretkey
 
 ## ❗ Notes
 
-* Make sure ports **3000** (frontend) and **8080** (backend) are available.
-* `.env` files are required in both `frontend/` and `backend/` for proper configuration.
+- Make sure ports **3000** (frontend) and **8080** (backend) are available.
+- `.env` files are required in both `frontend/` and `backend/` for proper configuration.
