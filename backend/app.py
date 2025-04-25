@@ -1,33 +1,67 @@
 # backend/app.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Any, Union
 from solver import solve_vrp
 
-app = Flask(__name__)
-# Configure CORS for development (allow requests from React dev server)
+app = FastAPI(title="VRP Solver API", 
+              description="API for solving Vehicle Routing Problems for field service workers")
+
+# Configure CORS for development
 # For production, restrict the origin more specifically
-CORS(app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins in development
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
-@app.route('/api/test', methods=['GET'])
+# Define data models
+class Node(BaseModel):
+    id: str
+    x: float
+    y: float
+    is_depot: bool
+    time_window: Optional[List[float]] = None
+    required_skills: Optional[List[str]] = None
+
+class VRPData(BaseModel):
+    nodes: List[Node]
+    num_vehicles: int
+    available_skills: Optional[List[str]] = Field(default_factory=list)
+    vehicle_skills: Optional[Dict[str, List[str]]] = Field(default_factory=dict)
+
+class VRPResponse(BaseModel):
+    status: str
+    routes: Optional[List[List[str]]] = None
+    max_distance: Optional[float] = None
+    total_distance: Optional[float] = None
+    message: Optional[str] = None
+
+@app.get("/api/test")
 def handle_test():
-    print("--- /api/test endpoint hit ---") 
-    return jsonify({"message": "CORS test successful!"}), 200
+    print("--- /api/test endpoint hit ---")
+    return {"message": "CORS test successful!"}
 
+@app.post("/api/solve", response_model=VRPResponse)
+def handle_solve(data: VRPData):
+    # Convert Pydantic model to dict for solver
+    data_dict = data.dict()
+    
+    # Solve the VRP
+    result = solve_vrp(data_dict)
+    
+    if result.get("status") != "success":
+        status_code = 400 if result.get("status") == "error" else 500
+        raise HTTPException(
+            status_code=status_code,
+            detail=result.get("message", "An error occurred during solving")
+        )
+    
+    return result
 
-@app.route('/api/solve', methods=['POST'])
-def handle_solve():
-    if not request.is_json:
-        return jsonify({"status": "error", "message": "Request must be JSON"}), 400
-
-    data = request.get_json()
-
-    if not data or 'nodes' not in data or 'num_vehicles' not in data:
-         return jsonify({"status": "error", "message": "Missing required data: nodes, num_vehicles"}), 400
-
-    result = solve_vrp(data)
-
-    status_code = 200 if result.get("status") == "success" else 400 if result.get("status") == "error" else 500
-    return jsonify(result), status_code
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=5002, reload=True)
