@@ -9,7 +9,8 @@ This directory contains the backend server for the Vehicle Routing Problem (VRP)
   - Time windows
   - Required skills for nodes
   - Vehicle skill capabilities
-- Built with Flask and OR-Tools
+- Automatic API documentation with Swagger UI
+- Built with FastAPI and OR-Tools
 
 ## Prerequisites
 
@@ -42,10 +43,23 @@ pip install -r requirements.txt
 Start the backend server by running:
 
 ```bash
+uvicorn app:app --reload --port 5002
+```
+
+Alternatively, you can use:
+
+```bash
 python app.py
 ```
 
 The server will start on port 5002 by default and will be accessible at `http://localhost:5002`.
+
+## API Documentation
+
+FastAPI automatically generates interactive API documentation:
+
+- Swagger UI: `http://localhost:5002/docs`
+- ReDoc: `http://localhost:5002/redoc`
 
 ## API Endpoints
 
@@ -88,3 +102,4 @@ The VRP solver (`solver.py`) uses Google OR-Tools to solve the vehicle routing p
 - Modify `app.py` to add new API endpoints
 - Extend `solver.py` to add new constraints or solution techniques
 - Update CORS settings in `app.py` for production deployments
+- Use Pydantic models to benefit from FastAPI's automatic validation and documentation

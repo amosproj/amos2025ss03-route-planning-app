@@ -3,8 +3,9 @@ import math
 import numpy as np
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
+from typing import Dict, List, Any, Union
 
-def calculate_distance_matrix(nodes):
+def calculate_distance_matrix(nodes: List[Dict[str, Any]]) -> List[List[int]]:
     """Calculates the Euclidean distance matrix between nodes."""
     num_nodes = len(nodes)
     distance_matrix = np.zeros((num_nodes, num_nodes), dtype=int)
@@ -18,7 +19,7 @@ def calculate_distance_matrix(nodes):
             distance_matrix[j][i] = dist
     return distance_matrix.tolist() 
 
-def solve_vrp(data):
+def solve_vrp(data: Dict[str, Any]) -> Dict[str, Any]:
     """Solves the VRP problem using Google OR-Tools."""
     try:
         nodes = data['nodes']
@@ -27,18 +28,17 @@ def solve_vrp(data):
         available_skills = data.get('available_skills', [])
         depot_index = 0 
 
-         # --- Data Validation ---
+        # --- Data Validation ---
         if not nodes:
             return {"status": "error", "message": "No nodes provided."}
         if num_vehicles <= 0:
             return {"status": "error", "message": "Number of vehicles must be positive."}
         if not nodes[0]['is_depot']:
-             return {"status": "error", "message": "First node must be the depot."}
+            return {"status": "error", "message": "First node must be the depot."}
         if len(nodes) == 1 and num_vehicles > 0:
-             return {"status": "success", "routes": [[] for _ in range(num_vehicles)], "max_distance": 0.0, "message": "Only depot present, no routes generated."}
+            return {"status": "success", "routes": [[] for _ in range(num_vehicles)], "max_distance": 0.0, "message": "Only depot present, no routes generated."}
         if len(nodes) > 1 and num_vehicles == 0:
-             return {"status": "error", "message": "No vehicles available to serve customer nodes."}
-
+            return {"status": "error", "message": "No vehicles available to serve customer nodes."}
 
         # --- Prepare OR-Tools Data ---
         distance_matrix = calculate_distance_matrix(nodes)
@@ -62,8 +62,7 @@ def solve_vrp(data):
         transit_callback_index = routing.RegisterTransitCallback(distance_callback)
         routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
-
-        # Distance Dimension (Example)
+        # Distance Dimension
         routing.AddDimension(
             transit_callback_index,
             0,      # No slack
@@ -74,7 +73,7 @@ def solve_vrp(data):
         distance_dimension = routing.GetDimensionOrDie("Distance")
         distance_dimension.SetGlobalSpanCostCoefficient(100) 
 
-
+        # Add Time Windows if specified
         has_time_windows = any(node.get('time_window') for node in nodes)
         if has_time_windows:
             routing.AddDimension(
@@ -93,24 +92,24 @@ def solve_vrp(data):
                     index = manager.NodeToIndex(node_idx)
                     time_dimension.CumulVar(index).SetRange(start_time, end_time)
 
-
+        # Add Skills Requirements if specified
         has_skills_requirement = any(node.get('required_skills') for node in nodes)
         if has_skills_requirement and available_skills:
-             for node_idx, node in enumerate(nodes):
-                 required = set(node.get('required_skills', []))
-                 if not required or node.get('is_depot'):
-                     continue
-                 can_serve = False
-                 for v_id in range(num_vehicles):
-                     v_skills = set(vehicle_skills.get(str(v_id), [])) 
-                     if required.issubset(v_skills):
-                         can_serve = True
-                         break
-                 if not can_serve:
-                     return {"status": "error", "message": f"No vehicle has the required skills ({', '.join(required)}) for node {node['id']}"}
+            for node_idx, node in enumerate(nodes):
+                required = set(node.get('required_skills', []))
+                if not required or node.get('is_depot'):
+                    continue
+                can_serve = False
+                for v_id in range(num_vehicles):
+                    v_skills = set(vehicle_skills.get(str(v_id), [])) 
+                    if required.issubset(v_skills):
+                        can_serve = True
+                        break
+                if not can_serve:
+                    return {"status": "error", "message": f"No vehicle has the required skills ({', '.join(required)}) for node {node['id']}"}
 
-             # Apply constraints
-             for node_idx, node in enumerate(nodes):
+            # Apply constraints
+            for node_idx, node in enumerate(nodes):
                 required = set(node.get('required_skills', []))
                 if not required or node.get('is_depot'):
                     continue
@@ -119,11 +118,10 @@ def solve_vrp(data):
                 for v_id in range(num_vehicles):
                     v_skills = set(vehicle_skills.get(str(v_id), []))
                     if required.issubset(v_skills):
-                         valid_vehicles.append(v_id)
+                        valid_vehicles.append(v_id)
 
                 index = manager.NodeToIndex(node_idx)
                 routing.VehicleVar(index).SetValues(valid_vehicles)
-
 
         # --- Set Search Parameters ---
         search_parameters = pywrapcp.DefaultRoutingSearchParameters()
@@ -131,9 +129,9 @@ def solve_vrp(data):
             routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
         )
         search_parameters.local_search_metaheuristic = (
-             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+            routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        search_parameters.time_limit.FromSeconds(10) # Adjust time limit
+        search_parameters.time_limit.FromSeconds(10)  # Adjust time limit
 
         # --- Solve ---
         solution = routing.SolveWithParameters(search_parameters)
