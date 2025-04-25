@@ -20,7 +20,7 @@ app.add_middleware(
 
 # Define data models
 class Node(BaseModel):
-    id: str
+    id: str | int
     x: float
     y: float
     is_depot: bool
@@ -35,7 +35,7 @@ class VRPData(BaseModel):
 
 class VRPResponse(BaseModel):
     status: str
-    routes: Optional[List[List[str]]] = None
+    routes: Optional[List[List[str|int]]] = None
     max_distance: Optional[float] = None
     total_distance: Optional[float] = None
     message: Optional[str] = None
