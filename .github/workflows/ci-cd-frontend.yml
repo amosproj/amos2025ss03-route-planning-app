@@ -50,7 +50,6 @@ jobs:
         working-directory: ./frontend
         run: npm run test || echo "No frontend tests found, skipping"
 
-      # FRONTEND DEPLOY
       - name: Deploy Frontend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
