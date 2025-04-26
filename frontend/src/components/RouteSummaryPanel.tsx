@@ -8,7 +8,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  IconButton
+  IconButton,
 } from '@mui/joy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
@@ -28,7 +28,7 @@ const ROUTE_COLORS = [
   '#FABEBE',
   '#008080',
   '#E6BEFF',
-  '#9A6324'
+  '#9A6324',
 ];
 
 interface RouteSummaryPanelProps {
@@ -46,16 +46,16 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
   vehicleSkills,
   maxDistance,
   totalDistance,
-  onClose
+  onClose,
 }) => {
   const [collapsed, setCollapsed] = useState(false);
-  
-  const getNodeById = (id: number): VRPNode | undefined => 
-    nodes.find(node => node.id === id);
-  
+
+  const getNodeById = (id: number): VRPNode | undefined =>
+    nodes.find((node) => node.id === id);
+
   const getRouteStats = (routeNodeIds: number[]) => {
     if (!routeNodeIds || routeNodeIds.length < 2) {
-      return { 
+      return {
         nodeCount: 0,
         hasTimeWindows: false,
         hasSkillRequirements: false,
@@ -63,17 +63,19 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
     }
 
     const routeNodes = routeNodeIds
-      .map(id => getNodeById(id))
+      .map((id) => getNodeById(id))
       .filter((node): node is VRPNode => !!node);
-    
-    const hasTimeWindows = routeNodes.some(node => !!node.time_window);
-    const hasSkillRequirements = routeNodes.some(
-      node => node.required_skills && node.required_skills.length > 0
-    );
-    
-    const customerNodeCount = routeNodes.filter(node => !node.is_depot).length;
 
-    return { 
+    const hasTimeWindows = routeNodes.some((node) => !!node.time_window);
+    const hasSkillRequirements = routeNodes.some(
+      (node) => node.required_skills && node.required_skills.length > 0,
+    );
+
+    const customerNodeCount = routeNodes.filter(
+      (node) => !node.is_depot,
+    ).length;
+
+    return {
       nodeCount: customerNodeCount,
       hasTimeWindows,
       hasSkillRequirements,
@@ -87,7 +89,7 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
         top: 10,
         right: 10,
         zIndex: 1000,
-        display: 'flex'
+        display: 'flex',
       }}
     >
       {/* Toggle Button */}
@@ -99,15 +101,15 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
           left: collapsed ? 'auto' : 0,
           transform: collapsed ? 'none' : 'translateX(-100%)',
           zIndex: 1001,
-          bgcolor: 'background.surface'
+          bgcolor: 'background.surface',
         }}
-        variant='outlined'
-        color='neutral'
+        variant="outlined"
+        color="neutral"
         onClick={() => setCollapsed(!collapsed)}
       >
         {collapsed ? <ChevronLeftIcon /> : <ChevronRightIcon />}
       </IconButton>
-      
+
       <Sheet
         sx={{
           width: 380,
@@ -120,15 +122,22 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
           flexDirection: 'column',
           gap: 1,
           transform: collapsed ? 'translateX(100%)' : 'translateX(0)',
-          transition: 'transform 0.3s ease-in-out'
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 1,
+          }}
+        >
           <Typography level="title-lg">Solution Summary</Typography>
-          <IconButton 
-            size="sm" 
-            variant="soft" 
-            color="neutral" 
+          <IconButton
+            size="sm"
+            variant="soft"
+            color="neutral"
             onClick={onClose}
           >
             <CloseIcon />
@@ -137,18 +146,28 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
 
         {/* Overall Statistics */}
         <Sheet variant="outlined" sx={{ p: 1.5, borderRadius: 'md', mb: 2 }}>
-          <Typography level="title-sm" sx={{ mb: 1 }}>Solution Statistics</Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+          <Typography level="title-sm" sx={{ mb: 1 }}>
+            Solution Statistics
+          </Typography>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}
+          >
             <Typography level="body-sm">Total Routes:</Typography>
             <Typography level="body-sm">{routes.length}</Typography>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}
+          >
             <Typography level="body-sm">Maximum Route Distance:</Typography>
-            <Typography level="body-sm">{maxDistance?.toFixed(2) ?? 'N/A'}</Typography>
+            <Typography level="body-sm">
+              {maxDistance?.toFixed(2) ?? 'N/A'}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography level="body-sm">Total Solution Distance:</Typography>
-            <Typography level="body-sm">{totalDistance?.toFixed(2) ?? 'N/A'}</Typography>
+            <Typography level="body-sm">
+              {totalDistance?.toFixed(2) ?? 'N/A'}
+            </Typography>
           </Box>
         </Sheet>
 
@@ -161,28 +180,28 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
 
           return (
             <Accordion key={`route-${index}`}>
-              <AccordionSummary 
+              <AccordionSummary
                 indicator={<ExpandMoreIcon />}
-                sx={{ 
+                sx={{
                   '&:hover': { bgcolor: 'background.level1' },
                   borderLeft: `4px solid ${routeColor}`,
                   paddingLeft: 1,
                 }}
               >
-                <Box color='' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  color=""
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Typography sx={{ fontWeight: 'bold' }}>
                     Vehicle {vehicleId}
                   </Typography>
-                  <Chip 
-                    size="sm" 
-                    variant="soft"
-                  >{routeStats.nodeCount} stops</Chip>
+                  <Chip size="sm" variant="soft">
+                    {routeStats.nodeCount} stops
+                  </Chip>
                   {skills.length > 0 && (
-                    <Chip 
-                      size="sm" 
-                      variant="soft" 
-                      color="primary"
-                    >{skills.length} skills</Chip>
+                    <Chip size="sm" variant="soft" color="primary">
+                      {skills.length} skills
+                    </Chip>
                   )}
                 </Box>
               </AccordionSummary>
@@ -191,14 +210,23 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
                 {skills.length > 0 && (
                   <Box sx={{ mb: 2 }}>
                     <Typography level="title-sm">Skills:</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                      {skills.map(skill => (
-                        <Chip key={skill} size="sm">{skill}</Chip>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 0.5,
+                        mt: 0.5,
+                      }}
+                    >
+                      {skills.map((skill) => (
+                        <Chip key={skill} size="sm">
+                          {skill}
+                        </Chip>
                       ))}
                     </Box>
                   </Box>
                 )}
-                
+
                 {/* Route Details Table */}
                 <Table size="sm" sx={{ mt: 1 }} stickyHeader>
                   <thead>
@@ -213,15 +241,15 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
                     {route.map((nodeId, stopIdx) => {
                       const node = getNodeById(nodeId);
                       if (!node) return null;
-                      
+
                       return (
                         <tr key={`stop-${stopIdx}-${nodeId}`}>
                           <td>{stopIdx}</td>
                           <td>
-                            <Chip 
-                              size="sm" 
+                            <Chip
+                              size="sm"
                               variant="soft"
-                              color={node.is_depot ? "success" : "primary"}
+                              color={node.is_depot ? 'success' : 'primary'}
                             >
                               {node.id}
                             </Chip>
@@ -232,27 +260,44 @@ const RouteSummaryPanel: React.FC<RouteSummaryPanelProps> = ({
                                 {`[${node.time_window[0]}, ${node.time_window[1]}]`}
                               </Typography>
                             ) : (
-                              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                              <Typography
+                                level="body-xs"
+                                sx={{ color: 'text.tertiary' }}
+                              >
                                 None
                               </Typography>
                             )}
                           </td>
                           <td>
-                            {node.required_skills && node.required_skills.length > 0 ? (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {node.required_skills.map(skill => (
-                                  <Chip 
-                                    key={skill} 
+                            {node.required_skills &&
+                            node.required_skills.length > 0 ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: 0.5,
+                                }}
+                              >
+                                {node.required_skills.map((skill) => (
+                                  <Chip
+                                    key={skill}
                                     size="sm"
                                     variant="outlined"
-                                    color={skills.includes(skill) ? "success" : "danger"}
+                                    color={
+                                      skills.includes(skill)
+                                        ? 'success'
+                                        : 'danger'
+                                    }
                                   >
                                     {skill}
                                   </Chip>
                                 ))}
                               </Box>
                             ) : (
-                              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                              <Typography
+                                level="body-xs"
+                                sx={{ color: 'text.tertiary' }}
+                              >
                                 None
                               </Typography>
                             )}
