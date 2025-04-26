@@ -2,15 +2,15 @@ name: CI/CD Frontend
 
 on:
   push:
-    # branches:
-    #   - main
-    #   - development
+    branches:
+      - main
+      - development
     paths:
       - 'frontend/**'
   pull_request:
-    # branches:
-    #   - main
-    #   - development
+    branches:
+      - main
+      - development
     paths:
       - 'frontend/**'
 
