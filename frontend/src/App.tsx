@@ -16,12 +16,14 @@ import RouteSummaryPanel from './components/RouteSummaryPanel'
 import exampleScenario from './assets/basic example.json'
 import ActionButtons from './components/ActionButtons'
 
+// test code 
+
 const queryClient = new QueryClient()
 
 function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialScenario: ScenarioData = {
-    nodes: exampleScenario.nodes as VRPNode[], 
+    nodes: exampleScenario.nodes as VRPNode[],
     num_vehicles: exampleScenario.num_vehicles,
     available_skills: exampleScenario.available_skills,
     vehicle_skills: Object.fromEntries(
@@ -53,7 +55,7 @@ function App() {
         setSelectedNode(null)
       }
       setStatusMessage(`Removed Node ${nodeIdToRemove}`)
-      setRoutes([]) 
+      setRoutes([])
       setShowRouteSummary(false)
     },
     [selectedNode]
@@ -66,7 +68,7 @@ function App() {
 
   const handleUpdateNode = useCallback((updatedNode: VRPNode) => {
     setNodes((prevNodes) => prevNodes.map((node) => (node.id === updatedNode.id ? updatedNode : node)))
-    setSelectedNode(updatedNode) 
+    setSelectedNode(updatedNode)
     setStatusMessage(`Updated Node ${updatedNode.id}`)
     setRoutes([])
     setShowRouteSummary(false)
@@ -82,7 +84,7 @@ function App() {
       return newSkills
     })
     setStatusMessage(`Number of vehicles set to ${count}`)
-    setRoutes([]) 
+    setRoutes([])
     setShowRouteSummary(false)
   }, [])
 
@@ -97,7 +99,7 @@ function App() {
         }))
       )
       setStatusMessage(`Skills updated`)
-      setRoutes([]) 
+      setRoutes([])
       setShowRouteSummary(false)
     },
     []
@@ -163,7 +165,7 @@ function App() {
             onSkillsChange={handleSkillsChange}
             selectedNode={selectedNode}
             onUpdateNode={handleUpdateNode}
-            onSolve={() => {}}
+            onSolve={() => { }}
             onClearRoutes={handleClearRoutes}
             onClearAll={handleClearAll}
             onLoadExample={handleLoadExample}
@@ -201,9 +203,9 @@ function App() {
                 p: 1,
                 borderRadius: 'sm',
                 display: 'flex',
-                justifyContent: 'center', 
+                justifyContent: 'center',
                 alignItems: 'center',
-                overflow: 'hidden' 
+                overflow: 'hidden'
               }}
             >
               <ActionButtons
@@ -228,9 +230,9 @@ function App() {
                 routes={routes}
                 selectedNodeId={selectedNode?.id ?? null}
                 onAddNode={handleAddNode}
-                onRemoveNode={handleRemoveNode} 
-                onSelectNode={handleSelectNode} 
-                width={800} 
+                onRemoveNode={handleRemoveNode}
+                onSelectNode={handleSelectNode}
+                width={800}
                 height={600}
               />
             </Sheet>
