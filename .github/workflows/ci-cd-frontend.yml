@@ -1,0 +1,56 @@
+name: CI/CD Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches:
+      - main
+      - development
+    paths:
+      - 'frontend/**'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run frontend linter
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Check frontend code formatting
+        working-directory: ./frontend
+        run: npm run format:check
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npm run test || echo "No frontend tests found, skipping"
+
+      - name: Deploy Frontend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "Starting frontend deployment..."

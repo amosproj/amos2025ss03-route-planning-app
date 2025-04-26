@@ -7,7 +7,7 @@ import {
   Input,
   FormControl,
   FormLabel,
-  Stack
+  Stack,
 } from '@mui/joy';
 
 interface VehicleConfigProps {
@@ -15,8 +15,11 @@ interface VehicleConfigProps {
   onNumVehiclesChange: (count: number) => void;
 }
 
-const VehicleConfig: React.FC<VehicleConfigProps> = ({ numVehicles, onNumVehiclesChange }) => {
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+const VehicleConfig: React.FC<VehicleConfigProps> = ({
+  numVehicles,
+  onNumVehiclesChange,
+}) => {
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
     onNumVehiclesChange(newValue as number);
   };
 
@@ -27,7 +30,9 @@ const VehicleConfig: React.FC<VehicleConfigProps> = ({ numVehicles, onNumVehicle
 
   return (
     <Box>
-      <Typography level="title-md" sx={{ mb: 2 }}>Vehicles</Typography>
+      <Typography level="title-md" sx={{ mb: 2 }}>
+        Vehicles
+      </Typography>
       <Stack direction="row" spacing={2} alignItems="center">
         <FormControl sx={{ width: '80%' }}>
           <FormLabel>Number of Vehicles</FormLabel>
@@ -53,7 +58,7 @@ const VehicleConfig: React.FC<VehicleConfigProps> = ({ numVehicles, onNumVehicle
                 min: 0,
                 max: 10,
                 step: 1,
-              }
+              },
             }}
           />
         </FormControl>

@@ -138,11 +138,7 @@
     }
   ],
   "num_vehicles": 4,
-  "available_skills": [
-    "electrician",
-    "refrigeration",
-    "heavy_lift"
-  ],
+  "available_skills": ["electrician", "refrigeration", "heavy_lift"],
   "vehicle_skills": {
     "0": [],
     "1": [],

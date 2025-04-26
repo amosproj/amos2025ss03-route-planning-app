@@ -19,17 +19,13 @@ const StatusBar: React.FC<StatusBarProps> = ({ message }) => {
         display: 'flex',
         justifyContent: 'space-between',
         zIndex: 1000,
-        boxShadow: '0px -1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0px -1px 3px rgba(0,0,0,0.1)',
       }}
     >
-      <Typography level="body-sm">
-        {message || 'Ready'}
-      </Typography>
-      
+      <Typography level="body-sm">{message || 'Ready'}</Typography>
+
       <Box>
-        <Typography level="body-sm">
-          VRP Solver App
-        </Typography>
+        <Typography level="body-sm">VRP Solver App</Typography>
       </Box>
     </Sheet>
   );
