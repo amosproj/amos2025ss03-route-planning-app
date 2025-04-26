@@ -1,5 +1,5 @@
 // frontend/src/App.tsx
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { CssVarsProvider } from '@mui/joy/styles'
 import CssBaseline from '@mui/joy/CssBaseline'
 import Box from '@mui/joy/Box'
@@ -15,8 +15,6 @@ import StatusBar from './components/StatusBar'
 import RouteSummaryPanel from './components/RouteSummaryPanel'
 import exampleScenario from './assets/basic example.json'
 import ActionButtons from './components/ActionButtons'
-
-// test code 1
 
 const queryClient = new QueryClient()
 

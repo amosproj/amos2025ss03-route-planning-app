@@ -16,7 +16,7 @@ interface VehicleConfigProps {
 }
 
 const VehicleConfig: React.FC<VehicleConfigProps> = ({ numVehicles, onNumVehiclesChange }) => {
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
     onNumVehiclesChange(newValue as number);
   };
 
