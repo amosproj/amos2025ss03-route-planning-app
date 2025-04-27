@@ -1,9 +1,9 @@
 # backend/app.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any, Union
 from solver import solve_vrp
+from models import *
+from inputAnalyzer import *
 
 app = FastAPI(title="VRP Solver API", 
               description="API for solving Vehicle Routing Problems for field service workers")
@@ -17,28 +17,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
-
-# Define data models
-class Node(BaseModel):
-    id: str | int
-    x: float
-    y: float
-    is_depot: bool
-    time_window: Optional[List[float]] = None
-    required_skills: Optional[List[str]] = None
-
-class VRPData(BaseModel):
-    nodes: List[Node]
-    num_vehicles: int
-    available_skills: Optional[List[str]] = Field(default_factory=list)
-    vehicle_skills: Optional[Dict[str, List[str]]] = Field(default_factory=dict)
-
-class VRPResponse(BaseModel):
-    status: str
-    routes: Optional[List[List[str|int]]] = None
-    max_distance: Optional[float] = None
-    total_distance: Optional[float] = None
-    message: Optional[str] = None
 
 @app.get("/api/test")
 def handle_test():
@@ -61,6 +39,14 @@ def handle_solve(data: VRPData):
         )
     
     return result
+@app.post("/api/company-info")
+def receive_company_info(company_info: CompanyInfo):
+    return validate_and_save_company_information(company_info)
+
+
+@app.post("/api/appointments")
+def receive_appointments(appointments: List[Appointment]):
+    return validate_and_save_appointment_information(appointments)
 
 if __name__ == "__main__":
     import uvicorn
