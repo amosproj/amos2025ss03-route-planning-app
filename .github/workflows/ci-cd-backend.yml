@@ -1,0 +1,44 @@
+name: CI/CD Backend
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches:
+      - main
+      - development
+    paths:
+      - 'backend/**'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Deploy Backend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "Starting backend deployment..."
