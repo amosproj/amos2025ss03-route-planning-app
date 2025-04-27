@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Backend
 
 on:
   push:
@@ -15,8 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
-        python-version: [3.10]
+        python-version: [3.11]
 
     steps:
       - name: Checkout repository
@@ -24,25 +23,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      # FRONTEND
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm install
-
-      - name: Build frontend
-        working-directory: ./frontend
-        run: npm run build
-
-      - name: Run frontend tests
-        working-directory: ./frontend
-        run: npm run test || echo "No frontend tests found, skipping"
-
-      # BACKEND
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -62,13 +42,6 @@ jobs:
           else
             echo "No backend tests found, skipping"
 
-      # FRONTEND DEPLOY
-      - name: Deploy Frontend
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          echo "Starting frontend deployment..."
-
-      # BACKEND DEPLOY
       - name: Deploy Backend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
