@@ -1,20 +1,21 @@
 // frontend/src/App.tsx
-import { useState, useCallback } from 'react';
-import { CssVarsProvider } from '@mui/joy/styles';
-import CssBaseline from '@mui/joy/CssBaseline';
 import Box from '@mui/joy/Box';
-import Stack from '@mui/joy/Stack';
+import CssBaseline from '@mui/joy/CssBaseline';
 import Sheet from '@mui/joy/Sheet';
+import Stack from '@mui/joy/Stack';
+import { CssVarsProvider } from '@mui/joy/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 
-import { VRPNode, Route, ScenarioData } from './types';
-import ControlPanel from './components/ControlPanel';
-import NodeConfigPanel from './components/NodeConfigPanel';
-import Canvas from './components/Canvas';
-import StatusBar from './components/StatusBar';
-import RouteSummaryPanel from './components/RouteSummaryPanel';
 import exampleScenario from './assets/basic example.json';
 import ActionButtons from './components/ActionButtons';
+import Canvas from './components/Canvas';
+import ControlPanel from './components/ControlPanel';
+import Navbar from './components/Navbar';
+import NodeConfigPanel from './components/NodeConfigPanel';
+import RouteSummaryPanel from './components/RouteSummaryPanel';
+import StatusBar from './components/StatusBar';
+import { Route, ScenarioData, VRPNode } from './types';
 
 // test code
 
@@ -177,91 +178,93 @@ function App() {
   return (
     <CssVarsProvider>
       <CssBaseline />
+
       <QueryClientProvider client={queryClient}>
-        <Box sx={{ display: 'flex', height: '100vh', p: 1, gap: 1 }}>
-          {/* Control Panel Area */}
-          <ControlPanel
-            numVehicles={numVehicles}
-            onNumVehiclesChange={handleNumVehiclesChange}
-            availableSkills={availableSkills}
-            vehicleSkills={vehicleSkills}
-            onSkillsChange={handleSkillsChange}
-            selectedNode={selectedNode}
-            onUpdateNode={handleUpdateNode}
-            onSolve={() => {}}
-            onClearRoutes={handleClearRoutes}
-            onClearAll={handleClearAll}
-            onLoadExample={handleLoadExample}
-            getCurrentScenarioData={getCurrentScenarioData}
-            setStatusMessage={setStatusMessage}
-            setRoutes={setRoutes}
-          />
-
-          {selectedNode && !showRouteSummary && (
-            <NodeConfigPanel
-              node={selectedNode}
+        <Box sx={{ height: '100vh' }}>
+          <Navbar />
+          <Box sx={{ display: 'flex', p: 1, gap: 1, position: 'relative' }}>
+            {/* Control Panel Area */}
+            <ControlPanel
+              numVehicles={numVehicles}
+              onNumVehiclesChange={handleNumVehiclesChange}
               availableSkills={availableSkills}
-              updateNode={handleUpdateNode}
-              onClose={() => setSelectedNode(null)}
-            />
-          )}
-
-          {routes.length > 0 && (
-            <RouteSummaryPanel
-              routes={routes}
-              nodes={nodes}
               vehicleSkills={vehicleSkills}
-              maxDistance={maxDistance}
-              totalDistance={totalDistance}
-              onClose={() => setShowRouteSummary(false)}
+              onSkillsChange={handleSkillsChange}
+              selectedNode={selectedNode}
+              onUpdateNode={handleUpdateNode}
+              onSolve={() => {}}
+              onClearRoutes={handleClearRoutes}
+              onClearAll={handleClearAll}
+              onLoadExample={handleLoadExample}
+              getCurrentScenarioData={getCurrentScenarioData}
+              setStatusMessage={setStatusMessage}
+              setRoutes={setRoutes}
             />
-          )}
-
-          {/* Canvas and Status Area */}
-          <Stack sx={{ flexGrow: 1, gap: 1 }}>
-            <Sheet
-              variant="outlined"
-              sx={{
-                flexGrow: 1,
-                p: 1,
-                borderRadius: 'sm',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden',
-              }}
-            >
-              <ActionButtons
-                onClearNodes={handleClearAll}
-                onSave={function (): void {
-                  throw new Error('Function not implemented.');
-                }}
-                onLoad={handleLoadExample}
-                onClearRoutes={handleClearRoutes}
-                setStatusMessage={setStatusMessage}
-                setRoutes={(routes, maxDist, totalDist) => {
-                  setRoutes(routes);
-                  setMaxDistance(maxDist);
-                  setTotalDistance(totalDist);
-                  setShowRouteSummary(routes.length > 0);
-                }}
-                getCurrentScenarioData={getCurrentScenarioData}
+            {selectedNode && !showRouteSummary && (
+              <NodeConfigPanel
+                node={selectedNode}
+                availableSkills={availableSkills}
+                updateNode={handleUpdateNode}
+                onClose={() => setSelectedNode(null)}
               />
-              {/* --- Canvas Component --- */}
-              <Canvas
-                nodes={nodes}
+            )}
+            {routes.length > 0 && (
+              <RouteSummaryPanel
                 routes={routes}
-                selectedNodeId={selectedNode?.id ?? null}
-                onAddNode={handleAddNode}
-                onRemoveNode={handleRemoveNode}
-                onSelectNode={handleSelectNode}
-                width={800}
-                height={600}
+                nodes={nodes}
+                vehicleSkills={vehicleSkills}
+                maxDistance={maxDistance}
+                totalDistance={totalDistance}
+                onClose={() => setShowRouteSummary(false)}
               />
-            </Sheet>
-            {/* --- Status Bar --- */}
-            <StatusBar message={statusMessage} />
-          </Stack>
+            )}
+            hi
+            {/* Canvas and Status Area */}
+            <Stack sx={{ flexGrow: 1, gap: 1 }}>
+              <Sheet
+                variant="outlined"
+                sx={{
+                  flexGrow: 1,
+                  p: 1,
+                  borderRadius: 'sm',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                <ActionButtons
+                  onClearNodes={handleClearAll}
+                  onSave={function (): void {
+                    throw new Error('Function not implemented.');
+                  }}
+                  onLoad={handleLoadExample}
+                  onClearRoutes={handleClearRoutes}
+                  setStatusMessage={setStatusMessage}
+                  setRoutes={(routes, maxDist, totalDist) => {
+                    setRoutes(routes);
+                    setMaxDistance(maxDist);
+                    setTotalDistance(totalDist);
+                    setShowRouteSummary(routes.length > 0);
+                  }}
+                  getCurrentScenarioData={getCurrentScenarioData}
+                />
+                {/* --- Canvas Component --- */}
+                <Canvas
+                  nodes={nodes}
+                  routes={routes}
+                  selectedNodeId={selectedNode?.id ?? null}
+                  onAddNode={handleAddNode}
+                  onRemoveNode={handleRemoveNode}
+                  onSelectNode={handleSelectNode}
+                  width={800}
+                  height={600}
+                />
+              </Sheet>
+              {/* --- Status Bar --- */}
+              <StatusBar message={statusMessage} />
+            </Stack>
+          </Box>
         </Box>
       </QueryClientProvider>
     </CssVarsProvider>
