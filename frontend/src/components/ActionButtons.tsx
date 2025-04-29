@@ -2,7 +2,7 @@ import { Box, Button } from '@mui/joy';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import React from 'react';
-import { SolverResult, ScenarioData, Route } from '../types';
+import { Route, ScenarioData, SolverResult } from '../types';
 
 interface ActionButtonsProps {
   onClearNodes: () => void;
