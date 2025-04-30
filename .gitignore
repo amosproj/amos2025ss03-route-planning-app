@@ -34,3 +34,7 @@ bin/
 
 # MacOS
 .DS_Store
+
+project_files_*.txt
+
+collect_files.py
