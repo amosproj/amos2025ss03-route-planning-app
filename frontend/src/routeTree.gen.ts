@@ -11,18 +11,12 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
-import { Route as PostsIndexImport } from './routes/posts/index'
-import { Route as PostsPostIdImport } from './routes/posts/$postId'
+import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
+import { Route as MapViewIndexImport } from './routes/map-view/index'
+import { Route as DailyPlanIndexImport } from './routes/daily-plan/index'
 
 // Create/Update Routes
-
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -30,15 +24,21 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const PostsIndexRoute = PostsIndexImport.update({
-  id: '/posts/',
-  path: '/posts/',
+const WorkerViewIndexRoute = WorkerViewIndexImport.update({
+  id: '/worker-view/',
+  path: '/worker-view/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const PostsPostIdRoute = PostsPostIdImport.update({
-  id: '/posts/$postId',
-  path: '/posts/$postId',
+const MapViewIndexRoute = MapViewIndexImport.update({
+  id: '/map-view/',
+  path: '/map-view/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DailyPlanIndexRoute = DailyPlanIndexImport.update({
+  id: '/daily-plan/',
+  path: '/daily-plan/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,25 +53,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
+    '/daily-plan/': {
+      id: '/daily-plan/'
+      path: '/daily-plan'
+      fullPath: '/daily-plan'
+      preLoaderRoute: typeof DailyPlanIndexImport
       parentRoute: typeof rootRoute
     }
-    '/posts/$postId': {
-      id: '/posts/$postId'
-      path: '/posts/$postId'
-      fullPath: '/posts/$postId'
-      preLoaderRoute: typeof PostsPostIdImport
+    '/map-view/': {
+      id: '/map-view/'
+      path: '/map-view'
+      fullPath: '/map-view'
+      preLoaderRoute: typeof MapViewIndexImport
       parentRoute: typeof rootRoute
     }
-    '/posts/': {
-      id: '/posts/'
-      path: '/posts'
-      fullPath: '/posts'
-      preLoaderRoute: typeof PostsIndexImport
+    '/worker-view/': {
+      id: '/worker-view/'
+      path: '/worker-view'
+      fullPath: '/worker-view'
+      preLoaderRoute: typeof WorkerViewIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -81,47 +81,47 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts': typeof PostsIndexRoute
+  '/daily-plan': typeof DailyPlanIndexRoute
+  '/map-view': typeof MapViewIndexRoute
+  '/worker-view': typeof WorkerViewIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts': typeof PostsIndexRoute
+  '/daily-plan': typeof DailyPlanIndexRoute
+  '/map-view': typeof MapViewIndexRoute
+  '/worker-view': typeof WorkerViewIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/posts/$postId': typeof PostsPostIdRoute
-  '/posts/': typeof PostsIndexRoute
+  '/daily-plan/': typeof DailyPlanIndexRoute
+  '/map-view/': typeof MapViewIndexRoute
+  '/worker-view/': typeof WorkerViewIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/posts/$postId' | '/posts'
+  fullPaths: '/' | '/daily-plan' | '/map-view' | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/posts/$postId' | '/posts'
-  id: '__root__' | '/' | '/about' | '/posts/$postId' | '/posts/'
+  to: '/' | '/daily-plan' | '/map-view' | '/worker-view'
+  id: '__root__' | '/' | '/daily-plan/' | '/map-view/' | '/worker-view/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  PostsPostIdRoute: typeof PostsPostIdRoute
-  PostsIndexRoute: typeof PostsIndexRoute
+  DailyPlanIndexRoute: typeof DailyPlanIndexRoute
+  MapViewIndexRoute: typeof MapViewIndexRoute
+  WorkerViewIndexRoute: typeof WorkerViewIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  PostsPostIdRoute: PostsPostIdRoute,
-  PostsIndexRoute: PostsIndexRoute,
+  DailyPlanIndexRoute: DailyPlanIndexRoute,
+  MapViewIndexRoute: MapViewIndexRoute,
+  WorkerViewIndexRoute: WorkerViewIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -135,22 +135,22 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
-        "/posts/$postId",
-        "/posts/"
+        "/daily-plan/",
+        "/map-view/",
+        "/worker-view/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/daily-plan/": {
+      "filePath": "daily-plan/index.tsx"
     },
-    "/posts/$postId": {
-      "filePath": "posts/$postId.tsx"
+    "/map-view/": {
+      "filePath": "map-view/index.tsx"
     },
-    "/posts/": {
-      "filePath": "posts/index.tsx"
+    "/worker-view/": {
+      "filePath": "worker-view/index.tsx"
     }
   }
 }
