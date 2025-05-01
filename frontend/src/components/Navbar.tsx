@@ -1,11 +1,5 @@
 import MenuIcon from '@mui/icons-material/Menu';
-import {
-  IconButton,
-  Link as JoyLink,
-  Sheet,
-  Stack,
-  Typography,
-} from '@mui/joy';
+import { IconButton, Sheet, Stack, Typography } from '@mui/joy';
 
 import { Link } from '@tanstack/react-router';
 
