@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@mui/joy';
 
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 const Navbar = () => {
   const menuItems = [
