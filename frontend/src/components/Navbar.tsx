@@ -7,6 +7,8 @@ import {
   Typography,
 } from '@mui/joy';
 
+import { Link } from '@tanstack/react-router'
+
 const Navbar = () => {
   return (
     <Sheet
@@ -41,13 +43,19 @@ const Navbar = () => {
         spacing={3}
         sx={{ display: { xs: 'none', sm: 'flex' } }}
       >
-        <JoyLink href="/" underline="none">
-          Map View
+        <JoyLink>
+          <Link to="/" className="[&.active]:font-bold">
+            Home
+          </Link>
+          {/* Map View */}
         </JoyLink>
-        <JoyLink href="/about" underline="none">
-          Daily Plan
+        <JoyLink>
+          <Link to="/about" className="[&.active]:font-bold">
+            About
+          </Link>
+          {/* Daily Plan */}
         </JoyLink>
-        <JoyLink href="/contact" underline="none">
+        <JoyLink>
           Worker View
         </JoyLink>
       </Stack>
