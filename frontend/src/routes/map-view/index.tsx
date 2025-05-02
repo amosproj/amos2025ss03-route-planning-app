@@ -5,5 +5,5 @@ export const Route = createFileRoute('/map-view/')({
 });
 
 function MapView() {
-  return <div>Hello "/map-view/"!</div>;
+  return <div className="text-primary">Hello "/map-view/"!</div>;
 }
