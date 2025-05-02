@@ -36,9 +36,9 @@ const FileDropzone = () => {
     });
 
   const files = acceptedFiles.map((file) => (
-    <p key={file.path}>
+    <span key={file.path}>
       {file.name} - {file.size} bytes
-    </p>
+    </span>
   ));
   return (
     <section>
