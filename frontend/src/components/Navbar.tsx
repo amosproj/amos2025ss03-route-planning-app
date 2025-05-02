@@ -1,15 +1,16 @@
 import MenuIcon from '@mui/icons-material/Menu';
-import {
-  IconButton,
-  Link as JoyLink,
-  Sheet,
-  Stack,
-  Typography,
-} from '@mui/joy';
+import { IconButton, Sheet, Stack, Typography } from '@mui/joy';
 
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 const Navbar = () => {
+  const menuItems = [
+    { name: 'Home', path: '/' },
+    { name: 'Map View', path: '/map-view' },
+    { name: 'Daily Plan', path: '/daily-plan' },
+    { name: 'Worker View', path: '/worker-view' },
+  ];
+
   return (
     <Sheet
       variant="outlined"
@@ -40,24 +41,32 @@ const Navbar = () => {
       {/* Desktop Nav */}
       <Stack
         direction="row"
-        spacing={3}
+        spacing={2}
         sx={{ display: { xs: 'none', sm: 'flex' } }}
       >
-        <JoyLink>
-          <Link to="/" className="[&.active]:font-bold">
-            Home
+        {menuItems.map((item) => (
+          <Link
+            key={item.name}
+            to={item.path}
+            style={{ textDecoration: 'none' }}
+            activeProps={{ style: { fontWeight: 'bold' } }}
+          >
+            <Typography
+              level="body-md"
+              color="primary"
+              sx={{
+                minWidth: '100px', // or whatever is suitable
+                textAlign: 'center',
+                display: 'inline-block',
+                '&:hover': {
+                  fontWeight: 'bold',
+                },
+              }}
+            >
+              {item.name}
+            </Typography>
           </Link>
-          {/* Map View */}
-        </JoyLink>
-        <JoyLink>
-          <Link to="/about" className="[&.active]:font-bold">
-            About
-          </Link>
-          {/* Daily Plan */}
-        </JoyLink>
-        <JoyLink>
-          Worker View
-        </JoyLink>
+        ))}
       </Stack>
 
       {/* Mobile Menu Icon */}
