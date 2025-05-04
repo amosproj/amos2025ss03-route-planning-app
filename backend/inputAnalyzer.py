@@ -65,14 +65,6 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
     )
 
 
-
-def test_adresses(appointments: List[Appointment]):
-    for appointment in appointments:
-        if not validate_single_address_with_google_maps(appointment.street, appointment.zip_code, appointment.city):
-            return {"message": "Address doesnt work"}
-        else:
-            return {"message": "Address works"}
-
 def validate_company_info(company_info: CompanyInfo):
 
     errors = []
@@ -149,7 +141,11 @@ def validate_appointments(appointments: List[Appointment]):
             all_valid = False
 
     if errors:
-        return False, errors, address_responses
+        return {
+            "all_valid": False,
+            "errors": errors,
+            "address_responses": address_responses
+        }
 
     return {
         "all_valid": all_valid,
