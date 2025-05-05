@@ -1,16 +1,9 @@
-// // frontend/src/main.tsx
-// import React from 'react';
-// import ReactDOM from 'react-dom/client';
-// import App from './App.tsx';
-
-// ReactDOM.createRoot(document.getElementById('root')!).render(
-//   <React.StrictMode>
-//     <App />
-//   </React.StrictMode>,
-// );
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store';
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
@@ -31,7 +24,11 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <RouterProvider router={router} />
+        </PersistGate>
+      </Provider>
     </StrictMode>,
   );
 }

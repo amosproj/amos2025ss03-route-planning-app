@@ -6,6 +6,7 @@ import { Link } from '@tanstack/react-router';
 const Navbar = () => {
   const menuItems = [
     { name: 'Home', path: '/' },
+    { name: 'Scenarios', path: '/scenarios' },
     { name: 'Map View', path: '/map-view' },
     { name: 'Daily Plan', path: '/daily-plan' },
     { name: 'Worker View', path: '/worker-view' },

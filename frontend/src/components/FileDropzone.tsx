@@ -1,26 +1,26 @@
 import { Typography } from '@mui/joy';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useDispatch } from 'react-redux';
+import { setScenarios } from '../store/scenariosSlice';
+import { parseScenarioFromCsv } from '../utils/helper';
 
 const FileDropzone = () => {
+  const dispatch = useDispatch();
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     console.log('Selected file:', file);
+    const text = await file.text();
+    const parsed = parseScenarioFromCsv(text);
+    console.log('Parsed scenarios:', parsed);
+
+    // Dispatch to Redux store and persist
+    dispatch(setScenarios(parsed));
 
     const formData = new FormData();
     formData.append('file', file);
 
-    // try {
-    //   const response = await axios.post("http://localhost:8000/upload", formData, {
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   });
-    //   console.log("Upload successful:", response.data);
-    // } catch (error) {
-    //   console.error("Upload failed:", error);
-    // }
-  }, []);
+  }, [dispatch]);
 
   const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
     useDropzone({
