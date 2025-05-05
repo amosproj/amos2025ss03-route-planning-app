@@ -30,6 +30,8 @@ const formSchema = z.object({
   optimizationPlan: z.enum(['profit', 'time']).default('profit'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 export function RouteInputForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -41,7 +43,7 @@ export function RouteInputForm() {
     },
   });
 
-  const onSubmit = (values: any) => {
+  const onSubmit = (values: FormSchemaType) => {
     console.log('Form values:', values);
   };
 

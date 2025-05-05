@@ -1,9 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { useState } from 'react';
 
 const Navbar = () => {
-  const [open, setOpen] = useState(false);
-
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Map View', path: '/map-view' },
