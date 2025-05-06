@@ -1,11 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { Box, Typography, Chip, Stack, ModalDialog } from '@mui/joy';
+import {
+  Box,
+  Typography,
+  Chip,
+  Stack,
+  ModalDialog,
+  IconButton,
+} from '@mui/joy';
 import { useState } from 'react';
 import { Card } from '@mui/joy';
 import { Room } from '@mui/icons-material';
 import { LocalShipping } from '@mui/icons-material';
+import { ArrowForward } from '@mui/icons-material';
 import Modal from '@mui/joy/Modal';
 import Table from '@mui/joy/Table';
 import { Job } from '../../types/Job';
@@ -47,9 +55,11 @@ function ScenarioList() {
     <Box className="p-4">
       <Stack spacing={2}>
         <Stack direction="row" spacing={2}>
-          {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((day) => (
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
             <Box key={day} sx={{ flex: 1 }}>
-              <Typography level="h4" textAlign="center">{day}</Typography>
+              <Typography level="h4" textAlign="center">
+                {day}
+              </Typography>
             </Box>
           ))}
         </Stack>
@@ -63,11 +73,22 @@ function ScenarioList() {
                   key={key}
                   variant="outlined"
                   sx={{ flex: 1, cursor: sc ? 'pointer' : 'default' }}
-                  onClick={() => sc && setSelected(sc)}
                 >
-                  <Typography level="h4">{day.getDate()}</Typography>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography level="h4">{day.getDate()}</Typography>
+                    {sc && (
+                      <IconButton variant="outlined">
+                        <ArrowForward />
+                      </IconButton>
+                    )}
+                  </Stack>
                   {sc && (
-                    <Chip color="primary" size="sm" startDecorator={<Room />}>
+                    <Chip
+                      onClick={() => sc && setSelected(sc)}
+                      color="primary"
+                      size="sm"
+                      startDecorator={<Room />}
+                    >
                       {sc.jobs.length} jobs
                     </Chip>
                   )}
