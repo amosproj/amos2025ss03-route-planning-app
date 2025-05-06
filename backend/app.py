@@ -1,6 +1,7 @@
 # backend/app.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from solver import solve_vrp
 from models import *
 from inputAnalyzer import *
@@ -46,7 +47,10 @@ def receive_company_info(company_info: CompanyInfo):
 
 @app.post("/api/appointments")
 def receive_appointments(appointments: List[Appointment]):
-    return validate_and_save_appointment_information(appointments)
+    return validate_appointments(appointments)
+@app.post("/api/appointments_address_test")
+def receive_appointments(appointments: List[Appointment]):
+    return test_adresses(appointments)
 
 if __name__ == "__main__":
     import uvicorn

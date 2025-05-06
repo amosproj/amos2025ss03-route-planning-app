@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any, Union
+from typing import List, Dict, Optional
+from dataclasses import dataclass
 
 # Define data models
 class Node(BaseModel):
@@ -35,3 +36,19 @@ class CompanyInfo(BaseModel):
     start_address: str
     finish_address: str
     number_of_workers: int
+
+class OptimizationRequest(BaseModel):
+    company_info: CompanyInfo
+    appointments: List[Appointment]
+
+
+@dataclass
+class EnhancedAddressResponse:
+    could_be_fully_found: bool
+    error_information: Optional[str]
+    street: str
+    zipcode: str
+    city: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
