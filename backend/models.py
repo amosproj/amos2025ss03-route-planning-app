@@ -51,6 +51,24 @@ class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
     appointments: List[Appointment]
 
+class Location(BaseModel):
+    id: str
+    lat: float
+    lng: float
+
+class DistanceMatrixRequest(BaseModel):
+    locations: List[Location]
+
+class MatrixElement(BaseModel):
+    from_id: str
+    to_id: str
+    distance_text: str
+    distance_value: int
+    duration_text: str
+    duration_value: int
+
+class DistanceMatrixResponse(BaseModel):
+    matrix: List[MatrixElement]
 
 @dataclass
 class EnhancedAddressResponse:

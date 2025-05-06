@@ -1,62 +1,40 @@
-import MenuIcon from '@mui/icons-material/Menu';
-import {
-  IconButton,
-  Link as JoyLink,
-  Sheet,
-  Stack,
-  Typography,
-} from '@mui/joy';
+import { Link } from '@tanstack/react-router';
 
 const Navbar = () => {
+  const menuItems = [
+    { name: 'Home', path: '/' },
+    { name: 'Scenarios', path: '/scenarios' },
+    { name: 'Map View', path: '/map-view' },
+    { name: 'Daily Plan', path: '/daily-plan' },
+    { name: 'Worker View', path: '/worker-view' },
+  ];
+
   return (
-    <Sheet
-      variant="outlined"
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        p: 2,
-        borderRadius: 'md',
-        boxShadow: 'sm',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1400,
-      }}
-    >
-      {/* Logo and Title */}
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <img
-          src="/team-logo.svg"
-          alt="Team Logo"
-          style={{ width: 52, height: 52 }}
-        />
-        <Typography level="title-lg" color="primary">
-          AMOS - Smart Route Planning
-        </Typography>
-      </Stack>
+    <div className=" sticky top-0 z-50 border-b bg-white shadow-sm">
+      <div className="mx-auto container flex items-center justify-between p-4">
+        {/* Logo and Title */}
+        <div className="flex items-center gap-3">
+          <img src="/team-logo.svg" alt="Team Logo" width={52} height={52} />
+          <h1 className="text-xl font-semibold text-primary">
+            AMOS - Smart Route Planning
+          </h1>
+        </div>
 
-      {/* Desktop Nav */}
-      <Stack
-        direction="row"
-        spacing={3}
-        sx={{ display: { xs: 'none', sm: 'flex' } }}
-      >
-        <JoyLink href="/" underline="none">
-          Map View
-        </JoyLink>
-        <JoyLink href="/about" underline="none">
-          Daily Plan
-        </JoyLink>
-        <JoyLink href="/contact" underline="none">
-          Worker View
-        </JoyLink>
-      </Stack>
-
-      {/* Mobile Menu Icon */}
-      <IconButton sx={{ display: { xs: 'flex', sm: 'none' } }}>
-        <MenuIcon />
-      </IconButton>
-    </Sheet>
+        {/* Desktop Navigation */}
+        <div className="hidden sm:flex gap-4">
+          {menuItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className="text-primary hover:font-bold px-2"
+              activeProps={{ className: 'font-bold ' }}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

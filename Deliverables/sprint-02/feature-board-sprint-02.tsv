@@ -1,0 +1,28 @@
+Title	URL	Assignees	Status	Estimated size	Real size
+Visualize Worker Routes on Google Maps	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/5		Product Backlog	10	
+Implement Route Optimization System Logic	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/3		Product Backlog	10	
+Switch Between  Optimization Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/7		Product Backlog	5	
+View Daily Plan (All Workers)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/4		Product Backlog		
+View Individual Worker Plan	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/6		Product Backlog		
+Preselect Optimization Mode Based on User History	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/39		Product Backlog		
+Redirect to Map View with Plan Preselected	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/40		Product Backlog		
+Excel File Upload Functionality	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/33		Sprint Backlog		
+Convert Uploaded Excel File to JSON	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/30		Sprint Backlog		
+JSON Schema Validation for Uploaded File	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/42		Sprint Backlog		
+Validate Addresses via Google Maps Geocoding API	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/44		Sprint Backlog		
+Trigger Optimization by Sending Data and Selected Plan to Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/43		Sprint Backlog		
+Implement Travel Time-Efficient Optimization Plan (Phase 1)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/32		Sprint Backlog		
+Convert Optimization Output to JSON	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/31		Sprint Backlog		
+Build File Upload Component	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/35		Sprint Backlog		
+Implement Start and Finish Address Fields (Business data)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/36		Sprint Backlog		
+Add Worker Count Slider Component	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/37		Sprint Backlog		
+Create Optimization Plan Selector (Phase 1)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/38		Sprint Backlog		
+Create "Start Optimization" Button	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/41		Sprint Backlog		
+Save & Load Scenarios from JSON	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/8	SUFelix	In Progress	5	
+Set Up Software Architecture Diagram	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/16	innif, jkleinau, SUFelix	In Progress	5	
+Set up Initial Design of the Index Page	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/17	fariarahman15, jkleinau	In Progress	3	
+Receive Worker & Appointment Data and Sample UI Designs from Andi	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/12	dkarkani	In Progress	1	
+Set up Front End	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/13	fariarahman15, jkleinau	Awaiting Review	2	
+Set up Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/14	innif, jkleinau	Awaiting Review	2	3
+Design Initial UI Wireframes for Upload Page	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/34	arkadeepberlin	Awaiting Review		
+Set Up CI/CD Pipeline	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/15	fahimu10, SK-Subroto	Awaiting Review	5	0
