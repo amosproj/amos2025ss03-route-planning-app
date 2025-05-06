@@ -1,0 +1,92 @@
+{
+  "status": "OK",
+  "results": [
+    {
+      "address_components": [
+        {
+          "long_name": "Mensa/Hörsaal/Bibliothek-Gebäude",
+          "short_name": "MHB-Gebäude",
+          "types": ["premise"]
+        },
+        {
+          "long_name": "60",
+          "short_name": "60",
+          "types": ["street_number"]
+        },
+        {
+          "long_name": "Erwin-Rommel-Straße",
+          "short_name": "Erwin-Rommel-Straße",
+          "types": ["route"]
+        },
+        {
+          "long_name": "Erlangen",
+          "short_name": "ERH",
+          "types": ["locality", "political"]
+        },
+        {
+          "long_name": "Kreisfreie Stadt Erlangen",
+          "short_name": "Kreisfreie Stadt Erlangen",
+          "types": ["administrative_area_level_3", "political"]
+        },
+        {
+          "long_name": "Mittelfranken",
+          "short_name": "Mittelfranken",
+          "types": ["administrative_area_level_2", "political"]
+        },
+        {
+          "long_name": "Bayern",
+          "short_name": "BY",
+          "types": ["administrative_area_level_1", "political"]
+        },
+        {
+          "long_name": "Germany",
+          "short_name": "DE",
+          "types": ["country", "political"]
+        },
+        {
+          "long_name": "91058",
+          "short_name": "91058",
+          "types": ["postal_code"]
+        }
+      ],
+      "formatted_address": "Mensa/Hörsaal/Bibliothek-Gebäude, Erwin-Rommel-Straße 60, 91058 Erlangen, Germany",
+      "geometry": {
+        "bounds": {
+          "northeast": {
+            "lat": 49.5752241,
+            "lng": 11.0303659
+          },
+          "southwest": {
+            "lat": 49.5738883,
+            "lng": 11.0286334
+          }
+        },
+        "location": {
+          "lat": 49.574897,
+          "lng": 11.0298919
+        },
+        "location_type": "ROOFTOP",
+        "viewport": {
+          "northeast": {
+            "lat": 49.5759051802915,
+            "lng": 11.0308694802915
+          },
+          "southwest": {
+            "lat": 49.57320721970851,
+            "lng": 11.0281715197085
+          }
+        }
+      },
+      "navigation_points": [
+        {
+          "location": {
+            "latitude": 49.5751611,
+            "longitude": 11.030336
+          }
+        }
+      ],
+      "place_id": "ChIJowjDVDX5oUcRYkt3dvuX9LI",
+      "types": ["premise", "street_address"]
+    }
+  ]
+}

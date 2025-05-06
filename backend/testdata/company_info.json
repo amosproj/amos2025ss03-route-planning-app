@@ -1,5 +1,24 @@
 {
-    "start_address": "Görlitzer Str. 3",
-    "finish_address": "Görlitzer Str. 3",
-    "number_of_workers": 5
+  "start_address": {
+    "street": "Görlitzer Str. 3",
+    "zip_code": "10997",
+    "city": "Berlin"
+  },
+  "finish_address": {
+    "street": "Görlitzer Str. 3",
+    "zip_code": "10997",
+    "city": "Berlin"
+  },
+  "number_of_workers": [
+    {
+      "vehicle_id": 1,
+      "skills": "electrician",
+      "worker_amount": 2
+    },
+    {
+      "vehicle_id": 2,
+      "skills": "plumber",
+      "worker_amount": 1
+    }
+  ]
 }
