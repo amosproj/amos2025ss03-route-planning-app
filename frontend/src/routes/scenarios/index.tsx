@@ -1,23 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import {
-  Box,
-  Typography,
-  Chip,
-  Stack,
-  ModalDialog,
-  IconButton,
-} from '@mui/joy';
 import { useState } from 'react';
-import { Card } from '@mui/joy';
-import { Room } from '@mui/icons-material';
-import { LocalShipping } from '@mui/icons-material';
-import { ArrowForward } from '@mui/icons-material';
-import Modal from '@mui/joy/Modal';
-import Table from '@mui/joy/Table';
 import { Job } from '../../types/Job';
 import { Scenario } from '../../types/Scenario';
+import { Button } from '@/components/ui/button';
+import { MapPin, Truck, ArrowRight, X } from 'lucide-react';
 
 export const Route = createFileRoute('/scenarios/')({
   component: ScenarioList,
@@ -52,98 +40,98 @@ function ScenarioList() {
   }
 
   return (
-    <Box className="p-4">
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={2}>
+    <div className="p-4">
+      <div className="flex flex-col space-y-2">
+        <div className="flex flex-row space-x-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-            <Box key={day} sx={{ flex: 1 }}>
-              <Typography level="h4" textAlign="center">
-                {day}
-              </Typography>
-            </Box>
+            <div key={day} className="flex-1">
+              <h4 className="text-lg font-semibold text-center">{day}</h4>
+            </div>
           ))}
-        </Stack>
+        </div>
         {weeks.map((week, wi) => (
-          <Stack key={wi} direction="row" spacing={2}>
+          <div key={wi} className="flex flex-row space-x-2">
             {week.map((day) => {
-              const key = day.toISOString();
+              const keyStr = day.toISOString();
               const sc = dateMap.get(day.toDateString());
               return (
-                <Card
-                  key={key}
-                  variant="outlined"
-                  sx={{ flex: 1, cursor: sc ? 'pointer' : 'default' }}
+                <div
+                  key={keyStr}
+                  className={`flex-1 border border-gray-200 rounded-md p-2 flex flex-col ${
+                    sc ? 'cursor-pointer hover:bg-gray-50' : ''
+                  }`}
                 >
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography level="h4">{day.getDate()}</Typography>
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-lg font-semibold">{day.getDate()}</h4>
                     {sc && (
-                      <IconButton variant="outlined">
-                        <ArrowForward />
-                      </IconButton>
+                      <Button variant="ghost" size="icon">
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
                     )}
-                  </Stack>
+                  </div>
                   {sc && (
-                    <Chip
-                      onClick={() => sc && setSelected(sc)}
-                      color="primary"
-                      size="sm"
-                      startDecorator={<Room />}
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-1 mt-2 rounded bg-primary text-primary-foreground text-xs font-medium"
+                      onClick={() => setSelected(sc)}
                     >
+                      <MapPin className="h-4 w-4" />
                       {sc.jobs.length} jobs
-                    </Chip>
+                    </span>
                   )}
                   {sc && (
-                    <Chip
-                      color="primary"
-                      size="sm"
-                      startDecorator={<LocalShipping />}
-                    >
-                      {sc.vehicles.length} Vehicles
-                    </Chip>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded bg-primary text-primary-foreground text-xs font-medium">
+                      <Truck className="h-4 w-4" />
+                      {sc.vehicles.length} vehicles
+                    </span>
                   )}
-                </Card>
+                </div>
               );
             })}
-          </Stack>
+          </div>
         ))}
-      </Stack>
+      </div>
       {selected && (
-        <Modal
-          open
-          onClose={() => setSelected(null)}
-          slotProps={{
-            root: { sx: { zIndex: 2000 } },
-          }}
-        >
-          <ModalDialog sx={{ overflowY: 'auto' }}>
-            <Typography level="h4">
-              Jobs on {new Date(selected.date).toLocaleDateString()}
-            </Typography>
-            <Table>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-4 max-h-full overflow-y-auto w-11/12 max-w-3xl">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-xl font-semibold">
+                Jobs on {new Date(selected.date).toLocaleDateString()}
+              </h4>
+              <Button variant="ghost" size="icon" onClick={() => setSelected(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <table className="min-w-full table-auto">
               <thead>
-                <tr>
-                  <th>Start</th>
-                  <th>End</th>
-                  <th>Address</th>
-                  <th>Workers</th>
+                <tr className="bg-gray-100">
+                  <th className="px-4 py-2 text-left text-sm font-semibold">Start</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold">End</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold">Address</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold">Workers</th>
                 </tr>
               </thead>
               <tbody>
                 {selected.jobs
                   .sort((a: Job, b: Job) => a.start - b.start)
                   .map((job: Job, i: number) => (
-                    <tr key={i}>
-                      <td>{new Date(job.start).toLocaleTimeString()}</td>
-                      <td>{new Date(job.end).toLocaleTimeString()}</td>
-                      <td>{`${job.street}, ${job.zip} ${job.city}`}</td>
-                      <td>{job.workers}</td>
+                    <tr key={i} className="border-t">
+                      <td className="px-4 py-2 text-sm text-gray-700">
+                        {new Date(job.start).toLocaleTimeString()}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-700">
+                        {new Date(job.end).toLocaleTimeString()}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-700">
+                        {`${job.street}, ${job.zip} ${job.city}`}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-700">{job.workers}</td>
                     </tr>
                   ))}
               </tbody>
-            </Table>
-          </ModalDialog>
-        </Modal>
+            </table>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }
