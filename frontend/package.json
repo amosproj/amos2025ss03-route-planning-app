@@ -38,10 +38,9 @@
     "react-zoom-pan-pinch": "^3.7.0",
     "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.1.5",
-    "zod": "^3.24.4"
+    "zod": "^3.24.4",
     "react-redux": "^9.2.0",
-    "react-zoom-pan-pinch": "^3.7.0",
-    "redux-persist": "^6.0.0",
+    "redux-persist": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
