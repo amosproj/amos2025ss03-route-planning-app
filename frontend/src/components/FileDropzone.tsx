@@ -10,12 +10,17 @@ const FileDropzone = () => {
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     console.log('Selected file:', file);
-    const text = await file.text();
-    const parsed = parseScenarioFromCsv(text);
-    console.log('Parsed scenarios:', parsed);
+    try {
+      const text = await file.text();
+      const parsed = parseScenarioFromCsv(text);
+      console.log('Parsed scenarios:', parsed);
 
-    // Dispatch to Redux store and persist
-    dispatch(setScenarios(parsed));
+      // Dispatch to Redux store and persist
+      dispatch(setScenarios(parsed));
+    } catch (error) {
+      console.error('Error reading file:', error);
+      alert('Failed to read the file. Please try again with a valid file.');
+    }
 
     const formData = new FormData();
     formData.append('file', file);
