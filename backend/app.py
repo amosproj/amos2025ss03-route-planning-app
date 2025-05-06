@@ -53,7 +53,7 @@ def receive_company_info(company_info: CompanyInfo):
 def receive_appointments(appointments: List[Appointment]):
     return validate_appointments(appointments)
 
-@app.post("/distance-matrix")
+@app.post("/api/distance-matrix")
 def full_matrix(payload: DistanceMatrixRequest):
     try:
         return get_distance_matrix_2d(payload.locations)
