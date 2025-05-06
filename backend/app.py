@@ -48,9 +48,6 @@ def receive_company_info(company_info: CompanyInfo):
 @app.post("/api/appointments")
 def receive_appointments(appointments: List[Appointment]):
     return validate_appointments(appointments)
-@app.post("/api/appointments_address_test")
-def receive_appointments(appointments: List[Appointment]):
-    return test_adresses(appointments)
 
 if __name__ == "__main__":
     import uvicorn

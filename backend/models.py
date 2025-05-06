@@ -24,6 +24,11 @@ class VRPResponse(BaseModel):
     total_distance: Optional[float] = None
     message: Optional[str] = None
 
+class Address(BaseModel):
+    street: str
+    zip_code: str
+    city: str
+
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
@@ -32,10 +37,15 @@ class Appointment(BaseModel):
     city: str
     number_of_workers: int
 
+class FilledVehicle(BaseModel):
+    vehicle_id:int
+    skills:Optional[str]
+    worker_amount:int
+
 class CompanyInfo(BaseModel):
-    start_address: str
-    finish_address: str
-    number_of_workers: int
+    start_address: Address
+    finish_address: Address
+    number_of_workers: List[FilledVehicle]
 
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
@@ -51,4 +61,22 @@ class EnhancedAddressResponse:
     city: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+
+class Route(BaseModel):
+    route_id: int
+    vehicle_id:Optional[int]
+    distance_traveled: float
+    appointments: List[EnhancedAddressResponse] #first and last appointments are not real appointments but the starting address
+
+class Solution(BaseModel):
+    total_distance_traveled: float
+    max_distance_traveled: float
+    routes: List[Route]
+    method_used:Optional[str]
+
+
+
+
+
+
 
