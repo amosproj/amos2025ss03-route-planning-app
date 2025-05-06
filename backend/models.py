@@ -32,9 +32,7 @@ class Address(BaseModel):
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
-    street: str
-    zip_code: str
-    city: str
+    address:Address
     number_of_workers: int
 
 class FilledVehicle(BaseModel):

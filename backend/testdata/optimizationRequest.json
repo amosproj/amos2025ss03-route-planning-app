@@ -27,18 +27,22 @@
     {
         "appointment_start": "2025-04-29 14:00:00.000",
         "appointment_end": "2025-04-29 14:30:00.000",
-        "street": "Platz d. Republik 1",
-        "zip_code": "10557",
-        "city": "Berlin",
+        "address":{
+            "street": "Platz d. Republik 1",
+            "zip_code": "10557",
+            "city": "Berlin"
+        },
         "number_of_workers": 1
     },
     {
         "appointment_start": "2025-04-29 13:00:00.000",
         "appointment_end": "2025-04-29 14:00:00.000",
-        "street": "Alexanderstraße 5",
-        "zip_code": "10178",
-        "city": "Berlin",
+        "address":{
+            "street": "Alexanderstraße 5",
+            "zip_code": "10178",
+            "city": "Berlin"
+        },
         "number_of_workers": 1
     }
-  ]
+]
 }
