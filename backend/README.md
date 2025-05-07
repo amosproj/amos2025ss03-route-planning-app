@@ -43,7 +43,7 @@ pip install -r requirements.txt
 Start the backend server by running:
 
 ```bash
-uvicorn app:app --reload --port 5002
+uvicorn app:app --reload --port 8080
 ```
 
 Alternatively, you can use:
@@ -52,14 +52,14 @@ Alternatively, you can use:
 python app.py
 ```
 
-The server will start on port 5002 by default and will be accessible at `http://localhost:5002`.
+The server will start on port 8080 by default and will be accessible at `http://localhost:8080`.
 
 ## API Documentation
 
 FastAPI automatically generates interactive API documentation:
 
-- Swagger UI: `http://localhost:5002/docs`
-- ReDoc: `http://localhost:5002/redoc`
+- Swagger UI: `http://localhost:8080/docs`
+- ReDoc: `http://localhost:8080/redoc`
 
 ## API Endpoints
 

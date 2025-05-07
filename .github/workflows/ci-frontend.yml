@@ -1,4 +1,4 @@
-name: CI/CD Frontend
+name: Frontend CI
 
 on:
   push:
@@ -7,12 +7,14 @@ on:
       - development
     paths:
       - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
   pull_request:
     branches:
       - main
       - development
     paths:
       - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
 
 jobs:
   ci:
@@ -40,15 +42,6 @@ jobs:
         working-directory: ./frontend
         run: npm run lint
 
-      # - name: Check frontend code formatting
-      #   working-directory: ./frontend
-      #   run: npm run format:check
-
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
-
-      - name: Deploy Frontend
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          echo "Starting frontend deployment..."
