@@ -1,0 +1,4 @@
+# .flake8
+[flake8]
+select = E9,F7
+exclude = venv, .venv, __pycache__, migrations
