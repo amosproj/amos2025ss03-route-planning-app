@@ -6,6 +6,7 @@ import { Job } from '../../types/Job';
 import { Scenario } from '../../types/Scenario';
 import { Button } from '@/components/ui/button';
 import { MapPin, Truck, ArrowRight, X } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/scenarios/')({
   component: ScenarioList,
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/scenarios/')({
 
 function ScenarioList() {
   const [selected, setSelected] = useState<Scenario | null>(null);
+  const navigate = useNavigate();
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const sorted = [...scenarios].sort((a, b) => a.date - b.date);
 
@@ -64,7 +66,16 @@ function ScenarioList() {
                   <div className="flex justify-between items-center">
                     <h4 className="text-lg font-semibold">{day.getDate()}</h4>
                     {sc && (
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          navigate({
+                            to: '/map-view',
+                            search: { date: sc.date.toString() },
+                          })
+                        }
+                      >
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     )}

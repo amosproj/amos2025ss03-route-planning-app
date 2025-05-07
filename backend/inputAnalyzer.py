@@ -5,12 +5,31 @@ import exceptionStrings
 import os
 import requests
 
+def parse_datetime(dt_str: str) -> datetime:
+    # Support ISO8601 with or without timezone Z or offset
+    original = dt_str
+    # Replace trailing 'Z' with '+00:00' for fromisoformat
+    if dt_str.endswith('Z'):
+        dt_str = dt_str[:-1] + '+00:00'
+    try:
+        return datetime.fromisoformat(dt_str)
+    except ValueError:
+        # Try common formats
+        for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):  # with/without milliseconds
+            try:
+                return datetime.strptime(original.rstrip('Z'), fmt)
+            except ValueError:
+                continue
+    # Raise if parsing failed
+    raise ValueError(f"Invalid datetime format: {original}")
+
 def validate_single_address_with_google_maps(street: str, zip_code: str, city: str) -> EnhancedAddressResponse:
     assert isinstance(street, str), "street must be a string"
     assert isinstance(zip_code, str), "zip_code must be a string"
     assert isinstance(city, str), "city must be a string"
 
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    print("API Key:", api_key)  # Debugging line to check if the API key is loaded
     if not api_key:
         raise RuntimeError("GOOGLE_MAPS_API_KEY is not set in environment variables")
 
@@ -101,14 +120,13 @@ def validate_company_info(company_info: CompanyInfo):
 def validate_appointments(appointments: List[Appointment]):
     errors = []
     address_responses = []
-    date_format = "%Y-%m-%d %H:%M:%S.%f"
-    all_valid = True  #will be set False as soon as the first address is not valid
+    all_valid = True  # will be set False as soon as the first address is not valid
 
     for appointment in appointments:
 
         try:
-            start = datetime.strptime(appointment.appointment_start, date_format)
-            end = datetime.strptime(appointment.appointment_end, date_format)
+            start = parse_datetime(appointment.appointment_start)
+            end = parse_datetime(appointment.appointment_end)
         except ValueError:
             errors.append(exceptionStrings.APPOINTMENT_START_INVALID)
             all_valid = False
