@@ -1,3 +1,4 @@
+import { RouteInputForm } from '@/components/RouteInputForm';
 import { createFileRoute } from '@tanstack/react-router';
 import FileDropzone from '../components/FileDropzone';
 
@@ -21,7 +22,13 @@ function Index() {
     //   <FileDropzone />
     // </Sheet>
     <div className="container mt-8">
+      <h3 className="font-bold text-2xl p-1">Upload Data</h3>
       <FileDropzone />
+
+      <div className="mt-8 p-1">
+        <h3 className="font-bold text-2xl mb-2 ">Route & Worker Information</h3>
+        <RouteInputForm />
+      </div>
     </div>
   );
 }

@@ -33,6 +33,8 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
 
     data = response.json()
 
+    print("Google Maps API Response:", data)
+
     if not data.get("results"):
         return EnhancedAddressResponse(
             could_be_fully_found=False,
@@ -66,22 +68,34 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
 
 
 def validate_company_info(company_info: CompanyInfo):
-
     errors = []
+    address_responses = []
 
-    if company_info.number_of_workers < 1:
+    if not company_info.number_of_workers:
         errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
 
-    if not company_info.start_address.strip():
-       errors.append(exceptionStrings.START_ADDRESS_EMPTY)
+    start = company_info.start_address
+    if not start.street.strip() or not start.zip_code.strip() or not start.city.strip():
+        errors.append(exceptionStrings.START_ADDRESS_EMPTY)
+        address_responses.append({"type": "start", "valid": False})
+    else:
+        address_responses.append({"type": "start", "valid": True})
 
-    if not company_info.finish_address.strip():
+    finish = company_info.finish_address
+    if not finish.street.strip() or not finish.zip_code.strip() or not finish.city.strip():
         errors.append(exceptionStrings.FINISH_ADDRESS_EMPTY)
+        address_responses.append({"type": "finish", "valid": False})
+    else:
+        address_responses.append({"type": "finish", "valid": True})
 
-    if errors:
-        return False, errors
+    all_valid = len(errors) == 0
 
-    return True, []
+    return {
+        "all_valid": all_valid,
+        "errors": errors,
+        "address_responses": address_responses
+    }
+
 
 
 def validate_appointments(appointments: List[Appointment]):
@@ -104,21 +118,20 @@ def validate_appointments(appointments: List[Appointment]):
             errors.append(exceptionStrings.APPOINTMENT_END_BEFORE_START)
             all_valid = False
 
-        if not appointment.street.strip():
-            errors.append(exceptionStrings.APPOINTMENT_STREET_EMPTY)
-            all_valid = False
-
         appointment_duration = (end - start).total_seconds() / 3600  # duration in hours
         appointment_max_duration = 24  # wahrscheinlich wird diese Ausnahme hauptsächlich durch Tippfehler in der Endzeit verursacht
         if appointment_duration > appointment_max_duration:
             errors.append(exceptionStrings.APPOINTMENT_DURATION_TOO_LONG)
             all_valid = False
 
-        if not appointment.zip_code.strip():
+        if not appointment.address.street.strip():
+            errors.append(exceptionStrings.APPOINTMENT_STREET_EMPTY)
+            all_valid = False
+        if not appointment.address.zip_code.strip():
             errors.append(exceptionStrings.APPOINTMENT_ZIPCODE_EMPTY)
             all_valid = False
 
-        if not appointment.city.strip():
+        if not appointment.address.city.strip():
             errors.append(exceptionStrings.APPOINTMENT_CITY_EMPTY)
             all_valid = False
 
@@ -127,7 +140,9 @@ def validate_appointments(appointments: List[Appointment]):
             all_valid = False
 
         address_info = validate_single_address_with_google_maps(
-            appointment.street, appointment.zip_code, appointment.city
+            appointment.address.street,
+            appointment.address.zip_code,
+            appointment.address.city
         )
 
         address_responses.append(address_info)
@@ -178,12 +193,15 @@ def validate_and_save_appointment_information(appointments: List[Appointment]):
 
 
 def validate_and_save_company_information(company_info: CompanyInfo):
+    validation_result = validate_company_info(company_info)
 
-    is_valid, errors = validate_company_info(company_info)
-
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=errors)
+    if not validation_result["all_valid"]:
+        raise HTTPException(status_code=400, detail={
+            "errors": validation_result["errors"],
+            "address_responses": validation_result["address_responses"]
+        })
 
     return save_company_information_to_cache(company_info)
+
 
 

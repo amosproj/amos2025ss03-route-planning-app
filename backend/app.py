@@ -1,10 +1,14 @@
 # backend/app.py
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from solver import solve_vrp
-from models import *
+from distance_matrix import get_distance_matrix_2d
 from inputAnalyzer import *
+from solver import solve_vrp
+
+load_dotenv()
+
 
 app = FastAPI(title="VRP Solver API", 
               description="API for solving Vehicle Routing Problems for field service workers")
@@ -48,9 +52,13 @@ def receive_company_info(company_info: CompanyInfo):
 @app.post("/api/appointments")
 def receive_appointments(appointments: List[Appointment]):
     return validate_appointments(appointments)
-@app.post("/api/appointments_address_test")
-def receive_appointments(appointments: List[Appointment]):
-    return test_adresses(appointments)
+
+@app.post("/api/distance-matrix")
+def full_matrix(payload: DistanceMatrixRequest):
+    try:
+        return get_distance_matrix_2d(payload.locations)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

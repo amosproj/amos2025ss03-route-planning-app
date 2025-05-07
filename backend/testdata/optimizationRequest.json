@@ -1,25 +1,48 @@
 {
   "company_info": {
-    "start_address": "Musterstraße 1, 12345 Beispielstadt",
-    "finish_address": "Beispielallee 99, 54321 Rückfahrt",
-    "number_of_workers": 5
+  "start_address": {
+    "street": "Görlitzer Str. 3",
+    "zip_code": "10997",
+    "city": "Berlin"
   },
-  "appointments": [
+  "finish_address": {
+    "street": "Görlitzer Str. 3",
+    "zip_code": "10997",
+    "city": "Berlin"
+  },
+  "number_of_workers": [
     {
-      "appointment_start": "2025-05-02T08:00:00",
-      "appointment_end": "2025-05-02T09:30:00",
-      "street": "Kundenweg 10",
-      "zip_code": "10115",
-      "city": "Berlin",
-      "number_of_workers": 2
+      "vehicle_id": 1,
+      "skills": "electrician",
+      "worker_amount": 2
     },
     {
-      "appointment_start": "2025-05-02T10:00:00",
-      "appointment_end": "2025-05-02T11:00:00",
-      "street": "Serviceplatz 22",
-      "zip_code": "80331",
-      "city": "München",
-      "number_of_workers": 1
+      "vehicle_id": 2,
+      "skills": "plumber",
+      "worker_amount": 1
     }
   ]
+},
+  "appointments": [
+    {
+        "appointment_start": "2025-04-29 14:00:00.000",
+        "appointment_end": "2025-04-29 14:30:00.000",
+        "address":{
+            "street": "Platz d. Republik 1",
+            "zip_code": "10557",
+            "city": "Berlin"
+        },
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 13:00:00.000",
+        "appointment_end": "2025-04-29 14:00:00.000",
+        "address":{
+            "street": "Alexanderstraße 5",
+            "zip_code": "10178",
+            "city": "Berlin"
+        },
+        "number_of_workers": 1
+    }
+]
 }
