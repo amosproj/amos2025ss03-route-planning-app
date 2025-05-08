@@ -1,0 +1,36 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Environment files
+.env
+.env.*
+
+# macOS system files
+.DS_Store
+
+# VSCode settings (if present)
+.vscode/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Logs
+*.log
+
+# Git
+.git
+.gitignore
+
+# Tests
+tests/
+coverage/
+*.cover
+
+# Others
+*.sqlite
+*.db
