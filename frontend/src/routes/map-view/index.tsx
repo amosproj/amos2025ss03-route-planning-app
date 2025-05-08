@@ -133,7 +133,7 @@ function MapView() {
                   }}
                   className={
                     `p-2 rounded cursor-pointer flex justify-between items-center ` +
-                    (selectedIdx === idx ? 'bg-blue-100 ' : '') +
+                    (selectedIdx === idx ? 'bg-blue-100 ' : '') + 
                     (hasError
                       ? 'border border-red-500 text-red-600'
                       : 'hover:bg-gray-200 border border-blue-400')
