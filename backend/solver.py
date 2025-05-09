@@ -1,9 +1,141 @@
 # backend/solver.py
 import math
 import numpy as np
-from ortools.constraint_solver import routing_enums_pb2
-from ortools.constraint_solver import pywrapcp
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any
+from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+from datetime import datetime
+from models import *
+
+def solve_appointment_routing(
+        request: EnhancedOptimizationRequest,
+        slack_max = 120,
+        max_time_per_vehicle = 1440
+) -> Solution:
+
+    def to_minutes(dt_str):
+        dt = datetime.fromisoformat(dt_str)
+        return dt.hour * 60 + dt.minute
+
+
+    company_info = request.company_info
+    appointments = request.appointments
+    time_matrix = request.time_matrix
+
+    depot_address = company_info.start_address.street + " " + company_info.start_address.zip_code + " " + company_info.start_address.city
+    addresses = [depot_address] + [appointment.address.street + " " + appointment.address.zip_code + " " + appointment.address.city for appointment in appointments]
+
+    # Depot-Zeitfenster von 0 bis 1440 Minuten hinzufügen (24 Stunden).
+    depot_time_window = (0, 1440)  # Beispiel: Depot jederzeit während des 24-Stunden-Zeitrahmens verfügbar.
+
+    # Beginnen mit den Zeitfenstern für das Depot:
+    time_windows = [
+        {'address': depot_address, 'time_window': depot_time_window}]  # Depot-Zeitfenster und Adresse hinzufügen
+
+    # Hinzufügen der Zeitfenster für die tatsächlichen Termine
+    for appointment in request.appointments:
+        time_windows.append({
+            'address': appointment,
+            'time_window': (to_minutes(appointment.appointment_start), to_minutes(appointment.appointment_end))
+        })
+
+    num_locations = len(addresses)
+    num_vehicles = len(company_info.number_of_workers)
+    depot_index = 0
+
+    # Routing setup
+    manager = pywrapcp.RoutingIndexManager(
+        num_locations,
+        num_vehicles,
+        depot_index
+    )
+    routing = pywrapcp.RoutingModel(manager)
+
+    # calc service times in minutes todo: get service times(if different from time window)
+    service_times = [0]  # Depot hat 0 Minuten Servicezeit
+    for appointment in appointments:
+        start = to_minutes(appointment.appointment_start)
+        end = to_minutes(appointment.appointment_end)
+        duration = max(1, end - start)
+        service_times.append(duration)
+
+    service_times_inlc_depot = [0] + service_times #add depot service time 0
+
+    def time_callback(from_index, to_index):
+        from_node = manager.IndexToNode(from_index)
+        to_node = manager.IndexToNode(to_index)
+        return time_matrix[from_node][to_node] + service_times_inlc_depot[from_node]
+
+    transit_callback_index = routing.RegisterTransitCallback(time_callback)
+    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+
+    # Time-Dimension
+    routing.AddDimension(
+        transit_callback_index,
+        slack_max,     # max waiting time
+        max_time_per_vehicle,   # max total time per vehicle
+        False,
+        'Time'
+    )
+    time_dimension = routing.GetDimensionOrDie('Time')
+    time_dimension.SetGlobalSpanCostCoefficient(100)
+
+    for idx, time_window_entry in enumerate(time_windows):
+        index = manager.NodeToIndex(idx)
+        start, end = time_window_entry['time_window']
+        time_dimension.CumulVar(index).SetRange(start, end)
+    for idx, tw in enumerate(time_windows):
+        print(f"Node {idx} time window: {tw['time_window']}")
+
+    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+    search_parameters.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    search_parameters.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
+    search_parameters.log_search = True
+    solution = routing.SolveWithParameters(search_parameters)
+
+    if not solution:
+        return Solution(total_distance_traveled=0, max_distance_traveled=0, routes=[], method_used="No solution")
+
+    total_distance = 0
+    max_distance = 0
+    routes = []
+
+    # Create route for every vehicle
+    for vehicle_id in range(num_vehicles):
+        route_time = 0
+        index = routing.Start(vehicle_id)
+        vehicle_route = []
+
+        while not routing.IsEnd(index):
+            node_index = manager.IndexToNode(index)
+            appointment = appointments[node_index - 1] if node_index > 0 else None  # skip depot
+            if node_index > 0:
+                vehicle_route.append(appointment)
+
+            # Berechne die Distanz
+            next_index = solution.Value(routing.NextVar(index))
+            route_time += routing.GetArcCostForVehicle(index, next_index, vehicle_id)
+
+            index = next_index
+
+        total_distance += route_time
+        max_distance = max(max_distance, route_time)
+
+        # Route für Fahrzeug hinzufügen
+        routes.append(Route(
+            route_id=vehicle_id,
+            vehicle_id=vehicle_id,
+            distance_traveled = 0,#todo calc the distance
+            time_traveled = route_time,
+            appointments=vehicle_route
+        ))
+
+    # Rückgabewert
+    return Solution(
+        total_distance_traveled=total_distance,
+        max_distance_traveled=max_distance,
+        routes=routes,
+        method_used="Path Cheapest Arc"
+    )
 
 def calculate_distance_matrix(nodes: List[Dict[str, Any]]) -> List[List[int]]:
     """Calculates the Euclidean distance matrix between nodes."""

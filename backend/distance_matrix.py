@@ -4,7 +4,7 @@ from typing import List, Any
 import numpy as np
 import requests
 
-from models import Location, MatrixElement, DistanceMatrixResponse
+from models import Location, MatrixElement, DistanceMatrixResponse, DistanceAndDurationMatrices
 
 
 def build_location_string(locations: List[Location]) -> str:
@@ -55,7 +55,7 @@ def get_full_distance_matrix(locations: List[Location]) -> DistanceMatrixRespons
 
     return DistanceMatrixResponse(matrix=matrix)
 
-def get_distance_matrix_2d(locations: List[Location]) -> Any:
+def get_distance_matrix_2d(locations: List[Location]) -> DistanceAndDurationMatrices:
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     if not api_key:
         raise EnvironmentError("API key not set")
@@ -82,7 +82,7 @@ def get_distance_matrix_2d(locations: List[Location]) -> Any:
         for j, element in enumerate(row["elements"]):
             if element["status"] == "OK":
                 distance_matrix[i][j] = element["distance"]["value"]  # meters
-                duration_matrix[i][j] = element["duration"]["value"]  # seconds
+                duration_matrix[i][j] = element["duration"]["value"] /60  # seconds that we convert to minutes by dividing
             else:
                 distance_matrix[i][j] = -1  # or float('inf')
                 duration_matrix[i][j] = -1
@@ -90,8 +90,10 @@ def get_distance_matrix_2d(locations: List[Location]) -> Any:
     print(distance_matrix)
     print(duration_matrix)
 
-    return {
-        "ids": [loc.id for loc in locations],
-        "distance_matrix": distance_matrix.tolist(),
-        "duration_matrix": duration_matrix.tolist()
-    }
+    ids = [loc.id for loc in locations]
+    response = DistanceAndDurationMatrices(
+        ids=ids,
+        distance_matrix=distance_matrix.tolist(),
+        duration_matrix=duration_matrix.tolist()
+    )
+    return response
