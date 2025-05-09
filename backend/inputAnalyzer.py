@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from backend.distance_matrix import get_full_distance_matrix, get_distance_matrix_2d
 from models import *
 from fastapi import HTTPException
 import exceptionStrings
@@ -67,7 +69,7 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
     )
 
 
-def validate_company_info(company_info: CompanyInfo):
+def validate_company_info(company_info: CompanyInfo)-> AppointmentValidationResponse:
     errors = []
     address_responses = []
 
@@ -77,28 +79,50 @@ def validate_company_info(company_info: CompanyInfo):
     start = company_info.start_address
     if not start.street.strip() or not start.zip_code.strip() or not start.city.strip():
         errors.append(exceptionStrings.START_ADDRESS_EMPTY)
-        address_responses.append({"type": "start", "valid": False})
+        address_responses.append(
+            EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information = exceptionStrings.START_ADDRESS_EMPTY,
+                street=start.street,
+                zipcode=start.zip_code,
+                city=start.city,
+                latitude=None,
+                longitude=None
+            )
+        )
     else:
-        address_responses.append({"type": "start", "valid": True})
+        start_address_response = validate_single_address_with_google_maps(start.street, start.zip_code, start.city)
+        address_responses.append(start_address_response)
 
+    # Google Maps Validierung für die Zieladresse
     finish = company_info.finish_address
     if not finish.street.strip() or not finish.zip_code.strip() or not finish.city.strip():
         errors.append(exceptionStrings.FINISH_ADDRESS_EMPTY)
-        address_responses.append({"type": "finish", "valid": False})
+        address_responses.append(
+            EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information=exceptionStrings.FINISH_ADDRESS_EMPTY,
+                street=finish.street,
+                zipcode=finish.zip_code,
+                city=finish.city,
+                latitude=None,
+                longitude=None
+            )
+        )
     else:
-        address_responses.append({"type": "finish", "valid": True})
+        finish_address_response = validate_single_address_with_google_maps(finish.street, finish.zip_code, finish.city)
+        address_responses.append( finish_address_response)
 
     all_valid = len(errors) == 0
 
-    return {
-        "all_valid": all_valid,
-        "errors": errors,
-        "address_responses": address_responses
-    }
+    return AppointmentValidationResponse(
+        all_valid=all_valid,
+        errors=errors,
+        address_responses=address_responses
+    )
 
 
-
-def validate_appointments(appointments: List[Appointment]):
+def validate_appointments(appointments: List[Appointment]) -> AppointmentValidationResponse:
     errors = []
     address_responses = []
     date_format = "%Y-%m-%d %H:%M:%S.%f"
@@ -156,17 +180,18 @@ def validate_appointments(appointments: List[Appointment]):
             all_valid = False
 
     if errors:
-        return {
-            "all_valid": False,
-            "errors": errors,
-            "address_responses": address_responses
-        }
+        return AppointmentValidationResponse(
+            all_valid = False,
+            errors = errors,
+            address_responses = address_responses
+        )
 
-    return {
-        "all_valid": all_valid,
-        "errors": errors,
-        "address_responses": address_responses
-    }
+    return AppointmentValidationResponse(
+        all_valid = all_valid,
+        errors = errors,
+        address_responses = address_responses
+    )
+
 
 
 def save_company_information_to_cache(company_info: CompanyInfo):
@@ -195,13 +220,91 @@ def validate_and_save_appointment_information(appointments: List[Appointment]):
 def validate_and_save_company_information(company_info: CompanyInfo):
     validation_result = validate_company_info(company_info)
 
-    if not validation_result["all_valid"]:
+    if not validation_result.all_valid:
         raise HTTPException(status_code=400, detail={
             "errors": validation_result["errors"],
             "address_responses": validation_result["address_responses"]
         })
 
     return save_company_information_to_cache(company_info)
+
+def convert_to_locations(address_responses: list[EnhancedAddressResponse]) -> list[Location]:
+    locations = []
+
+    for address in address_responses:
+        if address.latitude is not None and address.longitude is not None:
+            location_id = f"{address.street}-{address.zipcode}-{address.city}"
+            location = Location(id=location_id, lat=address.latitude, lng=address.longitude)
+            locations.append(location)
+
+    return locations
+
+
+def convert_to_enhanced_appointment(appointment: Appointment,location:Location) -> EnhancedAppointment:
+
+    enhanced_appointment = EnhancedAppointment(
+        appointment_start=appointment.appointment_start,
+        appointment_end=appointment.appointment_end,
+        address=appointment.address,
+        location=location,
+        number_of_workers=appointment.number_of_workers
+    )
+
+    return enhanced_appointment
+
+def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> EnhancedOptimizationRequest:
+
+    company_info = opti_request.company_info
+    appointments = opti_request.appointments
+
+    appointment_validation_response = validate_appointments(appointments)
+    company_info_validation_response = validate_company_info(company_info)
+
+    if not company_info_validation_response.all_valid:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "errors": "Company Info could not be validated"
+            }
+        )
+
+    all_valid = appointment_validation_response.all_valid
+    errors = appointment_validation_response.errors
+    address_responses = appointment_validation_response.address_responses
+
+    if not all_valid:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "errors": errors
+            }
+        )
+    #jetzt sind alle addressen gültig, d.h. ich habe lat, long
+    depot_location = convert_to_locations(company_info_validation_response.address_responses)
+    locations = convert_to_locations(address_responses)
+
+    enhanced_appointments = [
+        convert_to_enhanced_appointment(appointments[i], locations[i])
+        for i in range(len(appointments))
+    ]
+
+    locations = [depot_location[0]] + locations
+
+
+    distance_matrix_response = get_distance_matrix_2d(locations)
+    duration_matrix = distance_matrix_response.duration_matrix
+    distance_matrix = distance_matrix_response.distance_matrix
+
+    enhanced_opti_request = EnhancedOptimizationRequest(
+        company_info=company_info,
+        appointments=enhanced_appointments,
+        time_matrix = duration_matrix,
+        distance_matrix = distance_matrix
+    )
+
+    return enhanced_opti_request
+
+
 
 
 
