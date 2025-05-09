@@ -1,0 +1,26 @@
+{
+    "all_valid": false,
+    "errors": [
+        "Address could not be found with google maps API: Address could not be found using Google Maps API: Platz d. Republik 1, 99887 DorfDorf Address: Platz d. Republik 1, 99887, DorfDorf"
+    ],
+    "address_responses": [
+        {
+            "could_be_fully_found": false,
+            "error_information": "Address could not be found using Google Maps API: Platz d. Republik 1, 99887 DorfDorf",
+            "street": "Platz d. Republik 1",
+            "zipcode": "99887",
+            "city": "DorfDorf",
+            "latitude": null,
+            "longitude": null
+        },
+        {
+            "could_be_fully_found": true,
+            "error_information": null,
+            "street": "Alexanderstraße 5",
+            "zipcode": "10178",
+            "city": "Berlin",
+            "latitude": 52.52346619999999,
+            "longitude": 13.4154668
+        }
+    ]
+}

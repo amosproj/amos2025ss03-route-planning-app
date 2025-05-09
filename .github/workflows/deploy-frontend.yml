@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: apps/frontend
+        working-directory: ./frontend
 
     steps:
       - name: Checkout repository
