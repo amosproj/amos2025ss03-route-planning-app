@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from backend.distance_matrix import get_full_distance_matrix, get_distance_matrix_2d
+from distance_matrix import get_full_distance_matrix, get_distance_matrix_2d
 from models import *
 from fastapi import HTTPException
 import exceptionStrings
