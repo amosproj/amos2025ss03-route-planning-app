@@ -64,6 +64,12 @@ def full_matrix(request:OptimizationRequest):
         return check_and_enhance_optimization_request(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+@app.post("/api/solve-without-check")
+def full_matrix(request:EnhancedOptimizationRequest):
+    try:
+        return solve_appointment_routing(request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/check-and-solve")
 def check_and_solve(request: OptimizationRequest):

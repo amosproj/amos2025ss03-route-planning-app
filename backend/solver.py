@@ -9,7 +9,8 @@ from models import *
 def solve_appointment_routing(
         request: EnhancedOptimizationRequest,
         slack_max = 120,
-        max_time_per_vehicle = 1440
+        max_time_per_vehicle = 1440,
+        optimization_time_limit = 15 #seconds
 ) -> Solution:
 
     def to_minutes(dt_str):
@@ -38,6 +39,9 @@ def solve_appointment_routing(
             'time_window': (to_minutes(appointment.appointment_start), to_minutes(appointment.appointment_end))
         })
 
+    #todo: preprocessing: calculate max overlap and compare to amount of vehicle (gets tricky as soon as we distinguish between time window and service time)
+
+
     num_locations = len(addresses)
     num_vehicles = len(company_info.number_of_workers)
     depot_index = 0
@@ -58,12 +62,11 @@ def solve_appointment_routing(
         duration = max(1, end - start)
         service_times.append(duration)
 
-    service_times_inlc_depot = [0] + service_times #add depot service time 0
 
     def time_callback(from_index, to_index):
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return time_matrix[from_node][to_node] + service_times_inlc_depot[from_node]
+        return time_matrix[from_node][to_node] + service_times[from_node]
 
     transit_callback_index = routing.RegisterTransitCallback(time_callback)
     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
@@ -77,19 +80,32 @@ def solve_appointment_routing(
         'Time'
     )
     time_dimension = routing.GetDimensionOrDie('Time')
-    time_dimension.SetGlobalSpanCostCoefficient(100)
+    time_dimension.SetGlobalSpanCostCoefficient(100) #todo: improve optimization function, respect waiting time, respect distance
+
+    #for node_idx, node in enumerate(nodes):
+    #    if node.get('time_window'):
+   #         # Ensure time_window is [start, end] and scaled
+   #         start_time = node['time_window'][0] * 100
+   #         end_time = node['time_window'][1] * 100
+   #         index = manager.NodeToIndex(node_idx)
+   #         time_dimension.CumulVar(index).SetRange(start_time, end_time)
+
+
 
     for idx, time_window_entry in enumerate(time_windows):
         index = manager.NodeToIndex(idx)
         start, end = time_window_entry['time_window']
-        time_dimension.CumulVar(index).SetRange(start, end)
+        adjusted_endpoint = end - service_times[idx] # if service_time = time window -> adjusted_endpoint = startpoint
+        time_dimension.CumulVar(index).SetRange(start, adjusted_endpoint)
     for idx, tw in enumerate(time_windows):
         print(f"Node {idx} time window: {tw['time_window']}")
 
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-    search_parameters.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
+    search_parameters.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+    search_parameters.time_limit.FromSeconds(optimization_time_limit)
     search_parameters.log_search = True
+
     solution = routing.SolveWithParameters(search_parameters)
 
     if not solution:
