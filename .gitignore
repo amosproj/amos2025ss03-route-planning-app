@@ -32,6 +32,8 @@ out/
 .project
 bin/
 
+.githooks/*
+
 # MacOS
 .DS_Store
 
