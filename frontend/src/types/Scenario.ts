@@ -7,7 +7,7 @@ export interface Scenario {
 
 }
 
-export interface Vehicle {
+export interface Vehicle { 
     id: number;
     capacity: number;
     skills: string[];
