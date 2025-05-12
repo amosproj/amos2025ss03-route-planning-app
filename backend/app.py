@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from inputAnalyzer import *
-from solver import solve_vrp,solve_appointment_routing
+from solver import solve_vrp,solve_appointment_routing, solve_appointment_routing_pca
 
 load_dotenv()
 
@@ -62,6 +62,12 @@ def full_matrix(payload: DistanceMatrixRequest):
 def full_matrix(request:OptimizationRequest):
     try:
         return check_and_enhance_optimization_request(request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+@app.post("/api/solve-without-check")
+def full_matrix(request:EnhancedOptimizationRequest):
+    try:
+        return solve_appointment_routing_pca(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
