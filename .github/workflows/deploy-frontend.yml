@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - main
+      - development
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/ci-frontend.yml'
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy to Firebase
     runs-on: ubuntu-latest
 
     defaults:
@@ -20,8 +20,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -29,13 +31,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build React App
-        run: npm run build
+      - name: Inject environment variables and build
+        run: |
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          npm run build
 
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: w9jds/firebase-action@v13.1.0
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-          channelId: live
-          projectId: "${{ secrets.FIREBASE_PROJECT_ID }}"
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Clean up .env
+        run: rm .env
