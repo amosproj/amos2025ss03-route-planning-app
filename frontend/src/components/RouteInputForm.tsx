@@ -1,8 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 import { z } from 'zod';
+
+import { RootState } from '@/store';
+import { setWorkers } from '@/store/workersSlice';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +38,13 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 export function RouteInputForm() {
-  const form = useForm({
+  const dispatch = useDispatch();
+
+  const existingWorker = useSelector(
+    (state: RootState) => state.workers.workers,
+  );
+
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       startAddress: '',
@@ -43,8 +54,22 @@ export function RouteInputForm() {
     },
   });
 
+  // Set form values when store data is available
+  useEffect(() => {
+    if (existingWorker) {
+      form.reset({
+        startAddress: existingWorker.startAddress,
+        finishAddress: existingWorker.finishAddress,
+        workers: existingWorker.workers,
+        optimizationPlan: 'profit', // keep default or load from another slice if needed
+      });
+    }
+  }, [existingWorker, form]);
+
   const onSubmit = (values: FormSchemaType) => {
-    console.log('Form values:', values);
+    const { startAddress, finishAddress, workers } = values;
+    dispatch(setWorkers({ startAddress, finishAddress, workers }));
+    console.log('Form submitted:', values);
   };
 
   return (
@@ -53,7 +78,6 @@ export function RouteInputForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6 w-full mx-auto p-6 bg-white rounded shadow"
       >
-        {/* Start Address */}
         <FormField
           control={form.control}
           name="startAddress"
@@ -67,8 +91,6 @@ export function RouteInputForm() {
             </FormItem>
           )}
         />
-
-        {/* Finish Address */}
         <FormField
           control={form.control}
           name="finishAddress"
@@ -82,8 +104,6 @@ export function RouteInputForm() {
             </FormItem>
           )}
         />
-
-        {/* Number of Workers */}
         <FormField
           control={form.control}
           name="workers"
@@ -93,11 +113,11 @@ export function RouteInputForm() {
               <FormControl>
                 <div className="flex items-center space-x-4">
                   <Slider
-                    defaultValue={[field.value]}
+                    value={[field.value]}
+                    onValueChange={([val]) => field.onChange(val)}
                     min={1}
                     max={10}
                     step={1}
-                    onValueChange={([val]) => field.onChange(val)}
                     className="w-full"
                   />
                   <span className="font-medium">{field.value}</span>
@@ -107,8 +127,6 @@ export function RouteInputForm() {
             </FormItem>
           )}
         />
-
-        {/* Optimization Plan */}
         <FormField
           control={form.control}
           name="optimizationPlan"
@@ -133,9 +151,7 @@ export function RouteInputForm() {
             </FormItem>
           )}
         />
-
-        {/* Submit */}
-        <Button type="submit"> Start Optimization</Button>
+        <Button type="submit">Start Optimization</Button>
       </form>
     </Form>
   );
