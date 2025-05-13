@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import apiClient from '../../utils/apiClient';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import {
   useJsApiLoader,
@@ -51,8 +51,8 @@ function MapView() {
   } = useQuery<AppointmentResponse>({
     queryKey: ['enriched-appointments', date],
     queryFn: () =>
-      axios
-        .post('http://localhost:8080/api/appointments', appointmentsPayload)
+      apiClient
+        .post('/api/appointments', appointmentsPayload)
         .then((res) => res.data as AppointmentResponse),
     enabled: !!scenario,
     staleTime: 1000 * 60 * 60 * 10,
