@@ -76,81 +76,95 @@ export function RouteInputForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 w-full mx-auto p-6 bg-white rounded shadow"
+        className=" w-full mx-auto p-4 bg-white  flex gap-5 justify-between items-end"
       >
-        <FormField
-          control={form.control}
-          name="startAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter start address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="finishAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Finish Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter finish address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="workers"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Number of Workers</FormLabel>
-              <FormControl>
-                <div className="flex items-center space-x-4">
-                  <Slider
-                    value={[field.value]}
-                    onValueChange={([val]) => field.onChange(val)}
-                    min={1}
-                    max={10}
-                    step={1}
-                    className="w-full"
-                  />
-                  <span className="font-medium">{field.value}</span>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="optimizationPlan"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Optimization Plan</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="profit">Profit Optimization</SelectItem>
-                    <SelectItem value="time">Time Optimization</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="w-full ">
+          <FormField
+            control={form.control}
+            name="startAddress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter start address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="w-full">
+          <FormField
+            control={form.control}
+            name="finishAddress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Finish Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter finish address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="w-full">
+          <FormField
+            control={form.control}
+            name="workers"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Number of Workers</FormLabel>
+                <FormControl>
+                  <div className="flex items-center space-x-4  py-1.5">
+                    <Slider
+                      value={[field.value]}
+                      onValueChange={([val]) => field.onChange(val)}
+                      min={1}
+                      max={10}
+                      step={1}
+                      className="w-full"
+                    />
+                    <span className="font-medium">{field.value}</span>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="w-full">
+          <FormField
+            control={form.control}
+            name="optimizationPlan"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Optimization Plan</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="profit">
+                        Profit Optimization
+                      </SelectItem>
+                      <SelectItem value="time">Time Optimization</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <Button type="submit">Start Optimization</Button>
       </form>
     </Form>

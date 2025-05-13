@@ -191,25 +191,37 @@ function MapView() {
           </ul>
         </aside>
         {/* Map container */}
+
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
-            <div className="p-2 bg-white shadow-md flex items-center justify-between">
-              <button
-                onClick={() => navigate({ to: '/scenarios' })}
-                className="px-3 py-1 text-sm font-medium text-primary"
-              >
-                ← Back
-              </button>
-              <h2 className="text-lg font-semibold text-primary">
-                Map for{' '}
-                {new Date(scenario.date).toLocaleDateString('de-DE', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                })}
-              </h2>
+            {/* Route input Form */}
+            <div className="container p-1  rounded shadow">
+              <div className="p-2 flex items-center justify-between border-b mb-2 ">
+                <span className="flex items-center ">
+                  <button
+                    onClick={() => navigate({ to: '/scenarios' })}
+                    className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
+                  >
+                    ←
+                  </button>
+                  <h3 className="font-semibold text-lg  ">
+                    Route & Worker Information
+                  </h3>
+                </span>
+
+                <h2 className="text-lg font-semibold text-primary">
+                  Map for{' '}
+                  {new Date(scenario.date).toLocaleDateString('de-DE', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}
+                </h2>
+              </div>
+              <RouteInputForm />
             </div>
+
             <div className="flex-1">
               {/* Existing GoogleMap component */}
               <GoogleMap
@@ -290,11 +302,6 @@ function MapView() {
             </div>
           </Skeleton>
         )}
-      </div>
-      {/* Route input Form */}
-      <div className="container mt-6 mb-8 p-1">
-        <h3 className="font-bold text-2xl mb-2 ">Route & Worker Information</h3>
-        <RouteInputForm />
       </div>
     </>
   );
