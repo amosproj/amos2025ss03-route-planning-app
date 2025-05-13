@@ -2,10 +2,11 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useState } from 'react';
-import { Job } from '../../types/Job';
+import { Appointment } from '../../types/Appointment';
 import { Scenario } from '../../types/Scenario';
 import { Button } from '@/components/ui/button';
 import { MapPin, Truck, ArrowRight, X } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/scenarios/')({
   component: ScenarioList,
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/scenarios/')({
 
 function ScenarioList() {
   const [selected, setSelected] = useState<Scenario | null>(null);
+  const navigate = useNavigate();
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const sorted = [...scenarios].sort((a, b) => a.date - b.date);
 
@@ -64,7 +66,16 @@ function ScenarioList() {
                   <div className="flex justify-between items-center">
                     <h4 className="text-lg font-semibold">{day.getDate()}</h4>
                     {sc && (
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          navigate({
+                            to: '/map-view',
+                            search: { date: sc.date.toString() },
+                          })
+                        }
+                      >
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     )}
@@ -112,8 +123,8 @@ function ScenarioList() {
               </thead>
               <tbody>
                 {selected.jobs
-                  .sort((a: Job, b: Job) => a.start - b.start)
-                  .map((job: Job, i: number) => (
+                  .sort((a: Appointment, b: Appointment) => a.start - b.start)
+                  .map((job: Appointment, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-4 py-2 text-sm text-gray-700">
                         {new Date(job.start).toLocaleTimeString()}
