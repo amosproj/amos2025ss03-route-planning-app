@@ -1,6 +1,8 @@
 // Setup Redux store with persistence
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import scenariosReducer from './scenariosSlice';
+import workersReducer from './workersSlice';
+import enrichedAppointmentsReducer from './enrichedAppointmentsSlice';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import {
@@ -15,11 +17,13 @@ import {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['scenarios'],
+  whitelist: ['scenarios', 'workers', 'enrichedAppointments'],
 };
 
 const rootReducer = combineReducers({
   scenarios: scenariosReducer,
+  workers: workersReducer,
+  enrichedAppointments: enrichedAppointmentsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

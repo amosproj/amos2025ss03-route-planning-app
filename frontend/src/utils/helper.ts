@@ -1,10 +1,10 @@
-import { Scenario, Vehicle } from '../types/Scenario';
-import { Job } from '../types/Job';
+import { Scenario, Vehicle, Worker } from '../types/Scenario';
+import { Appointment } from '../types/Appointment';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
   lines.shift();
-  const jobs: Job[] = lines.filter(Boolean).map((line) => {
+  const jobs: Appointment[] = lines.filter(Boolean).map((line) => {
     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
     const [start, end, streetRaw, zip, city, workers] = values.map((v) =>
       v.replace(/^"|"$/g, ''),
@@ -19,7 +19,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       skills: null,
     };
   });
-  const groups: Record<number, Job[]> = {};
+  const groups: Record<number, Appointment[]> = {};
   jobs.forEach((job) => {
     const day = new Date(job.start).setHours(0, 0, 0, 0);
     if (!groups[day]) groups[day] = [];
@@ -35,4 +35,31 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     ([date, jobs]) =>
       ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
   );
+}
+
+export function parseWorkerFromCsv(csvData: string): Worker {
+  const lines = csvData.split('\n');
+  const worker: Worker = {
+    startAddress: '',
+    finishAddress: '',
+    workers: 0,
+  };
+
+  lines.forEach((line) => {
+    const [keyRaw, valueRaw] = line.split(',');
+    if (!keyRaw || !valueRaw) return;
+
+    const key = keyRaw.trim().toLowerCase();
+    const value = valueRaw.trim().replace(/^"|"$/g, '');
+
+    if (key.includes('start address')) {
+      worker.startAddress = value;
+    } else if (key.includes('finish address')) {
+      worker.finishAddress = value;
+    } else if (key.includes('workers') || key.includes('# of workers')) {
+      worker.workers = parseInt(value, 10);
+    }
+  });
+
+  return worker;
 }
