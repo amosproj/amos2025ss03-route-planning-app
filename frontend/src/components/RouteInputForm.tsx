@@ -32,7 +32,7 @@ const formSchema = z.object({
   startAddress: z.string().min(1, 'Start Address is required'),
   finishAddress: z.string().min(1, 'Finish Address is required'),
   workers: z.number().min(1).max(100),
-  optimizationPlan: z.enum(['profit', 'time']).default('profit'),
+  optimizationPlan: z.enum(['profit', 'time']).default('profit').optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -54,14 +54,13 @@ export function RouteInputForm() {
     },
   });
 
-  // Set form values when store data is available
   useEffect(() => {
     if (existingWorker) {
       form.reset({
         startAddress: existingWorker.startAddress,
         finishAddress: existingWorker.finishAddress,
         workers: existingWorker.workers,
-        optimizationPlan: 'profit', // keep default or load from another slice if needed
+        optimizationPlan: 'profit',
       });
     }
   }, [existingWorker, form]);
@@ -76,9 +75,9 @@ export function RouteInputForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className=" w-full mx-auto p-4 bg-white  flex gap-5 justify-between items-end"
+        className="w-full mx-auto p-4 bg-white flex gap-5 justify-between items-end"
       >
-        <div className="w-full ">
+        <div className="w-full">
           <FormField
             control={form.control}
             name="startAddress"
@@ -118,9 +117,9 @@ export function RouteInputForm() {
               <FormItem>
                 <FormLabel>Number of Workers</FormLabel>
                 <FormControl>
-                  <div className="flex items-center space-x-4  py-1.5">
+                  <div className="flex items-center space-x-4 py-1.5">
                     <Slider
-                      value={[field.value]}
+                      value={[field.value ?? 1]}
                       onValueChange={([val]) => field.onChange(val)}
                       min={1}
                       max={10}
