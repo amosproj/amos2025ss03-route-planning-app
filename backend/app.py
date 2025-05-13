@@ -2,8 +2,10 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from distance_matrix import get_distance_matrix_2d
 from inputAnalyzer import *
-from solver import solve_vrp,solve_appointment_routing, solve_appointment_routing_pca
+from solver import solve_vrp
 
 load_dotenv()
 
@@ -57,27 +59,6 @@ def full_matrix(payload: DistanceMatrixRequest):
         return get_distance_matrix_2d(payload.locations)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/enhance-opti-request")
-def full_matrix(request:OptimizationRequest):
-    try:
-        return check_and_enhance_optimization_request(request)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-@app.post("/api/solve-without-check")
-def full_matrix(request:EnhancedOptimizationRequest):
-    try:
-        return solve_appointment_routing_pca(request)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/check-and-solve")
-def check_and_solve(request: OptimizationRequest):
-    try:
-        enh =  check_and_enhance_optimization_request(request)
-        return solve_appointment_routing(enh)
-    except Exception as e:
-       raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

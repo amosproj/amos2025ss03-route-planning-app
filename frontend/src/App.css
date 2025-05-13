@@ -1,0 +1,233 @@
+:root {
+  --panel-bg: #2a2a2a;
+  --panel-border: #444;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --button-bg: #1a1a1a;
+  --button-hover-border: #646cff;
+  --selected-color: #646cff;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #242424;
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.canvas-container {
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: #333;
+  cursor: grab;
+}
+.canvas-container:active {
+  cursor: grabbing;
+}
+
+.react-transform-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.react-transform-component {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* --- Node Styling (Example) --- */
+.node {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background-color: steelblue;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid #2a2a2a;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+.node:hover {
+  background-color: lightskyblue;
+}
+.node.depot {
+  background-color: seagreen;
+  border-color: darkgreen;
+}
+.node.selected {
+  border-color: var(--selected-color);
+  box-shadow: 0 0 8px var(--selected-color);
+}
+
+/* --- General Config Menu --- */
+.general-config-menu {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  z-index: 10;
+  transition:
+    width 0.3s ease,
+    padding 0.3s ease;
+  overflow: hidden;
+  max-height: calc(100vh - 80px);
+  display: flex;
+}
+
+.general-config-menu .toggle-button {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 10px 5px;
+  border-radius: 8px 0 0 8px;
+  border: none;
+  border-right: 1px solid var(--panel-border);
+  cursor: pointer;
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  height: auto;
+}
+.general-config-menu.closed .toggle-button {
+  border-radius: 8px;
+  border-right: none;
+}
+
+.general-config-menu .menu-content {
+  padding: 10px 15px;
+  width: 280px;
+  overflow-y: auto;
+}
+
+.general-config-menu.closed .menu-content {
+  display: none;
+}
+
+.general-config-menu h3,
+.general-config-menu h4,
+.general-config-menu h5 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+.general-config-menu label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.9em;
+}
+.general-config-menu input[type='number'],
+.general-config-menu input[type='text'] {
+  width: calc(100% - 12px);
+  padding: 5px;
+  margin-bottom: 8px;
+  background-color: #333;
+  border: 1px solid #555;
+  color: var(--text-color);
+  border-radius: 4px;
+}
+.general-config-menu ul {
+  list-style: none;
+  padding-left: 10px;
+  margin-bottom: 8px;
+}
+.general-config-menu button {
+  margin-top: 5px;
+  margin-right: 5px;
+}
+.general-config-menu input[type='checkbox'] {
+  margin-right: 5px;
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(42, 42, 42, 0.8);
+  padding: 8px 15px;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.action-buttons .solve-button {
+  background-color: #4caf50;
+  color: white;
+}
+.action-buttons .solve-button:hover {
+  border-color: #367c39;
+}
+
+/* --- Node Config Panel --- */
+.node-config-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 250px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 15px;
+  z-index: 10;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+}
+.node-config-panel .close-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 2px 5px;
+}
+.node-config-panel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+.node-config-panel div {
+  margin-bottom: 10px;
+}
+.node-config-panel label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 0.9em;
+}
+.node-config-panel input[type='number'],
+.node-config-panel input[type='text'] {
+  width: calc(100% - 12px);
+  padding: 5px;
+  background-color: #333;
+  border: 1px solid #555;
+  color: var(--text-color);
+  border-radius: 4px;
+}
+.node-config-panel input[type='checkbox'] {
+  margin-right: 5px;
+}
+.node-config-panel button {
+  margin-top: 10px;
+}
+.node-config-panel h4 {
+  margin-bottom: 5px;
+}
