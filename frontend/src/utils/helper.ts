@@ -1,4 +1,4 @@
-import { Scenario, Vehicle } from '../types/Scenario';
+import { Scenario, Vehicle, Worker } from '../types/Scenario';
 import { Job } from '../types/Job';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
@@ -35,4 +35,31 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     ([date, jobs]) =>
       ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
   );
+}
+
+export function parseWorkerFromCsv(csvData: string): Worker {
+  const lines = csvData.split('\n');
+  const worker: Worker = {
+    startAddress: '',
+    finishAddress: '',
+    workers: 0,
+  };
+
+  lines.forEach((line) => {
+    const [keyRaw, valueRaw] = line.split(',');
+    if (!keyRaw || !valueRaw) return;
+
+    const key = keyRaw.trim().toLowerCase();
+    const value = valueRaw.trim().replace(/^"|"$/g, '');
+
+    if (key.includes('start address')) {
+      worker.startAddress = value;
+    } else if (key.includes('finish address')) {
+      worker.finishAddress = value;
+    } else if (key.includes('workers') || key.includes('# of workers')) {
+      worker.workers = parseInt(value, 10);
+    }
+  });
+
+  return worker;
 }

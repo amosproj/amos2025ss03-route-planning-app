@@ -13,3 +13,9 @@ export interface Vehicle {
     skills: string[];
     workers: number;
 }
+
+export interface Worker {
+    startAddress: string;
+    finishAddress: string;
+    workers: number;
+}
