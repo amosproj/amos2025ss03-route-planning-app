@@ -1,4 +1,4 @@
-name: Deploy FastAPI to Google Cloud Run
+name: Deploy FastAPI to Google VM
 
 on:
   push:
@@ -10,45 +10,32 @@ on:
 
 jobs:
   deploy:
-    name: Build & Deploy to Cloud Run
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          fetch-depth: 1
 
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          install_components: 'beta'
-
-      - name: Configure Docker for Google Cloud
+      - name: Set up SSH Access
         run: |
-          gcloud auth configure-docker --quiet
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: Build Docker image
+      - name: Inject .env and Deploy to VM
         run: |
-          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.CLOUD_RUN_SERVICE }}"
-          docker build -t $IMAGE ./backend
-          echo "Built image: $IMAGE"
+          # Create .env file locally with your secret
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > backend/.env
 
-      - name: Push Docker image to Google Container Registry
-        run: |
-          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.CLOUD_RUN_SERVICE }}"
-          docker push $IMAGE
+          # Copy backend directory to the VM
+          scp -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/home/${{ secrets.GCP_VM_USER }}/fastapi_app
 
-      - name: Deploy to Cloud Run
-        run: |
-          IMAGE="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.CLOUD_RUN_SERVICE }}"
-          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
-            --image $IMAGE \
-            --region ${{ secrets.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --quiet
+          # SSH into VM and run the start.sh script
+          ssh ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
+            cd ~/fastapi_app/backend
+            chmod +x start.sh
+            ./start.sh
+          EOF
