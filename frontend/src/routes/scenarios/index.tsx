@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useState } from 'react';
-import { Job } from '../../types/Job';
+import { Appointment } from '../../types/Appointment';
 import { Scenario } from '../../types/Scenario';
 import { Button } from '@/components/ui/button';
 import { MapPin, Truck, ArrowRight, X } from 'lucide-react';
@@ -123,8 +123,8 @@ function ScenarioList() {
               </thead>
               <tbody>
                 {selected.jobs
-                  .sort((a: Job, b: Job) => a.start - b.start)
-                  .map((job: Job, i: number) => (
+                  .sort((a: Appointment, b: Appointment) => a.start - b.start)
+                  .map((job: Appointment, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-4 py-2 text-sm text-gray-700">
                         {new Date(job.start).toLocaleTimeString()}

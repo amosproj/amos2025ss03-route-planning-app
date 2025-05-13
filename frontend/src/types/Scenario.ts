@@ -1,7 +1,7 @@
-import { Job } from "./Job";
+import { Appointment } from "./Appointment";
 
 export interface Scenario {
-    jobs: Job[];
+    jobs: Appointment[];
     date: number;
     vehicles: Vehicle[];
 

@@ -1,10 +1,10 @@
 import { Scenario, Vehicle, Worker } from '../types/Scenario';
-import { Job } from '../types/Job';
+import { Appointment } from '../types/Appointment';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
   lines.shift();
-  const jobs: Job[] = lines.filter(Boolean).map((line) => {
+  const jobs: Appointment[] = lines.filter(Boolean).map((line) => {
     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
     const [start, end, streetRaw, zip, city, workers] = values.map((v) =>
       v.replace(/^"|"$/g, ''),
@@ -19,7 +19,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       skills: null,
     };
   });
-  const groups: Record<number, Job[]> = {};
+  const groups: Record<number, Appointment[]> = {};
   jobs.forEach((job) => {
     const day = new Date(job.start).setHours(0, 0, 0, 0);
     if (!groups[day]) groups[day] = [];
