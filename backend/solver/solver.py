@@ -1,50 +1,15 @@
-# backend/solver.py
+# backend/solver/solver.py
 import math
 import numpy as np
-from typing import Dict, List, Any
+from typing import Any
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
-from datetime import datetime
-from models import *
 
-def to_minutes(dt_str: str) -> int:
-    dt = datetime.fromisoformat(dt_str)
-    return dt.hour * 60 + dt.minute
+from backend.exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
+from backend.solver.models import *
+from backend.solver.preprocessing import *
+from backend.solver.util import *
+from backend.solver.validate_routes import validate_routes
 
-def check_routes(routes: List[Route]) -> bool:
-    print("🔍 Checking routes...\n")
-    all_valid = True
-
-    for route in routes:
-        current_time = 0
-        print(f"🚐 Vehicle {route.vehicle_id}:")
-
-        for appt in route.appointments:
-            appt_id = appt.location.id
-            start = to_minutes(appt.appointment_start)
-            end = to_minutes(appt.appointment_end)
-            service_time = max(1, end - start)
-
-            arrival = max(current_time, start)
-            finish = arrival + service_time
-            valid = arrival >= start and finish <= end
-            all_valid = all_valid and valid
-
-            print(
-                f"📍 {appt_id} — Arrival: {arrival}, Finish: {finish}, "
-                f"Window: [{start}, {end}], "
-                f"Valid: {'✅' if valid else '❌'}"
-            )
-
-            current_time = finish  # update for next stop
-
-        print()
-
-    if all_valid:
-        print("✅ All routes are valid.")
-    else:
-        print("❌ Some routes are invalid.")
-
-    return all_valid
 
 def solve_appointment_routing(
         request: EnhancedOptimizationRequest,
@@ -195,9 +160,22 @@ def solve_appointment_routing_pca(
     optimization_time_limit: int = 15
 ) -> Solution:
 
+    if not validate_appointment_overlap(request, slack_max, max_time_per_vehicle):
+        print(APPOINTMENT_OVERLAP_TO_BIG)
+        return Solution(
+            total_distance_traveled=0,
+            max_distance_traveled=0,
+            routes=[],
+            method_used= APPOINTMENT_OVERLAP_TO_BIG
+        )
+
+    total_appointment_time = sum_appointment_durations(request)
+    print(f"Total appointment time: "+ str(total_appointment_time))
+
     company_info = request.company_info
     appointments = request.appointments
     time_matrix = request.time_matrix
+    distance_matrix = request.distance_matrix
 
     depot_address = (
         f"{company_info.start_address.street} {company_info.start_address.zip_code} {company_info.start_address.city}"
@@ -233,7 +211,13 @@ def solve_appointment_routing_pca(
         to_node = manager.IndexToNode(to_index)
         return time_matrix[from_node][to_node] + service_times[from_node]
 
+    def distance_callback(from_index, to_index):
+        from_node = manager.IndexToNode(from_index)
+        to_node = manager.IndexToNode(to_index)
+        return distance_matrix[from_node][to_node]
+
     time_callback_index = routing.RegisterTransitCallback(time_callback)
+    distance_callback_index = routing.RegisterTransitCallback(distance_callback)
     routing.SetArcCostEvaluatorOfAllVehicles(time_callback_index)
 
     # Add Time Dimension
@@ -245,7 +229,10 @@ def solve_appointment_routing_pca(
         "Time"
     )
     time_dimension = routing.GetDimensionOrDie("Time")
+    # Treat waiting time as equivalent to driving time
+    time_dimension.SetSlackCostCoefficientForAllVehicles(1)
     time_dimension.SetGlobalSpanCostCoefficient(100)
+
 
     # Apply time windows and enforce: arrival + service_time <= end
     for idx, (start, end) in enumerate(time_windows):
@@ -272,17 +259,22 @@ def solve_appointment_routing_pca(
             method_used="No solution"
         )
 
+    total_time = 0
     total_distance = 0
     max_distance = 0
+    max_time = 0
     routes: List[Route] = []
 
     for vehicle_id in range(num_vehicles):
         index = routing.Start(vehicle_id)
+        route_time = 0
         route_distance = 0
         vehicle_route = []
 
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
+
+            # Add appointment if it's not the depot
             if node_index > 0:
                 vehicle_route.append(appointments[node_index - 1])
 
@@ -290,18 +282,35 @@ def solve_appointment_routing_pca(
             from_node = manager.IndexToNode(index)
             to_node = manager.IndexToNode(next_index)
 
-            route_distance += time_matrix[from_node][to_node]
+            # Travel time and distance
+            travel_time = time_matrix[from_node][to_node]
+            travel_distance = distance_matrix[from_node][to_node]
+
+            # Arrival time at current node
+            arrival_time = solution.Value(time_dimension.CumulVar(index))
+
+            # Service time and waiting time
+            appt_start = time_windows[node_index][0]
+            service_time = service_times[node_index]
+            waiting_time = max(0, appt_start - arrival_time) if node_index > 0 else 0
+
+            # Total time spent at this node
+            route_time += travel_time + waiting_time + service_time
+            route_distance += travel_distance
+
             index = next_index
 
+        total_time += route_time
         total_distance += route_distance
         max_distance = max(max_distance, route_distance)
+        max_time = max(max_time, route_time)
 
         routes.append(
             Route(
                 route_id=vehicle_id,
                 vehicle_id=vehicle_id,
                 distance_traveled=route_distance,
-                time_traveled=route_distance,
+                time_traveled=route_time,
                 appointments=vehicle_route
             )
         )
@@ -314,7 +323,7 @@ def solve_appointment_routing_pca(
     )
     
     # Check routes for validity
-    check_routes(routes)
+    validate_routes(routes)
         
     return response
 
