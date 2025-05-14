@@ -5,23 +5,21 @@ type FileDropzoneProps = {
 };
 
 const FileDropzone: React.FC<FileDropzoneProps> = ({ onDrop }) => {
-  const {
-    acceptedFiles,
-    getRootProps,
-    getInputProps,
-    isDragActive,
-  } = useDropzone({
-    onDrop,
-    accept: {
-      'text/csv': ['.csv'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    },
-    maxFiles: 1,
-  });
+  const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
+    useDropzone({
+      onDrop,
+      accept: {
+        'text/csv': ['.csv'],
+        // 'application/vnd.ms-excel': ['.xls'],
+        // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      },
+      maxFiles: 1,
+    });
 
   const files = acceptedFiles.map((file) => (
-    <span key={file.path}>{file.name} - {file.size} bytes</span>
+    <span key={file.path}>
+      {file.name} - {file.size} bytes
+    </span>
   ));
 
   return (
@@ -40,9 +38,9 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({ onDrop }) => {
         {isDragActive ? (
           <p>Drop the file here...</p>
         ) : (
-          <p>Drag & drop a CSV or Excel file here, or click to select</p>
+          <p>Drag & drop a CSV file here, or click to select</p>
         )}
-        <p className='text-blue-400'>{files}</p>
+        <p className="text-blue-400">{files}</p>
       </div>
     </section>
   );
