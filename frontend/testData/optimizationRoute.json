@@ -1,0 +1,258 @@
+{
+    "company_info": {
+        "start_address": {
+            "street": "Görlitzer Str. 3",
+            "zip_code": "10997",
+            "city": "Berlin"
+        },
+        "finish_address": {
+            "street": "Görlitzer Str. 3",
+            "zip_code": "10997",
+            "city": "Berlin"
+        },
+        "number_of_workers": [
+            {
+                "vehicle_id": 1,
+                "skills": "electrician",
+                "worker_amount": 2
+            },
+            {
+                "vehicle_id": 2,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 3,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 4,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 5,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 6,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 7,
+                "skills": "plumber",
+                "worker_amount": 1
+            },
+            {
+                "vehicle_id": 8,
+                "skills": "plumber",
+                "worker_amount": 1
+            }
+        ]
+    },
+    "appointments": [
+        {
+            "appointment_start": "2025-04-29 14:00:00.000",
+            "appointment_end": "2025-04-29 14:30:00.000",
+            "address": {
+                "street": "Chausseestraße 33b",
+                "zip_code": "10115",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 13:00:00.000",
+            "appointment_end": "2025-04-29 14:00:00.000",
+            "address": {
+                "street": "Vesaliusstraße 4",
+                "zip_code": "13187",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 13:00:00.000",
+            "appointment_end": "2025-04-29 14:00:00.000",
+            "address": {
+                "street": "Glienicker Weg 136",
+                "zip_code": "12489",
+                "city": "Berlin"
+            },
+            "number_of_workers": 2
+        },
+        {
+            "appointment_start": "2025-04-29 12:15:00.000",
+            "appointment_end": "2025-04-29 14:00:00.000",
+            "address": {
+                "street": "Chausseestraße 33b",
+                "zip_code": "10115",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 12:00:00.000",
+            "appointment_end": "2025-04-29 13:00:00.000",
+            "address": {
+                "street": "Vesaliusstraße 4",
+                "zip_code": "13187",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 12:00:00.000",
+            "appointment_end": "2025-04-29 13:00:00.000",
+            "address": {
+                "street": "Carl-Spindler-Straße 15",
+                "zip_code": "12555",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 15:00:00.000",
+            "appointment_end": "2025-04-29 16:15:00.000",
+            "address": {
+                "street": "Carl-Spindler-Straße 15",
+                "zip_code": "12555",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 15:00:00.000",
+            "appointment_end": "2025-04-29 16:00:00.000",
+            "address": {
+                "street": "Fehrbelliner Straße 23",
+                "zip_code": "10119",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 11:00:00.000",
+            "appointment_end": "2025-04-29 12:00:00.000",
+            "address": {
+                "street": "Henriette-Lustig-Straße 14",
+                "zip_code": "12555",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 10:30:00.000",
+            "appointment_end": "2025-04-29 14:00:00.000",
+            "address": {
+                "street": "Südostallee 132",
+                "zip_code": "12487",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 10:30:00.000",
+            "appointment_end": "2025-04-29 12:15:00.000",
+            "address": {
+                "street": "Tabbertstraße 6a",
+                "zip_code": "12459",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 10:30:00.000",
+            "appointment_end": "2025-04-29 11:30:00.000",
+            "address": {
+                "street": "Parkaue 15",
+                "zip_code": "10367",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 10:30:00.000",
+            "appointment_end": "2025-04-29 14:00:00.000",
+            "address": {
+                "street": "Chausseestraße 33b",
+                "zip_code": "10115",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 10:30:00.000",
+            "appointment_end": "2025-04-29 12:00:00.000",
+            "address": {
+                "street": "Tabbertstraße 6a",
+                "zip_code": "12459",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 09:30:00.000",
+            "appointment_end": "2025-04-29 10:00:00.000",
+            "address": {
+                "street": "Am Filmlager 8",
+                "zip_code": "12555",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 09:00:00.000",
+            "appointment_end": "2025-04-29 10:00:00.000",
+            "address": {
+                "street": "Südostallee 148",
+                "zip_code": "12487",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 08:45:00.000",
+            "appointment_end": "2025-04-29 10:00:00.000",
+            "address": {
+                "street": "Südostallee 124",
+                "zip_code": "12487",
+                "city": "Berlin"
+            },
+            "number_of_workers": 2
+        },
+        {
+            "appointment_start": "2025-04-29 08:00:00.000",
+            "appointment_end": "2025-04-29 09:00:00.000",
+            "address": {
+                "street": "Dahmestraße 15",
+                "zip_code": "12527",
+                "city": "Berlin"
+            },
+            "number_of_workers": 2
+        },
+        {
+            "appointment_start": "2025-04-29 08:00:00.000",
+            "appointment_end": "2025-04-29 09:00:00.000",
+            "address": {
+                "street": "Otto-Franke-Straße 45",
+                "zip_code": "12489",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        },
+        {
+            "appointment_start": "2025-04-29 08:00:00.000",
+            "appointment_end": "2025-04-29 09:00:00.000",
+            "address": {
+                "street": "Stralauer Platz 35",
+                "zip_code": "10243",
+                "city": "Berlin"
+            },
+            "number_of_workers": 1
+        }
+    ]
+}
