@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Switch } from '@/components/ui/switch';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   GoogleMap,
   useJsApiLoader,
@@ -10,6 +11,63 @@ import { useEffect, useRef, useState } from 'react';
 
 import dailyPlanData from '../../../testData/dailyPlanData.json';
 
+//--------type start--------//
+type WaypointAppointment = {
+  location: {
+    lat: number;
+    lng: number;
+  };
+  stopover: boolean;
+};
+
+type Appointment = {
+  appointment_start: string;
+  appointment_end: string;
+  address: {
+    street: string;
+    zip_code: string;
+    city: string;
+  };
+  location: {
+    id: string;
+    lat: number;
+    lng: number;
+  };
+  number_of_workers: number;
+};
+
+type RouteRequest = {
+  id: string;
+  origin: {
+    lat: number;
+    lng: number;
+  };
+  destination: {
+    lat: number;
+    lng: number;
+  };
+  waypoints: WaypointAppointment[];
+  color: string;
+  appointments: Appointment[];
+};
+
+type MarkerData = {
+  position: google.maps.LatLngLiteral;
+  label: string;
+  routeId: string;
+  appointment?: Appointment;
+  color: string;
+};
+
+type Route = {
+  id: string;
+  color: string;
+  visible: boolean;
+  result: google.maps.DirectionsResult;
+  appointments: Appointment[];
+};
+//--------type end--------//
+
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
 });
@@ -19,17 +77,11 @@ function DailyPlan() {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
   });
 
-  console.log('dailyPlanData:', dailyPlanData);
-
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
   const mapRef = useRef<google.maps.Map | null>(null);
   const polylineRefs = useRef<Record<string, google.maps.Polyline>>({});
 
-  const [activeMarker, setActiveMarker] = useState<{
-    position: google.maps.LatLngLiteral;
-    label: string;
-    routeId: string;
-  } | null>(null);
+  const [activeMarker, setActiveMarker] = useState<MarkerData | null>(null);
 
   const colors = [
     '#FF0000', // Red
@@ -53,6 +105,8 @@ function DailyPlan() {
     '#D2691E', // Chocolate
     '#4682B4', // Steel Blue
   ];
+
+  // Create route requests from dailyPlanData
   const routeRequests = dailyPlanData.routes.map((route, idx) => {
     const waypoints = route.appointments.slice(1, -1).map((appt) => ({
       location: { lat: appt.location.lat, lng: appt.location.lng },
@@ -68,102 +122,79 @@ function DailyPlan() {
       destination: { lat: destination.lat, lng: destination.lng },
       waypoints,
       color: colors[idx % colors.length],
+      appointments: route.appointments,
     };
   });
 
-  // const routeRequests = [
-  //   {
-  //     id: 'route-1',
-  //     origin: { lat: 52.4369434, lng: 13.5451477 },
-  //     destination: { lat: 52.520008, lng: 13.404954 },
-  //     waypoints: [
-  //       { location: { lat: 52.45, lng: 13.5 }, stopover: true },
-  //       { location: { lat: 52.48, lng: 13.48 }, stopover: true },
-  //     ],
-  //     color: '#FF0000',
-  //   },
-  //   {
-  //     id: 'route-2',
-  //     origin: { lat: 52.5, lng: 13.3 },
-  //     destination: { lat: 52.52, lng: 13.6 },
-  //     waypoints: [
-  //       { location: { lat: 52.51, lng: 13.4 }, stopover: true },
-  //     ],
-  //     color: '#0000FF',
-  //   },
-  // ];
-
-  const [routes, setRoutes] = useState<{
-    id: string;
-    color: string;
-    visible: boolean;
-    result: google.maps.DirectionsResult;
-  }[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
 
   useEffect(() => {
     if (!isLoaded) return;
 
     const directionsService = new google.maps.DirectionsService();
 
-    Promise.all(
-      routeRequests.map((route) =>
-        new Promise<{
-          id: string;
-          color: string;
-          visible: boolean;
-          result: google.maps.DirectionsResult;
-        }>((resolve, reject) => {
-          directionsService.route(
-            {
-              origin: route.origin,
-              destination: route.destination,
-              waypoints: route.waypoints,
-              travelMode: google.maps.TravelMode.DRIVING,
-            },
-            (result, status) => {
-              if (status === google.maps.DirectionsStatus.OK && result) {
-                resolve({
-                  id: route.id,
-                  color: route.color,
-                  visible: true,
-                  result,
-                });
-              } else {
-                reject(`Failed to fetch directions: ${status}`);
-              }
+    const fetchRoute = (route: RouteRequest) => {
+      return new Promise<{
+        id: string;
+        color: string;
+        visible: boolean;
+        result: google.maps.DirectionsResult;
+        appointments: typeof route.appointments;
+      }>((resolve, reject) => {
+        directionsService.route(
+          {
+            origin: route.origin,
+            destination: route.destination,
+            waypoints: route.waypoints,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status === google.maps.DirectionsStatus.OK && result) {
+              resolve({
+                id: route.id,
+                color: route.color,
+                visible: true,
+                result,
+                appointments: route.appointments,
+              });
+            } else {
+              reject(`Failed to fetch directions for ${route.id}: ${status}`);
             }
-          );
-        })
-      )
-    )
+          }
+        );
+      });
+    };
+
+    Promise.all(routeRequests.map(fetchRoute))
       .then((results) => {
         setRoutes(results);
 
-        if (mapRef.current) {
-          const bounds = new google.maps.LatLngBounds();
+        if (!mapRef.current) return;
 
-          results.forEach((route) => {
-            const path = route.result.routes[0].overview_path;
+        const bounds = new google.maps.LatLngBounds();
 
-            // Extend bounds with each point in the polyline
-            path.forEach((point) => bounds.extend(point));
+        results.forEach((route) => {
+          const path = route.result.routes[0].overview_path;
 
-            const polyline = new google.maps.Polyline({
-              path,
-              strokeColor: route.color,
-              strokeOpacity: 0.8,
-              strokeWeight: 5,
-            });
+          // Extend bounds with each point in the path
+          path.forEach((point) => bounds.extend(point));
 
-            polyline.setMap(mapRef.current!);
-            polylineRefs.current[route.id] = polyline;
+          const polyline = new google.maps.Polyline({
+            path,
+            strokeColor: route.color,
+            strokeOpacity: 0.8,
+            strokeWeight: 5,
           });
 
-          mapRef.current.fitBounds(bounds);
-        }
+          polyline.setMap(mapRef.current);
+          polylineRefs.current[route.id] = polyline;
+        });
+
+        mapRef.current.fitBounds(bounds);
       })
-      .catch((error) => console.error(error));
+      .catch((error) => console.error('Error fetching routes:', error));
   }, [isLoaded]);
+
 
   const toggleVisibility = (id: string) => {
     if (activeMarker?.routeId === id) {
@@ -192,27 +223,28 @@ function DailyPlan() {
     };
   }, []);
 
-  useEffect(() => {
-    console.log('Routes:', routes);
-  }, [routes]);
-
   if (loadError) return <div>Error loading Maps</div>;
-  if (!isLoaded) return <div>Loading Maps...</div>;
+  if (!isLoaded) return (
+    <div className="bg-gray-400">
+      <Skeleton className="h-[calc(100vh-5.3rem)] w-full rounded-none" />
+    </div>
+  );
 
   return (
-    <div style={{ height: '90vh', width: '100%', position: 'relative' }}>
+    <div className="flex w-full h-[calc(100vh-5.3rem)] relative">
       <GoogleMap
         center={defaultCenter}
-        zoom={14}
+        zoom={12}
         mapContainerStyle={{ width: '100%', height: '100%' }}
-        onLoad={(map) => (mapRef.current = map)}
+        onLoad={(map) => {
+          mapRef.current = map;
+        }}
       >
         {routes.map((route) => {
           if (!route.visible) return null;
 
           const leg = route.result.routes[0].legs[0];
           const waypoints = route.result.request.waypoints;
-          console.log('waypoints:', waypoints);
 
           return (
             <div key={route.id}>
@@ -227,6 +259,8 @@ function DailyPlan() {
                     position: leg.start_location.toJSON(),
                     label: `Start of ${route.id}`,
                     routeId: route.id,
+                    appointment: route.appointments[0],
+                    color: route.color,
                   })
                 }
               />
@@ -241,6 +275,8 @@ function DailyPlan() {
                     position: leg.end_location.toJSON(),
                     label: `End of ${route.id}`,
                     routeId: route.id,
+                    appointment: route.appointments[route.appointments.length - 1],
+                    color: route.color,
                   })
                 }
               />
@@ -268,6 +304,8 @@ function DailyPlan() {
                       position,
                       label: `Waypoint ${index + 1}`,
                       routeId: route.id,
+                      appointment: route.appointments[index + 1],
+                      color: route.color,
                     })
                   }
                 />
@@ -279,7 +317,35 @@ function DailyPlan() {
                   position={activeMarker.position}
                   onCloseClick={() => setActiveMarker(null)}
                 >
-                  <div>{activeMarker.label}</div>
+                  <>
+                    <div>
+                      <strong style={{ color: activeMarker.color }} className="text-xl">{activeMarker.label}</strong>
+                    </div>
+                    <div>
+                      <strong>Start:</strong>{' '}
+                      {activeMarker.appointment?.appointment_start &&
+                        new Date(activeMarker.appointment.appointment_start).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                    </div>
+                    <div>
+                      <strong>End:</strong>{' '}
+                      {activeMarker.appointment?.appointment_end &&
+                        new Date(activeMarker.appointment.appointment_end).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                    </div>
+                    <div>
+                      <strong>Address:</strong>{' '}
+                      {activeMarker.appointment?.address &&
+                        `${activeMarker.appointment.address.street}, ${activeMarker.appointment.address.zip_code} ${activeMarker.appointment.address.city}`}
+                    </div>
+                    <div>
+                      <strong>Workers:</strong> {activeMarker.appointment?.number_of_workers}
+                    </div>
+                  </>
                 </InfoWindow>
               )}
             </div>
