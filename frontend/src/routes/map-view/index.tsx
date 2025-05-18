@@ -1,5 +1,6 @@
 import { RouteInputForm } from '@/components/RouteInputForm';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   GoogleMap,
   InfoWindow,
@@ -15,6 +16,7 @@ import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
+import { toggleExcludedAppointment } from '../../store/excludedAppointmentsSlice';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -25,6 +27,9 @@ function MapView() {
 
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const dispatch = useDispatch<AppDispatch>();
+  const excluded = useSelector(
+    (s: RootState) => s.excludedAppointments[date] ?? [],
+  );
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
@@ -45,7 +50,7 @@ function MapView() {
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
   );
-  console.log('Cached responses:', cachedResponses);
+  // console.log('Cached responses:', cachedResponses);
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
@@ -133,43 +138,51 @@ function MapView() {
               .map(({ job, idx }) => {
                 const loc = locations[idx];
                 const hasError = loc?.could_be_fully_found === false;
+                const isExcluded = excluded.includes(idx);
                 return (
                   <li
                     key={idx}
                     role="listitem"
-                    aria-selected={selectedIdx === idx}
+                    aria-selected={!isExcluded && selectedIdx === idx}
                     aria-invalid={hasError}
                     tabIndex={0}
-                    onClick={() => {
-                      if (
-                        !hasError &&
-                        loc?.latitude != null &&
-                        loc?.longitude != null &&
-                        mapRef.current
-                      ) {
-                        mapRef.current.panTo({
-                          lat: loc.latitude,
-                          lng: loc.longitude,
-                        });
-                        mapRef.current.setZoom(14);
-                        setSelectedIdx(idx);
-                      }
-                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.currentTarget.click();
                       }
                     }}
                     className={
-                      `p-2 rounded cursor-pointer flex justify-between items-center` +
-                      (selectedIdx === idx ? 'bg-blue-100 ' : '') +
+                      `p-2 rounded flex justify-between items-center ` +
+                      (isExcluded
+                        ? 'opacity-50 line-through cursor-default '
+                        : 'cursor-pointer ') +
+                      (!isExcluded && selectedIdx === idx
+                        ? 'bg-blue-100 '
+                        : '') +
                       (hasError
                         ? 'border border-red-500 text-red-600'
                         : 'hover:bg-gray-200 border border-blue-400')
                     }
                   >
-                    <div>
-                      <div className="text-sm font-medium">
+                    <div
+                      onClick={() => {
+                        if (
+                          !isExcluded &&
+                          !hasError &&
+                          loc?.latitude != null &&
+                          loc?.longitude != null &&
+                          mapRef.current
+                        ) {
+                          mapRef.current.panTo({
+                            lat: loc.latitude,
+                            lng: loc.longitude,
+                          });
+                          mapRef.current.setZoom(14);
+                          setSelectedIdx(idx);
+                        }
+                      }}
+                    >
+                      <div className="text-sm font-medium text-left">
                         {new Date(job.start).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -184,6 +197,20 @@ function MapView() {
                         {job.street}, {job.zip} {job.city}
                       </div>
                     </div>
+                    <Checkbox
+                      checked={!isExcluded && !hasError}
+                      onChange={() =>
+                        dispatch(toggleExcludedAppointment({ date, idx }))
+                      }
+                      onClick={() =>
+                        dispatch(toggleExcludedAppointment({ date, idx }))}
+                      className="mr-2"
+                      aria-label={
+                        isExcluded
+                          ? 'Include appointment'
+                          : 'Exclude appointment'
+                      }
+                    />
                     {hasError && <span className="text-red-500">⚠️</span>}
                   </li>
                 );
@@ -219,7 +246,7 @@ function MapView() {
                   })}
                 </h2>
               </div>
-              <RouteInputForm />
+              <RouteInputForm date={date} />
             </div>
 
             <div className="flex-1">
@@ -235,7 +262,9 @@ function MapView() {
                     <>
                       {locations.map(
                         (loc: EnhancedAddressResponse, idx: number) =>
-                          loc.latitude != null && loc.longitude != null ? (
+                          !excluded.includes(idx) &&
+                          loc.latitude != null &&
+                          loc.longitude != null ? (
                             <Marker
                               key={idx}
                               position={{
