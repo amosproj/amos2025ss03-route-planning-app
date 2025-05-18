@@ -1,0 +1,355 @@
+{
+    "total_distance_traveled": 1831.0,
+    "max_distance_traveled": 361.0,
+    "routes": [
+        {
+            "route_id": 0,
+            "vehicle_id": 0,
+            "distance_traveled": 0.0,
+            "time_traveled": 320.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 08:45:00.000",
+                    "appointment_end": "2025-04-29 10:00:00.000",
+                    "address": {
+                        "street": "Südostallee 124",
+                        "zip_code": "12487",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Südostallee 124-12487-Berlin",
+                        "lat": 52.45439289999999,
+                        "lng": 13.4983387
+                    },
+                    "number_of_workers": 2
+                },
+                {
+                    "appointment_start": "2025-04-29 10:30:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Südostallee 132",
+                        "zip_code": "12487",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Südostallee 132-12487-Berlin",
+                        "lat": 52.4546533,
+                        "lng": 13.4996753
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 1,
+            "vehicle_id": 1,
+            "distance_traveled": 0.0,
+            "time_traveled": 361.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 08:00:00.000",
+                    "appointment_end": "2025-04-29 09:00:00.000",
+                    "address": {
+                        "street": "Dahmestraße 15",
+                        "zip_code": "12527",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Dahmestraße 15-12527-Berlin",
+                        "lat": 52.4023692,
+                        "lng": 13.5767412
+                    },
+                    "number_of_workers": 2
+                },
+                {
+                    "appointment_start": "2025-04-29 11:00:00.000",
+                    "appointment_end": "2025-04-29 12:00:00.000",
+                    "address": {
+                        "street": "Henriette-Lustig-Straße 14",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Henriette-Lustig-Straße 14-12555-Berlin",
+                        "lat": 52.44992389999999,
+                        "lng": 13.5658773
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 13:00:00.000",
+                    "address": {
+                        "street": "Vesaliusstraße 4",
+                        "zip_code": "13187",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Vesaliusstraße 4-13187-Berlin",
+                        "lat": 52.57833669999999,
+                        "lng": 13.4268123
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Vesaliusstraße 4",
+                        "zip_code": "13187",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Vesaliusstraße 4-13187-Berlin",
+                        "lat": 52.57833669999999,
+                        "lng": 13.4268123
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 2,
+            "vehicle_id": 2,
+            "distance_traveled": 0.0,
+            "time_traveled": 279.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 10:30:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Chausseestraße 33b",
+                        "zip_code": "10115",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Chausseestraße 33b-10115-Berlin",
+                        "lat": 52.5332276,
+                        "lng": 13.3812923
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 14:00:00.000",
+                    "appointment_end": "2025-04-29 14:30:00.000",
+                    "address": {
+                        "street": "Chausseestraße 33b",
+                        "zip_code": "10115",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Chausseestraße 33b-10115-Berlin",
+                        "lat": 52.5332276,
+                        "lng": 13.3812923
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 3,
+            "vehicle_id": 3,
+            "distance_traveled": 0.0,
+            "time_traveled": 271.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 11:00:00.000",
+                    "appointment_end": "2025-04-29 12:00:00.000",
+                    "address": {
+                        "street": "Swinemünder Straße 108",
+                        "zip_code": "10435",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Swinemünder Straße 108-10435-Berlin",
+                        "lat": 52.5388751,
+                        "lng": 13.4004447
+                    },
+                    "number_of_workers": 3
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 13:00:00.000",
+                    "address": {
+                        "street": "Fehrbelliner Straße 23",
+                        "zip_code": "10119",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Fehrbelliner Straße 23-10119-Berlin",
+                        "lat": 52.5336024,
+                        "lng": 13.4037746
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:15:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Chausseestraße 33b",
+                        "zip_code": "10115",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Chausseestraße 33b-10115-Berlin",
+                        "lat": 52.5332276,
+                        "lng": 13.3812923
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 4,
+            "vehicle_id": 4,
+            "distance_traveled": 0.0,
+            "time_traveled": 333.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 09:30:00.000",
+                    "appointment_end": "2025-04-29 10:00:00.000",
+                    "address": {
+                        "street": "Am Filmlager 8",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Am Filmlager 8-12555-Berlin",
+                        "lat": 52.4495782,
+                        "lng": 13.5848161
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 10:30:00.000",
+                    "appointment_end": "2025-04-29 12:15:00.000",
+                    "address": {
+                        "street": "Tabbertstraße 6a",
+                        "zip_code": "12459",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Tabbertstraße 6a-12459-Berlin",
+                        "lat": 52.4641607,
+                        "lng": 13.5060572
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 13:00:00.000",
+                    "address": {
+                        "street": "Glienicker Weg 136",
+                        "zip_code": "12489",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Glienicker Weg 136-12489-Berlin",
+                        "lat": 52.4333884,
+                        "lng": 13.5553689
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Glienicker Weg 136",
+                        "zip_code": "12489",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Glienicker Weg 136-12489-Berlin",
+                        "lat": 52.4333884,
+                        "lng": 13.5553689
+                    },
+                    "number_of_workers": 2
+                }
+            ]
+        },
+        {
+            "route_id": 5,
+            "vehicle_id": 5,
+            "distance_traveled": 0.0,
+            "time_traveled": 267.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 08:00:00.000",
+                    "appointment_end": "2025-04-29 09:00:00.000",
+                    "address": {
+                        "street": "Otto-Franke-Straße 45",
+                        "zip_code": "12489",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Otto-Franke-Straße 45-12489-Berlin",
+                        "lat": 52.4340633,
+                        "lng": 13.5546993
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 12:15:00.000",
+                    "address": {
+                        "street": "Carl-Spindler-Straße 15",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Carl-Spindler-Straße 15-12555-Berlin",
+                        "lat": 52.4508301,
+                        "lng": 13.5651165
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 13:00:00.000",
+                    "address": {
+                        "street": "Carl-Spindler-Straße 15",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Carl-Spindler-Straße 15-12555-Berlin",
+                        "lat": 52.4508301,
+                        "lng": 13.5651165
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 13:15:00.000",
+                    "address": {
+                        "street": "Adolf-Heyden-Straße 1",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Adolf-Heyden-Straße 1-12555-Berlin",
+                        "lat": 52.45061140000001,
+                        "lng": 13.5645234
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 14:00:00.000",
+                    "address": {
+                        "street": "Adolf-Heyden-Straße 1",
+                        "zip_code": "12555",
+                        "city": "Berlin"
+                    },
+                    "location": {
+                        "id": "Adolf-Heyden-Straße 1-12555-Berlin",
+                        "lat": 52.45061140000001,
+                        "lng": 13.5645234
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        }
+    ],
+    "method_used": "Path Cheapest Arc"
+}

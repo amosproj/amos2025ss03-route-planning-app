@@ -8,6 +8,8 @@ import {
 } from '@react-google-maps/api';
 import { useEffect, useRef, useState } from 'react';
 
+import dailyPlanData from '../../../testData/dailyPlanData.json';
+
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
 });
@@ -16,6 +18,8 @@ function DailyPlan() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
   });
+
+  console.log('dailyPlanData:', dailyPlanData);
 
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -27,27 +31,67 @@ function DailyPlan() {
     routeId: string;
   } | null>(null);
 
-  const routeRequests = [
-    {
-      id: 'route-1',
-      origin: { lat: 52.4369434, lng: 13.5451477 },
-      destination: { lat: 52.520008, lng: 13.404954 },
-      waypoints: [
-        { location: { lat: 52.45, lng: 13.5 }, stopover: true },
-        { location: { lat: 52.48, lng: 13.48 }, stopover: true },
-      ],
-      color: '#FF0000',
-    },
-    {
-      id: 'route-2',
-      origin: { lat: 52.5, lng: 13.3 },
-      destination: { lat: 52.52, lng: 13.6 },
-      waypoints: [
-        { location: { lat: 52.51, lng: 13.4 }, stopover: true },
-      ],
-      color: '#0000FF',
-    },
+  const colors = [
+    '#FF0000', // Red
+    '#0000FF', // Blue
+    '#008000', // Green
+    '#FFA500', // Orange
+    '#800080', // Purple
+    '#00FFFF', // Cyan
+    '#FFC0CB', // Pink
+    '#A52A2A', // Brown
+    '#FFFF00', // Yellow
+    '#808000', // Olive
+    '#00FF00', // Lime
+    '#000080', // Navy
+    '#FF00FF', // Magenta
+    '#808080', // Gray
+    '#00CED1', // Dark Turquoise
+    '#DA70D6', // Orchid
+    '#DC143C', // Crimson
+    '#7FFF00', // Chartreuse
+    '#D2691E', // Chocolate
+    '#4682B4', // Steel Blue
   ];
+  const routeRequests = dailyPlanData.routes.map((route, idx) => {
+    const waypoints = route.appointments.slice(1, -1).map((appt) => ({
+      location: { lat: appt.location.lat, lng: appt.location.lng },
+      stopover: true,
+    }));
+
+    const origin = route.appointments[0].location;
+    const destination = route.appointments[route.appointments.length - 1].location;
+
+    return {
+      id: `Route-${route.route_id + 1}`,
+      origin: { lat: origin.lat, lng: origin.lng },
+      destination: { lat: destination.lat, lng: destination.lng },
+      waypoints,
+      color: colors[idx % colors.length],
+    };
+  });
+
+  // const routeRequests = [
+  //   {
+  //     id: 'route-1',
+  //     origin: { lat: 52.4369434, lng: 13.5451477 },
+  //     destination: { lat: 52.520008, lng: 13.404954 },
+  //     waypoints: [
+  //       { location: { lat: 52.45, lng: 13.5 }, stopover: true },
+  //       { location: { lat: 52.48, lng: 13.48 }, stopover: true },
+  //     ],
+  //     color: '#FF0000',
+  //   },
+  //   {
+  //     id: 'route-2',
+  //     origin: { lat: 52.5, lng: 13.3 },
+  //     destination: { lat: 52.52, lng: 13.6 },
+  //     waypoints: [
+  //       { location: { lat: 52.51, lng: 13.4 }, stopover: true },
+  //     ],
+  //     color: '#0000FF',
+  //   },
+  // ];
 
   const [routes, setRoutes] = useState<{
     id: string;
@@ -96,8 +140,13 @@ function DailyPlan() {
         setRoutes(results);
 
         if (mapRef.current) {
+          const bounds = new google.maps.LatLngBounds();
+
           results.forEach((route) => {
             const path = route.result.routes[0].overview_path;
+
+            // Extend bounds with each point in the polyline
+            path.forEach((point) => bounds.extend(point));
 
             const polyline = new google.maps.Polyline({
               path,
@@ -109,6 +158,8 @@ function DailyPlan() {
             polyline.setMap(mapRef.current!);
             polylineRefs.current[route.id] = polyline;
           });
+
+          mapRef.current.fitBounds(bounds);
         }
       })
       .catch((error) => console.error(error));
@@ -149,10 +200,10 @@ function DailyPlan() {
   if (!isLoaded) return <div>Loading Maps...</div>;
 
   return (
-    <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
+    <div style={{ height: '90vh', width: '100%', position: 'relative' }}>
       <GoogleMap
         center={defaultCenter}
-        zoom={11}
+        zoom={14}
         mapContainerStyle={{ width: '100%', height: '100%' }}
         onLoad={(map) => (mapRef.current = map)}
       >
@@ -167,7 +218,7 @@ function DailyPlan() {
             <div key={route.id}>
               <Marker
                 position={leg.start_location}
-                label="Start"
+                // label="Start"
                 icon={{
                   url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
                 }}
@@ -181,7 +232,7 @@ function DailyPlan() {
               />
               <Marker
                 position={leg.end_location}
-                label="End"
+                // label="End"
                 icon={{
                   url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
                 }}
