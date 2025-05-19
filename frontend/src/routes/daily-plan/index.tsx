@@ -66,6 +66,16 @@ type Route = {
   result: google.maps.DirectionsResult;
   appointments: Appointment[];
 };
+
+type Waypoint = {
+  location: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  stopover: boolean;
+};
 //--------type end--------//
 
 export const Route = createFileRoute('/daily-plan/')({
@@ -244,7 +254,9 @@ function DailyPlan() {
           if (!route.visible) return null;
 
           const leg = route.result.routes[0].legs[0];
-          const waypoints = route.result.request.waypoints;
+          const rawWaypoints = route.result.request.waypoints;
+          const stringWaypoints = JSON.stringify(rawWaypoints)
+          const waypoints = JSON.parse(stringWaypoints);
 
           return (
             <div key={route.id}>
@@ -281,9 +293,9 @@ function DailyPlan() {
                 }
               />
               {/* White Dots for Waypoints */}
-              {waypoints?.map((waypoint, index) => {
+              {waypoints.map((waypoint: Waypoint, index: number) => {
                 const color = route.color;
-                const position = waypoint?.location?.location;
+                const position = waypoint.location.location;
 
                 if (!position) return null;
 
