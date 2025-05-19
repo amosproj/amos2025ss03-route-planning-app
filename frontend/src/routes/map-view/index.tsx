@@ -49,8 +49,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-    ? { address_responses: cachedResponses, errors: [] }
-    : undefined;
+      ? { address_responses: cachedResponses, errors: [] }
+      : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
