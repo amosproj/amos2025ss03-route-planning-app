@@ -117,7 +117,7 @@ function DailyPlan() {
     '#4682B4', // Steel Blue
   ];
 
-  // Create route requests from dailyPlanData
+  // Create route requests from dailyPlanData 
   const routeRequests = dailyPlanData.routes.map((route, idx) => {
     const waypoints = route.appointments.slice(1, -1).map((appt) => ({
       location: { lat: appt.location.lat, lng: appt.location.lng },
