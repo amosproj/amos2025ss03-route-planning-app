@@ -85,6 +85,7 @@ export const Route = createFileRoute('/daily-plan/')({
 function DailyPlan() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
   });
 
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
