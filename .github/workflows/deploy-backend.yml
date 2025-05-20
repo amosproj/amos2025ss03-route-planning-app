@@ -26,33 +26,28 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: Ensure ~/project exists on VM
+      - name: Ensure ~/project directory exists
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "mkdir -p ~/project"
 
-      - name: Remove old backend code from VM
+      - name: Remove old project code
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/backend"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/*"
 
-      - name: Upload backend code to VM
+      - name: Upload entire project to VM
         run: |
-          scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
+          scp -i ~/.ssh/id_rsa -r ./ ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
 
-      - name: Upload docker-compose.yml
-        run: |
-          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
-
-      - name: Upload .env file for backend
+      - name: Inject backend .env file from secrets
         run: |
           cat <<EOF > temp.env
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
-          # Add more env vars here if needed
+          # Add other variables here
           EOF
-
           scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/backend/.env
           rm temp.env
 
-      - name: Rebuild and start backend using Docker Compose
+      - name: Rebuild and run backend container only
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
             cd ~/project &&
