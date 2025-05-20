@@ -1,4 +1,4 @@
-name: Deploy FastAPI to Google VM
+name: Deploy FastAPI Backend to Google VM
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'backend/**'
+      - 'docker-compose.yml'
       - '.github/workflows/deploy-backend.yml'
 
 jobs:
@@ -14,9 +15,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
+        uses: actions/checkout@v2
 
       - name: Setup SSH
         run: |
@@ -25,22 +24,30 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: Test SSH connection
+      - name: Remove old backend code from VM
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "echo '✅ SSH connection successful!'"
-      
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/backend"
 
-      # - name: Inject .env and Deploy to VM
-      #   run: |
-      #     # Create .env file locally with your secret
-      #     echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > backend/.env
+      - name: Upload backend code to VM
+        run: |
+          scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
 
-      #     # Copy backend directory to the VM
-      #     scp -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/home/${{ secrets.GCP_VM_USER }}/fastapi_app
+      - name: Upload docker-compose.yml (if changed)
+        run: |
+          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/docker-compose.yml
 
-      #     # SSH into VM and run the start.sh script
-      #     ssh ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
-      #       cd ~/fastapi_app/backend
-      #       chmod +x start.sh
-      #       ./start.sh
-      #     EOF
+      - name: Upload .env file with secrets
+        run: |
+          cat <<EOF > temp.env
+          GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          EOF
+
+          scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/backend/.env
+          rm temp.env
+
+      - name: Rebuild and start backend using Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
+            cd ~/project &&
+            docker compose up -d --build backend
+          "
