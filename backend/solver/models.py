@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 # Define data models
 class Node(BaseModel):
-    id: str | int
+    id: str
     x: float
     y: float
     is_depot: bool
@@ -19,7 +19,7 @@ class VRPData(BaseModel):
 
 class VRPResponse(BaseModel):
     status: str
-    routes: Optional[List[List[str|int]]] = None
+    routes: Optional[List[List[str]]] = None
     max_distance: Optional[float] = None
     total_distance: Optional[float] = None
     message: Optional[str] = None

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from distance_matrix import get_full_distance_matrix, get_distance_matrix_2d
-from models import *
+from distance_matrix import get_distance_matrix_2d
+from solver.models import *
 from fastapi import HTTPException
 import exceptionStrings
 import os

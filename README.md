@@ -79,9 +79,14 @@ Visit: [http://localhost:3000](http://localhost:3000)
 ```bash
 cd backend
 
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Create a virtual environment
+python -m venv venv
+
+# Activate on Windows
+venv\Scripts\activate
+
+# Activate on macOS/Linux
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt

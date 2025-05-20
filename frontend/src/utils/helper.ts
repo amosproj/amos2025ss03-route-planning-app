@@ -1,5 +1,7 @@
-import { Scenario, Vehicle, Worker } from '../types/Scenario';
+import { Scenario, Vehicle } from '../types/Scenario';
 import { Appointment } from '../types/Appointment';
+import { CompanyInfo } from '../types/CompanyInfo';
+import { Address } from '../types/Adress';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
@@ -37,29 +39,39 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
   );
 }
 
-export function parseWorkerFromCsv(csvData: string): Worker {
+export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
   const lines = csvData.split('\n');
-  const worker: Worker = {
-    startAddress: '',
-    finishAddress: '',
-    workers: 0,
-  };
+  let startStr = '';
+  let finishStr = '';
+  let workersCount = 0;
 
   lines.forEach((line) => {
     const [keyRaw, valueRaw] = line.split(',');
     if (!keyRaw || !valueRaw) return;
-
     const key = keyRaw.trim().toLowerCase();
     const value = valueRaw.trim().replace(/^"|"$/g, '');
-
     if (key.includes('start address')) {
-      worker.startAddress = value;
+      startStr = value;
     } else if (key.includes('finish address')) {
-      worker.finishAddress = value;
+      finishStr = value;
     } else if (key.includes('workers') || key.includes('# of workers')) {
-      worker.workers = parseInt(value, 10);
+      workersCount = parseInt(value, 10);
     }
   });
 
-  return worker;
+  const parseAddress = (str: string): Address => {
+    const parts = str.split(',').map(s => s.trim());
+    return {
+      street: parts[0] || '',
+      zip_code: parts[1] || '',
+      city: parts[2] || '',
+    };
+  };
+
+  const companyInfo: CompanyInfo = {
+    start_address: parseAddress(startStr),
+    finish_address: parseAddress(finishStr),
+    vehicles: [{ id: 0, skills: [], woker_amount: workersCount }],
+  };
+  return companyInfo;
 }
