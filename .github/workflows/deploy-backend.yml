@@ -26,28 +26,40 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: Ensure ~/project directory exists
+      - name: Ensure ~/project directory exists on VM
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "mkdir -p ~/project"
 
-      - name: Remove old project code
+      - name: Remove old backend code from VM
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/*"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/backend"
 
-      - name: Upload entire project to VM
+      - name: Remove old frontend code from VM
         run: |
-          scp -i ~/.ssh/id_rsa -r ./ ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/frontend"
 
-      - name: Inject backend .env file from secrets
+      - name: Upload backend code to VM
+        run: |
+          scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
+
+      - name: Upload frontend code to VM
+        run: |
+          scp -i ~/.ssh/id_rsa -r ./frontend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
+
+      - name: Upload docker-compose.yml
+        run: |
+          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
+
+      - name: Upload .env file for backend
         run: |
           cat <<EOF > temp.env
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
-          # Add other variables here
           EOF
+
           scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/backend/.env
           rm temp.env
 
-      - name: Rebuild and run backend container only
+      - name: Rebuild and start backend using Docker Compose
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
             cd ~/project &&
