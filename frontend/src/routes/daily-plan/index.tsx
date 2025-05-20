@@ -85,6 +85,7 @@ export const Route = createFileRoute('/daily-plan/')({
 function DailyPlan() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
   });
 
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
@@ -116,7 +117,7 @@ function DailyPlan() {
     '#4682B4', // Steel Blue
   ];
 
-  // Create route requests from dailyPlanData
+  // Create route requests from dailyPlanData 
   const routeRequests = dailyPlanData.routes.map((route, idx) => {
     const waypoints = route.appointments.slice(1, -1).map((appt) => ({
       location: { lat: appt.location.lat, lng: appt.location.lng },
