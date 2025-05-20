@@ -369,30 +369,20 @@ function MapView() {
                       lat: locations[selectedIdx].latitude!,
                       lng: locations[selectedIdx].longitude!,
                     }}
-                    onCloseClick={() => setSelectedIdx(null)} 
+                    onCloseClick={() => setSelectedIdx(null)}
                   >
-                    {/* Info content */}
-                    <div className="p-2 text-sm">
-                      <strong>
-                        {new Date(
-                          scenario.jobs[selectedIdx].start,
-                        ).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                    <div className="bg-white p-4 rounded-lg shadow-lg min-w-[200px] space-y-2">
+                      <div className="text-lg font-bold text-gray-800">
+                        {new Date(scenario.jobs[selectedIdx].start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         {' - '}
-                        {new Date(
-                          scenario.jobs[selectedIdx].end,
-                        ).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </strong>
-                      <br />
-                      <strong>{locations[selectedIdx].street}</strong>
-                      <br />
-                      {locations[selectedIdx].zipcode}{' '}
-                      {locations[selectedIdx].city}
+                        {new Date(scenario.jobs[selectedIdx].end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div className="text-gray-600">
+                        <span className="font-semibold">{locations[selectedIdx].street}</span>, {locations[selectedIdx].zipcode} {locations[selectedIdx].city}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Workers: {scenario.jobs[selectedIdx].workers}
+                      </div>
                     </div>
                   </InfoWindow>
                 )}
