@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from inputAnalyzer import *
-from backend.solver.solver import solve_appointment_routing_pca
-from backend.solver.models import *
+from solver.solver import solve_appointment_routing_pca
+from solver.models import *
 
 load_dotenv()
 

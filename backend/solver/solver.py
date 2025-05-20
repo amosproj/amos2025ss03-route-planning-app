@@ -4,11 +4,11 @@ import numpy as np
 from typing import Any
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
-from backend.exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
-from backend.solver.models import *
-from backend.solver.preprocessing import *
-from backend.solver.util import *
-from backend.solver.validate_routes import validate_routes
+from exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
+from solver.models import *
+from solver.preprocessing import *
+from solver.util import *
+from solver.validate_routes import validate_routes
 
 
 def solve_appointment_routing_pca(

@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import requests
 
-from backend.solver.models import Location, MatrixElement, DistanceMatrixResponse, DistanceAndDurationMatrices
+from solver.models import Location, MatrixElement, DistanceMatrixResponse, DistanceAndDurationMatrices
 
 
 def build_location_string(locations: List[Location]) -> str:

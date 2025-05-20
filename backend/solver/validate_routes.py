@@ -1,5 +1,5 @@
-from backend.solver.models import *
-from backend.solver.util import to_minutes
+from solver.models import *
+from solver.util import to_minutes
 
 
 def validate_routes(routes: List[Route]) -> bool:
