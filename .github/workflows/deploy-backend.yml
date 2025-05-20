@@ -56,5 +56,5 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
             cd ~/project &&
-            docker compose up -d --build backend
+            docker-compose up -d --build backend
           "
