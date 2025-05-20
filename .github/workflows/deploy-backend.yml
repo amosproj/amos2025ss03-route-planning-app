@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'backend/**'
-      - 'docker-compose.yml'
       - '.github/workflows/deploy-backend.yml'
 
 jobs:
@@ -26,42 +25,35 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: Ensure ~/project directory exists on VM
+      - name: Ensure folder exists and has correct permissions
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "mkdir -p ~/project"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
+            sudo mkdir -p /opt/backend-deploy &&
+            sudo chown -R root:deployers /opt/backend-deploy &&
+            sudo chmod -R 775 /opt/backend-deploy &&
+            sudo chmod g+s /opt/backend-deploy
+          "
 
-      - name: Remove old backend code from VM
+      - name: Remove old backend code
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/backend"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} \
+            "rm -rf /opt/backend-deploy/backend"
 
-      - name: Remove old frontend code from VM
+      - name: Upload backend code
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "rm -rf ~/project/frontend"
+          scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/opt/backend-deploy/
 
-      - name: Upload backend code to VM
-        run: |
-          scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
-
-      - name: Upload frontend code to VM
-        run: |
-          scp -i ~/.ssh/id_rsa -r ./frontend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
-
-      - name: Upload docker-compose.yml
-        run: |
-          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
-
-      - name: Upload .env file for backend
+      - name: Upload .env file
         run: |
           cat <<EOF > temp.env
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          # Add more environment variables here if needed
           EOF
 
-          scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/backend/.env
+          scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/opt/backend-deploy/backend/.env
           rm temp.env
 
-      - name: Rebuild and start backend using Docker Compose
+      - name: Deploy backend with Docker Compose
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "
-            cd ~/project &&
-            docker-compose up -d --build backend
-          "
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} \
+            "cd /opt/backend-deploy && docker-compose -f backend/docker-compose.backend.yml up -d --build"
