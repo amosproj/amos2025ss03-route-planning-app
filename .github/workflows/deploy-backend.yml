@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
 
       - name: Setup SSH
         run: |
@@ -23,6 +25,10 @@ jobs:
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: Ensure ~/project exists on VM
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} "mkdir -p ~/project"
 
       - name: Remove old backend code from VM
         run: |
@@ -32,14 +38,15 @@ jobs:
         run: |
           scp -i ~/.ssh/id_rsa -r ./backend ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
 
-      - name: Upload docker-compose.yml (if changed)
+      - name: Upload docker-compose.yml
         run: |
-          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/docker-compose.yml
+          scp -i ~/.ssh/id_rsa ./docker-compose.yml ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/
 
-      - name: Upload .env file with secrets
+      - name: Upload .env file for backend
         run: |
           cat <<EOF > temp.env
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          # Add more env vars here if needed
           EOF
 
           scp -i ~/.ssh/id_rsa temp.env ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:~/project/backend/.env
