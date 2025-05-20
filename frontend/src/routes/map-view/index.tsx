@@ -1,20 +1,16 @@
 import { RouteInputForm } from '@/components/RouteInputForm';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  GoogleMap,
-  InfoWindow,
-  Marker,
-  MarkerClusterer,
-  useJsApiLoader,
-} from '@react-google-maps/api';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GoogleMap, InfoWindow, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
+import { toggleExcludedAppointment } from '../../store/excludedAppointmentsSlice';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -25,6 +21,9 @@ function MapView() {
 
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const dispatch = useDispatch<AppDispatch>();
+  const excluded = useSelector(
+    (s: RootState) => s.excludedAppointments[date] ?? [],
+  );
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
@@ -45,7 +44,7 @@ function MapView() {
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
   );
-  console.log('Cached responses:', cachedResponses);
+  // console.log('Cached responses:', cachedResponses);
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
@@ -90,10 +89,40 @@ function MapView() {
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
   });
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  // Start and finish address markers
+  const companyInfo = useSelector((s: RootState) => s.companyInfo[date] ?? null);
+  const [startLoc, setStartLoc] = useState<{lat: number; lng: number} | null>(null);
+  const [finishLoc, setFinishLoc] = useState<{lat: number; lng: number} | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && companyInfo) {
+      const geocoder = new window.google.maps.Geocoder();
+      const formatAddr = (addr: { street: string; zip_code: string; city: string }) =>
+        `${addr.street}, ${addr.zip_code} ${addr.city}`;
+      // Geocode start address
+      if (companyInfo.start_address.street) {
+        geocoder.geocode({ address: formatAddr(companyInfo.start_address) }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            setStartLoc(results[0].geometry.location.toJSON());
+          }
+        });
+      }
+      // Geocode finish address
+      if (companyInfo.finish_address.street) {
+        geocoder.geocode({ address: formatAddr(companyInfo.finish_address) }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            setFinishLoc(results[0].geometry.location.toJSON());
+          }
+        });
+      }
+    }
+  }, [isLoaded, companyInfo]);
+
   const mapRef = useRef<google.maps.Map | null>(null);
   const onMapLoad = useCallback(
     (map: google.maps.Map) => {
@@ -133,43 +162,51 @@ function MapView() {
               .map(({ job, idx }) => {
                 const loc = locations[idx];
                 const hasError = loc?.could_be_fully_found === false;
+                const isExcluded = excluded.includes(idx);
                 return (
                   <li
                     key={idx}
                     role="listitem"
-                    aria-selected={selectedIdx === idx}
+                    aria-selected={!isExcluded && selectedIdx === idx}
                     aria-invalid={hasError}
                     tabIndex={0}
-                    onClick={() => {
-                      if (
-                        !hasError &&
-                        loc?.latitude != null &&
-                        loc?.longitude != null &&
-                        mapRef.current
-                      ) {
-                        mapRef.current.panTo({
-                          lat: loc.latitude,
-                          lng: loc.longitude,
-                        });
-                        mapRef.current.setZoom(14);
-                        setSelectedIdx(idx);
-                      }
-                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.currentTarget.click();
                       }
                     }}
                     className={
-                      `p-2 rounded cursor-pointer flex justify-between items-center` +
-                      (selectedIdx === idx ? 'bg-blue-100 ' : '') +
+                      `p-2 rounded flex justify-between items-center ` +
+                      (isExcluded
+                        ? 'opacity-50 line-through cursor-default '
+                        : 'cursor-pointer ') +
+                      (!isExcluded && selectedIdx === idx
+                        ? 'bg-blue-100 '
+                        : '') +
                       (hasError
                         ? 'border border-red-500 text-red-600'
                         : 'hover:bg-gray-200 border border-blue-400')
                     }
                   >
-                    <div>
-                      <div className="text-sm font-medium">
+                    <div
+                      onClick={() => {
+                        if (
+                          !isExcluded &&
+                          !hasError &&
+                          loc?.latitude != null &&
+                          loc?.longitude != null &&
+                          mapRef.current
+                        ) {
+                          mapRef.current.panTo({
+                            lat: loc.latitude,
+                            lng: loc.longitude,
+                          });
+                          mapRef.current.setZoom(14);
+                          setSelectedIdx(idx);
+                        }
+                      }}
+                    >
+                      <div className="text-sm font-medium text-left">
                         {new Date(job.start).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -184,6 +221,20 @@ function MapView() {
                         {job.street}, {job.zip} {job.city}
                       </div>
                     </div>
+                    <Checkbox
+                      checked={!isExcluded && !hasError}
+                      onChange={() =>
+                        dispatch(toggleExcludedAppointment({ date, idx }))
+                      }
+                      onClick={() =>
+                        dispatch(toggleExcludedAppointment({ date, idx }))}
+                      className="mr-2"
+                      aria-label={
+                        isExcluded
+                          ? 'Include appointment'
+                          : 'Exclude appointment'
+                      }
+                    />
                     {hasError && <span className="text-red-500">⚠️</span>}
                   </li>
                 );
@@ -219,7 +270,7 @@ function MapView() {
                   })}
                 </h2>
               </div>
-              <RouteInputForm />
+              <RouteInputForm date={date} />
             </div>
 
             <div className="flex-1">
@@ -230,26 +281,36 @@ function MapView() {
                 zoom={12}
                 onLoad={onMapLoad}
               >
-                <MarkerClusterer>
-                  {(clusterer) => (
-                    <>
-                      {locations.map(
-                        (loc: EnhancedAddressResponse, idx: number) =>
-                          loc.latitude != null && loc.longitude != null ? (
-                            <Marker
-                              key={idx}
-                              position={{
-                                lat: loc.latitude,
-                                lng: loc.longitude,
-                              }}
-                              onClick={() => setSelectedIdx(idx)}
-                              clusterer={clusterer}
-                            />
-                          ) : null,
-                      )}
-                    </>
-                  )}
-                </MarkerClusterer>
+                {/* Appointment markers without clustering */}
+                {locations.map((loc: EnhancedAddressResponse, idx: number) =>
+                  !excluded.includes(idx) &&
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
+                    <Marker
+                      key={idx}
+                      position={{ lat: loc.latitude, lng: loc.longitude }}
+                      onClick={() => setSelectedIdx(idx)}
+                    />
+                  ) : null,
+                )}
+                {/* Start and finish markers */}
+                {startLoc && (
+                  <Marker
+                    position={startLoc}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                    }}
+                  />
+                )}
+                {finishLoc && (
+                  <Marker
+                    position={finishLoc}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    }}
+                  />
+                )}
+                {/* InfoWindow for selected appointment */}
                 {selectedIdx !== null && locations[selectedIdx] && (
                   <InfoWindow
                     position={{

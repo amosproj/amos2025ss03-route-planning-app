@@ -2,8 +2,10 @@ import { createFileRoute } from '@tanstack/react-router';
 import FileDropzone from '../components/FileDropzone';
 
 import { setScenarios } from '../store/scenariosSlice';
-import { setWorkers } from '../store/workersSlice';
-import { parseScenarioFromCsv, parseWorkerFromCsv } from '../utils/helper';
+import { setCompanyInfo } from '../store/companyInfoSlice';
+import { parseScenarioFromCsv, parseCompanyInfoFromCsv } from '../utils/helper';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
@@ -14,6 +16,7 @@ export const Route = createFileRoute('/')({
 
 function Index() {
   const dispatch = useDispatch();
+  const scenarios = useSelector((state: RootState) => state.scenarios.scenarios);
 
   const handleAppointmentsDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -37,15 +40,18 @@ function Index() {
       const file = acceptedFiles[0];
       try {
         const text = await file.text();
-        const parsed = parseWorkerFromCsv(text); // or a different parser
-        console.log('Parsed worker', parsed);
-        dispatch(setWorkers(parsed));
+        const companyInfo = parseCompanyInfoFromCsv(text);
+        console.log('Parsed company info:', companyInfo);
+        // apply as defaults for all scenarios by date
+        scenarios.forEach((scenario) => {
+          dispatch(setCompanyInfo({ date: scenario.date.toString(), companyInfo }));
+        });
       } catch (error) {
         console.error('Error reading worker file:', error);
         alert('Failed to read worker file.');
       }
     },
-    [dispatch],
+    [dispatch, scenarios],
   );
 
   return (
@@ -56,7 +62,7 @@ function Index() {
       </div>
 
       <div className="mt-8">
-        <h3 className="font-bold text-2xl p-1">Upload Worker Data</h3>
+        <h3 className="font-bold text-2xl p-1">Upload Company Info</h3>
         <FileDropzone onDrop={handleWorkersDrop} />
       </div>
     </div>
