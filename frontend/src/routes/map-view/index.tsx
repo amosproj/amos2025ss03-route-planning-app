@@ -1,16 +1,10 @@
 import { RouteInputForm } from '@/components/RouteInputForm';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  GoogleMap,
-  InfoWindow,
-  Marker,
-  MarkerClusterer,
-  useJsApiLoader,
-} from '@react-google-maps/api';
+import { GoogleMap, InfoWindow, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
@@ -95,10 +89,40 @@ function MapView() {
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
   });
   const defaultCenter = { lat: 52.4369434, lng: 13.5451477 };
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  // Start and finish address markers
+  const companyInfo = useSelector((s: RootState) => s.companyInfo[date] ?? null);
+  const [startLoc, setStartLoc] = useState<{lat: number; lng: number} | null>(null);
+  const [finishLoc, setFinishLoc] = useState<{lat: number; lng: number} | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && companyInfo) {
+      const geocoder = new window.google.maps.Geocoder();
+      const formatAddr = (addr: { street: string; zip_code: string; city: string }) =>
+        `${addr.street}, ${addr.zip_code} ${addr.city}`;
+      // Geocode start address
+      if (companyInfo.start_address.street) {
+        geocoder.geocode({ address: formatAddr(companyInfo.start_address) }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            setStartLoc(results[0].geometry.location.toJSON());
+          }
+        });
+      }
+      // Geocode finish address
+      if (companyInfo.finish_address.street) {
+        geocoder.geocode({ address: formatAddr(companyInfo.finish_address) }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            setFinishLoc(results[0].geometry.location.toJSON());
+          }
+        });
+      }
+    }
+  }, [isLoaded, companyInfo]);
+
   const mapRef = useRef<google.maps.Map | null>(null);
   const onMapLoad = useCallback(
     (map: google.maps.Map) => {
@@ -257,28 +281,36 @@ function MapView() {
                 zoom={12}
                 onLoad={onMapLoad}
               >
-                <MarkerClusterer>
-                  {(clusterer) => (
-                    <>
-                      {locations.map(
-                        (loc: EnhancedAddressResponse, idx: number) =>
-                          !excluded.includes(idx) &&
-                          loc.latitude != null &&
-                          loc.longitude != null ? (
-                            <Marker
-                              key={idx}
-                              position={{
-                                lat: loc.latitude,
-                                lng: loc.longitude,
-                              }}
-                              onClick={() => setSelectedIdx(idx)}
-                              clusterer={clusterer}
-                            />
-                          ) : null,
-                      )}
-                    </>
-                  )}
-                </MarkerClusterer>
+                {/* Appointment markers without clustering */}
+                {locations.map((loc: EnhancedAddressResponse, idx: number) =>
+                  !excluded.includes(idx) &&
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
+                    <Marker
+                      key={idx}
+                      position={{ lat: loc.latitude, lng: loc.longitude }}
+                      onClick={() => setSelectedIdx(idx)}
+                    />
+                  ) : null,
+                )}
+                {/* Start and finish markers */}
+                {startLoc && (
+                  <Marker
+                    position={startLoc}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                    }}
+                  />
+                )}
+                {finishLoc && (
+                  <Marker
+                    position={finishLoc}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    }}
+                  />
+                )}
+                {/* InfoWindow for selected appointment */}
                 {selectedIdx !== null && locations[selectedIdx] && (
                   <InfoWindow
                     position={{

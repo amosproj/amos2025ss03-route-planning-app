@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { OptimizationRequest } from '@/types/OptimizationRequest';
-import { useLoadScript, Autocomplete } from '@react-google-maps/api';
+import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Address } from '@/types/Adress';
 
 const formSchema = z.object({
@@ -40,10 +40,13 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
+// default address for fallbacks
+const defaultAddr: Address = { street: '', zip_code: '', city: '' };
+
 export function RouteInputForm({ date }: { date: string }) {
   const dispatch = useDispatch();
   // load Google maps places API
-  const { isLoaded } = useLoadScript({
+  const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries: ['places'],
   });
@@ -51,6 +54,7 @@ export function RouteInputForm({ date }: { date: string }) {
   const existingCompany = useSelector(
     (state: RootState) => state.companyInfo[date],
   );
+
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const excluded = useSelector(
     (s: RootState) => s.excludedAppointments[date] ?? [],
@@ -59,8 +63,6 @@ export function RouteInputForm({ date }: { date: string }) {
     (s) => s.date.toString() === date.split('"')[1],
   );
 
-  // address objects from autocomplete
-  const defaultAddr: Address = { street: '', zip_code: '', city: '' };
   const [startAddrObj, setStartAddrObj] = useState<Address>(defaultAddr);
   const [finishAddrObj, setFinishAddrObj] = useState<Address>(defaultAddr);
   const [startAuto, setStartAuto] = useState<google.maps.places.Autocomplete | null>(null);
@@ -88,17 +90,29 @@ export function RouteInputForm({ date }: { date: string }) {
   });
 
   useEffect(() => {
-    if (existingCompany) {
-      const { start_address, finish_address, vehicles } = existingCompany;
-      form.reset({
-        startAddress: `${start_address.street}, ${start_address.zip_code} ${start_address.city}`,
-        finishAddress: `${finish_address.street}, ${finish_address.zip_code} ${finish_address.city}`,
-        workers: vehicles.length || 1,
-        optimizationPlan: 'profit',
-      });
-      setStartAddrObj(start_address);
-      setFinishAddrObj(finish_address);
-    }
+    // preload form values with existingCompany or default fallback
+    const comp = existingCompany ?? {
+      start_address: defaultAddr,
+      finish_address: defaultAddr,
+      vehicles: [{ id: 0, skills: [], woker_amount: 1 }],
+    };
+    // Build display strings only if any part is non-empty
+    const hasStart = comp.start_address.street || comp.start_address.zip_code || comp.start_address.city;
+    const hasFinish = comp.finish_address.street || comp.finish_address.zip_code || comp.finish_address.city;
+    const displayStart = hasStart
+      ? `${comp.start_address.street}${comp.start_address.street && ','} ${comp.start_address.zip_code} ${comp.start_address.city}`.trim()
+      : '';
+    const displayFinish = hasFinish
+      ? `${comp.finish_address.street}${comp.finish_address.street && ','} ${comp.finish_address.zip_code} ${comp.finish_address.city}`.trim()
+      : '';
+    form.reset({
+      startAddress: displayStart,
+      finishAddress: displayFinish,
+      workers: comp.vehicles[0]?.woker_amount || 1,
+      optimizationPlan: 'profit',
+    });
+    setStartAddrObj(comp.start_address);
+    setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
 
   const onSubmit = (values: FormSchemaType) => {
@@ -120,6 +134,7 @@ export function RouteInputForm({ date }: { date: string }) {
     console.log('Optimization request:', request);
   };
 
+  if (loadError) return <div>Error loading Google Maps</div>;
   if (!isLoaded) return <div>Loading address autocomplete...</div>;
   return (
     <Form {...form}>
