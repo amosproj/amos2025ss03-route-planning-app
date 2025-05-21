@@ -54,8 +54,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-    ? { address_responses: cachedResponses, errors: [] }
-    : undefined;
+      ? { address_responses: cachedResponses, errors: [] }
+      : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -336,8 +336,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                  loc.latitude != null &&
-                  loc.longitude != null ? (
+                    loc.latitude != null &&
+                    loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
