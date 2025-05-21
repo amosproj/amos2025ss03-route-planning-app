@@ -142,4 +142,3 @@ GOOGLE_MAPS_API_KEY=supersecretkey
 
 * Make sure ports **3000** (frontend) and **8080** (backend) are available.
 * `.env` files are required in both `frontend/` and `backend/` for proper configuration.
-
