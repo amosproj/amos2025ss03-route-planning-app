@@ -133,7 +133,7 @@ function MapView() {
           },
         );
       }
-      // Geocode finish address 
+      // Geocode finish address
       if (companyInfo.finish_address.street) {
         geocoder.geocode(
           { address: formatAddr(companyInfo.finish_address) },
