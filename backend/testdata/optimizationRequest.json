@@ -20,31 +20,197 @@
       "vehicle_id": 2,
       "skills": "plumber",
       "worker_amount": 1
+    },
+    {
+      "vehicle_id": 3,
+      "skills": "plumber",
+      "worker_amount": 1
+    },
+    {
+      "vehicle_id": 4,
+      "skills": "plumber",
+      "worker_amount": 1
     }
+
   ]
 },
   "appointments": [
     {
         "appointment_start": "2025-04-29 14:00:00.000",
         "appointment_end": "2025-04-29 14:30:00.000",
-        "address":{
-            "street": "Platz d. Republik 1",
-            "zip_code": "10557",
+        "address": {
+            "street": "Allerstraße 11",
+            "zip_code": "12049",
             "city": "Berlin"
         },
-        "service_time":"30",
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 10:00:00.000",
+        "appointment_end": "2025-04-29 13:30:00.000",
+        "address": {
+            "street": "Rollbergstraße 70",
+            "zip_code": "12049",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 15:00:00.000",
+        "appointment_end": "2025-04-29 16:30:00.000",
+        "address": {
+            "street": "Grunewaldstraße 54",
+            "zip_code": "10825",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 15:00:00.000",
+        "appointment_end": "2025-04-29 16:30:00.000",
+        "address": {
+            "street": "Bamberger Str. 49",
+            "zip_code": "10779",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 10:00:00.000",
+        "appointment_end": "2025-04-29 12:30:00.000",
+        "address": {
+            "street": "Spichernstraße 24",
+            "zip_code": "10777",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 11:00:00.000",
+        "appointment_end": "2025-04-29 12:30:00.000",
+        "address": {
+            "street": "Straße des 17. Juni 135",
+            "zip_code": "10623",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 12:00:00.000",
+        "appointment_end": "2025-04-29 14:30:00.000",
+        "address": {
+            "street": "Hauptstraße 9",
+            "zip_code": "13158",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 15:00:00.000",
+        "appointment_end": "2025-04-29 16:30:00.000",
+        "address": {
+            "street": "Schönhauser Str. 41",
+            "zip_code": "13158",
+            "city": "Berlin"
+        },
+        "service_time": 30,
         "number_of_workers": 1
     },
     {
         "appointment_start": "2025-04-29 13:00:00.000",
-        "appointment_end": "2025-04-29 14:00:00.000",
-        "address":{
-            "street": "Alexanderstraße 5",
-            "zip_code": "10178",
+        "appointment_end": "2025-04-29 15:00:00.000",
+        "address": {
+            "street": "Alte Schönhauser Str. 46",
+            "zip_code": "10119",
             "city": "Berlin"
         },
-        "service_time":"60",
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 15:00:00.000",
+        "appointment_end": "2025-04-29 16:30:00.000",
+        "address": {
+            "street": "Strausberger Str. 46",
+            "zip_code": "10243",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 13:00:00.000",
+        "appointment_end": "2025-04-29 14:30:00.000",
+        "address": {
+            "street": "Richard-Sorge-Straße 21",
+            "zip_code": "10249",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 14:00:00.000",
+        "appointment_end": "2025-04-29 16:00:00.000",
+        "address": {
+            "street": "Späthstraße 80-81",
+            "zip_code": "12437",
+            "city": "Berlin"
+        },
+        "service_time": 30,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 09:00:00.000",
+        "appointment_end": "2025-04-29 11:00:00.000",
+        "address": {
+            "street": "Johannisthaler Ch 46",
+            "zip_code": "12437",
+            "city": "Berlin"
+        },
+        "service_time": 60,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 09:00:00.000",
+        "appointment_end": "2025-04-29 11:00:00.000",
+        "address": {
+            "street": "Delbrückstraße 37",
+            "zip_code": "14193",
+            "city": "Berlin"
+        },
+        "service_time": 60,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 09:00:00.000",
+        "appointment_end": "2025-04-29 11:00:00.000",
+        "address": {
+            "street": "Messedamm 26",
+            "zip_code": "14055",
+            "city": "Berlin"
+        },
+        "service_time": 60,
+        "number_of_workers": 1
+    },
+    {
+        "appointment_start": "2025-04-29 09:00:00.000",
+        "appointment_end": "2025-04-29 11:00:00.000",
+        "address": {
+            "street": "Spandauer Damm 157",
+            "zip_code": "14050",
+            "city": "Berlin"
+        },
+        "service_time": 60,
         "number_of_workers": 1
     }
 ]
+
 }

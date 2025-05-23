@@ -160,10 +160,14 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
             errors.append(exceptionStrings.APPOINTMENT_END_BEFORE_START)
             all_valid = False
 
-        appointment_duration = (end - start).total_seconds() / 3600  # duration in hours
+        appointment_duration_hours = (end - start).total_seconds() / 3600  # duration in hours
+        appointment_duration_minutes = (end - start).total_seconds() / 60  # duration in minutes
         appointment_max_duration = 24  # wahrscheinlich wird diese Ausnahme hauptsächlich durch Tippfehler in der Endzeit verursacht
-        if appointment_duration > appointment_max_duration:
+        if appointment_duration_hours > appointment_max_duration:
             errors.append(exceptionStrings.APPOINTMENT_DURATION_TOO_LONG)
+            all_valid = False
+        if appointment_duration_minutes < appointment.service_time:
+            errors.append(exceptionStrings.SERVICETIME_EXCEEDS_APPOINTMENT_LENGTH)
             all_valid = False
 
         if not appointment.address.street.strip():
@@ -180,6 +184,7 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
         if appointment.number_of_workers < 1:
             errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
             all_valid = False
+
 
         address_info = validate_single_address_with_google_maps(
             appointment.address.street,

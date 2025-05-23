@@ -53,6 +53,10 @@ def sum_appointment_durations(request: EnhancedOptimizationRequest) -> int:
         total_minutes += duration
     return int(total_minutes)
 
+def sum_appointment_servicetimes(request: EnhancedOptimizationRequest) -> int:
+    return sum(appt.service_time for appt in request.appointments)
+
+
 
 def calculate_average_and_max_travel_time(time_matrix: List[List[int]]) -> Tuple[float, int]:
     """
@@ -115,4 +119,54 @@ def calculate_max_overlap_with_shifted_end_times(
 
     return calculate_max_parallel_worker_demand(shifted_appointments)
 
+def collect_problem_metrics(request: EnhancedOptimizationRequest) -> List[ProblemMetric]:
+    metrics = []
+
+    metrics.append(ProblemMetric(
+        name="total_appointment_time",
+        value=sum_appointment_durations(request)
+    ))
+
+    metrics.append(ProblemMetric(
+        name="total_service_time",
+        value=sum_appointment_servicetimes(request)
+    ))
+
+    avg_time, max_time = calculate_average_and_max_travel_time(request.time_matrix)
+
+    metrics.append(ProblemMetric(
+        name="average_appointment_distance(time)",
+        value=round(avg_time)
+    ))
+
+    metrics.append(ProblemMetric(
+        name="max_appointment_distance(time)",
+        value=round(max_time)
+    ))
+
+    metrics.append(ProblemMetric(
+        name="max_overlap",
+        value=calculate_max_overlap_with_shifted_end_times(request.appointments, 0)
+    ))
+
+    metrics.append(ProblemMetric(
+        name="max_overlap_with_endtime_shifted_by_avg_traveltime",
+        value=calculate_max_overlap_with_shifted_end_times(request.appointments, avg_time)
+    ))
+
+    quantiles = [
+        ("median travel time", 0.5),
+        ("bottom25 quantile travel time", 0.25),
+        ("bottom10 quantile travel time", 0.10),
+    ]
+
+    for label, q in quantiles:
+        travel_time = calculate_travel_time_quantile(request.time_matrix, q)
+        max_overlap = calculate_max_overlap_with_shifted_end_times(request.appointments, travel_time)
+        metrics.append(ProblemMetric(
+            name=f"Max overlap with endtime shifted by {label}: {max_overlap}",
+            value=max_overlap
+        ))
+
+    return metrics
 

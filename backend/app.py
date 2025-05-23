@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from inputAnalyzer import *
-from backend.solver.solver import solve_appointment_routing_pca
+from backend.solver.solver import solve_appointment_routing
 from backend.solver.models import *
 
 load_dotenv()
@@ -52,7 +52,7 @@ def full_matrix(request:OptimizationRequest):
 @app.post("/api/solve-without-check")
 def full_matrix(request:EnhancedOptimizationRequest):
     try:
-        return solve_appointment_routing_pca(request)
+        return solve_appointment_routing(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -60,7 +60,7 @@ def full_matrix(request:EnhancedOptimizationRequest):
 def check_and_solve(request: OptimizationRequest):
     try:
         enh =  check_and_enhance_optimization_request(request)
-        return solve_appointment_routing_pca(enh)
+        return solve_appointment_routing(enh)
     except Exception as e:
        raise HTTPException(status_code=500, detail=str(e))
 
