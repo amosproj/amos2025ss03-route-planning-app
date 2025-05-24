@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from backend.solver.models import *
+from solver.models import *
 from typing import List
 from datetime import datetime, timedelta
 from typing import Tuple

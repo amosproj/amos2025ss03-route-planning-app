@@ -1,6 +1,11 @@
 # backend/solver/solver.py
+import math
+import numpy as np
+from typing import Any
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+
 from backend.exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
+from backend.solver.models import *
 from backend.solver.preprocessing import *
 from backend.solver.util import *
 from backend.solver.validate_routes import validate_routes
@@ -93,7 +98,7 @@ def solve_appointment_routing(
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
     search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     search_params.time_limit.FromSeconds(optimization_time_limit)
-    search_params.log_search = True  # dev-friendly
+    search_params.log_search = False
 
     # Solve
     solution = routing.SolveWithParameters(search_params)

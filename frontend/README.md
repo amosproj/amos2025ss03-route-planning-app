@@ -52,3 +52,10 @@ export default tseslint.config({
   },
 });
 ```
+
+### `frontend/.env`
+
+```env
+VITE_API_URL=http://localhost:8080
+VITE_GOOGLE_MAPS_API_KEY=supersecretkey
+```

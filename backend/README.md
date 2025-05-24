@@ -103,3 +103,9 @@ The VRP solver (`solver.py`) uses Google OR-Tools to solve the vehicle routing p
 - Extend `solver.py` to add new constraints or solution techniques
 - Update CORS settings in `app.py` for production deployments
 - Use Pydantic models to benefit from FastAPI's automatic validation and documentation
+
+### `backend/.env`
+
+```env
+GOOGLE_MAPS_API_KEY=supersecretkey
+```
