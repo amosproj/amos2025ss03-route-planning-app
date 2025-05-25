@@ -60,7 +60,12 @@ export function DailyRouteForm() {
         // })
 
         // TODO: Replace this with actual backend call
-        console.log("Submitted:", data)
+        const formattedDate = format(data.date, "dd-MM-yyyy");
+
+        console.log("Submitted:", {
+            ...data,
+            date: formattedDate,
+        });
     }
 
     return (
