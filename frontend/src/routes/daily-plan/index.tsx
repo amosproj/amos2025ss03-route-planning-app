@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 import dailyPlanData from '../../../testData/dailyPlanData.json';
+import { DailyRouteForm } from '@/components/DailyRouteForm';
 
 //--------type start--------//
 type WaypointAppointment = {
@@ -242,150 +243,154 @@ function DailyPlan() {
   );
 
   return (
-    <div className="flex w-full h-[calc(100vh-5.3rem)] relative">
-      <GoogleMap
-        center={defaultCenter}
-        zoom={12}
-        mapContainerStyle={{ width: '100%', height: '100%' }}
-        onLoad={(map) => {
-          mapRef.current = map;
-        }}
-      >
-        {routes.map((route) => {
-          if (!route.visible) return null;
+    <div>
+      <DailyRouteForm />
 
-          const leg = route.result.routes[0].legs[0];
-          const rawWaypoints = route.result.request.waypoints;
-          const stringWaypoints = JSON.stringify(rawWaypoints)
-          const waypoints = JSON.parse(stringWaypoints);
+      <div className="flex w-full h-[calc(100vh-11rem)] relative">
+        <GoogleMap
+          center={defaultCenter}
+          zoom={12}
+          mapContainerStyle={{ width: '100%', height: '100%' }}
+          onLoad={(map) => {
+            mapRef.current = map;
+          }}
+        >
+          {routes.map((route) => {
+            if (!route.visible) return null;
 
-          return (
-            <div key={route.id}>
-              <Marker
-                position={leg.start_location}
-                // label="Start"
-                icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                }}
-                onClick={() =>
-                  setActiveMarker({
-                    position: leg.start_location.toJSON(),
-                    label: `Start of ${route.id}`,
-                    routeId: route.id,
-                    appointment: route.appointments[0],
-                    color: route.color,
-                  })
-                }
-              />
-              <Marker
-                position={leg.end_location}
-                // label="End"
-                icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                }}
-                onClick={() =>
-                  setActiveMarker({
-                    position: leg.end_location.toJSON(),
-                    label: `End of ${route.id}`,
-                    routeId: route.id,
-                    appointment: route.appointments[route.appointments.length - 1],
-                    color: route.color,
-                  })
-                }
-              />
-              {/* White Dots for Waypoints */}
-              {waypoints.map((waypoint: Waypoint, index: number) => {
-                const color = route.color;
-                const position = waypoint.location.location;
+            const leg = route.result.routes[0].legs[0];
+            const rawWaypoints = route.result.request.waypoints;
+            const stringWaypoints = JSON.stringify(rawWaypoints)
+            const waypoints = JSON.parse(stringWaypoints);
 
-                if (!position) return null;
-
-                return (<Marker
-                  key={index}
-                  position={position}
-                  label={(index + 1).toString()}
+            return (
+              <div key={route.id}>
+                <Marker
+                  position={leg.start_location}
+                  // label="Start"
                   icon={{
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 8,
-                    fillColor: '#FFFFFF',
-                    fillOpacity: 1,
-                    strokeColor: color,
-                    strokeWeight: 1,
+                    url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
                   }}
                   onClick={() =>
                     setActiveMarker({
-                      position,
-                      label: `Waypoint ${index + 1}`,
+                      position: leg.start_location.toJSON(),
+                      label: `Start of ${route.id}`,
                       routeId: route.id,
-                      appointment: route.appointments[index + 1],
+                      appointment: route.appointments[0],
                       color: route.color,
                     })
                   }
                 />
-                )
-              })}
+                <Marker
+                  position={leg.end_location}
+                  // label="End"
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                  }}
+                  onClick={() =>
+                    setActiveMarker({
+                      position: leg.end_location.toJSON(),
+                      label: `End of ${route.id}`,
+                      routeId: route.id,
+                      appointment: route.appointments[route.appointments.length - 1],
+                      color: route.color,
+                    })
+                  }
+                />
+                {/* White Dots for Waypoints */}
+                {waypoints.map((waypoint: Waypoint, index: number) => {
+                  const color = route.color;
+                  const position = waypoint.location.location;
 
-              {activeMarker && (
-                <InfoWindow
-                  position={activeMarker.position}
-                  onCloseClick={() => setActiveMarker(null)}
-                >
-                  <>
-                    <div>
-                      <strong style={{ color: activeMarker.color }} className="text-xl">{activeMarker.label}</strong>
-                    </div>
-                    <div>
-                      <strong>Start:</strong>{' '}
-                      {activeMarker.appointment?.appointment_start &&
-                        new Date(activeMarker.appointment.appointment_start).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                    </div>
-                    <div>
-                      <strong>End:</strong>{' '}
-                      {activeMarker.appointment?.appointment_end &&
-                        new Date(activeMarker.appointment.appointment_end).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                    </div>
-                    <div>
-                      <strong>Address:</strong>{' '}
-                      {activeMarker.appointment?.address &&
-                        `${activeMarker.appointment.address.street}, ${activeMarker.appointment.address.zip_code} ${activeMarker.appointment.address.city}`}
-                    </div>
-                    <div>
-                      <strong>Workers:</strong> {activeMarker.appointment?.number_of_workers}
-                    </div>
-                  </>
-                </InfoWindow>
-              )}
+                  if (!position) return null;
+
+                  return (<Marker
+                    key={index}
+                    position={position}
+                    label={(index + 1).toString()}
+                    icon={{
+                      path: google.maps.SymbolPath.CIRCLE,
+                      scale: 8,
+                      fillColor: '#FFFFFF',
+                      fillOpacity: 1,
+                      strokeColor: color,
+                      strokeWeight: 1,
+                    }}
+                    onClick={() =>
+                      setActiveMarker({
+                        position,
+                        label: `Waypoint ${index + 1}`,
+                        routeId: route.id,
+                        appointment: route.appointments[index + 1],
+                        color: route.color,
+                      })
+                    }
+                  />
+                  )
+                })}
+
+                {activeMarker && (
+                  <InfoWindow
+                    position={activeMarker.position}
+                    onCloseClick={() => setActiveMarker(null)}
+                  >
+                    <>
+                      <div>
+                        <strong style={{ color: activeMarker.color }} className="text-xl">{activeMarker.label}</strong>
+                      </div>
+                      <div>
+                        <strong>Start:</strong>{' '}
+                        {activeMarker.appointment?.appointment_start &&
+                          new Date(activeMarker.appointment.appointment_start).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                      </div>
+                      <div>
+                        <strong>End:</strong>{' '}
+                        {activeMarker.appointment?.appointment_end &&
+                          new Date(activeMarker.appointment.appointment_end).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                      </div>
+                      <div>
+                        <strong>Address:</strong>{' '}
+                        {activeMarker.appointment?.address &&
+                          `${activeMarker.appointment.address.street}, ${activeMarker.appointment.address.zip_code} ${activeMarker.appointment.address.city}`}
+                      </div>
+                      <div>
+                        <strong>Workers:</strong> {activeMarker.appointment?.number_of_workers}
+                      </div>
+                    </>
+                  </InfoWindow>
+                )}
+              </div>
+            );
+          })}
+        </GoogleMap>
+
+        {/* Toggle Controls */}
+        <div className="absolute top-2.5 right-2.5 bg-white p-2.5 rounded-lg shadow-md">
+          <strong className="block mb-2">Toggle Routes:</strong>
+          {routes.map(route => (
+            <div key={route.id} className="flex items-center space-x-2 mb-1">
+              <Switch
+                checked={route.visible}
+                className="cursor-pointer"
+                onCheckedChange={() => toggleVisibility(route.id)}
+                id={`switch-${route.id}`}
+              />
+              <label
+                htmlFor={`switch-${route.id}`}
+                className="text-sm font-medium"
+                style={{ color: route.color }}
+              >
+                {route.id}
+              </label>
             </div>
-          );
-        })}
-      </GoogleMap>
-
-      {/* Toggle Controls */}
-      <div className="absolute top-2.5 right-2.5 bg-white p-2.5 rounded-lg shadow-md">
-        <strong className="block mb-2">Toggle Routes:</strong>
-        {routes.map(route => (
-          <div key={route.id} className="flex items-center space-x-2 mb-1">
-            <Switch
-              checked={route.visible}
-              className="cursor-pointer"
-              onCheckedChange={() => toggleVisibility(route.id)}
-              id={`switch-${route.id}`}
-            />
-            <label
-              htmlFor={`switch-${route.id}`}
-              className="text-sm font-medium"
-              style={{ color: route.color }}
-            >
-              {route.id}
-            </label>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
