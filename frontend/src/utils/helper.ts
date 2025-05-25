@@ -1,4 +1,5 @@
-import { Scenario, Vehicle } from '../types/Scenario';
+import { Scenario } from '../types/Scenario';
+import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Adress';
@@ -12,26 +13,27 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       v.replace(/^"|"$/g, ''),
     );
     return {
-      start: new Date(start).getTime(),
-      end: new Date(end).getTime(),
-      street: streetRaw,
-      zip,
-      city,
-      workers: parseInt(workers, 10),
+      appointment_start: new Date(start).getTime(),
+      appointment_end: new Date(end).getTime(),
+      address: {
+        street: streetRaw,
+        zip_code: zip,
+        city,
+      } as Address,
+      number_of_workers: parseInt(workers, 10),
       skills: null,
     };
   });
   const groups: Record<number, Appointment[]> = {};
   jobs.forEach((job) => {
-    const day = new Date(job.start).setHours(0, 0, 0, 0);
+    const day = new Date(job.appointment_start).setHours(0, 0, 0, 0);
     if (!groups[day]) groups[day] = [];
     groups[day].push(job);
   });
   const defaultVehicle = {
-    id: 0,
-    capacity: 0,
-    skills: [],
-    workers: 1,
+    vehicle_id: 0,
+    skills: '',
+    worker_amount: 1,
   } as Vehicle;
   return Object.entries(groups).map(
     ([date, jobs]) =>
@@ -40,38 +42,48 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
 }
 
 export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
-  const lines = csvData.split('\n');
+  const lines = csvData.replace(/\r\n/g, '\n').split('\n');
   let startStr = '';
   let finishStr = '';
-  let workersCount = 0;
+  const vehicles: Vehicle[] = [];
 
   lines.forEach((line) => {
-    const [keyRaw, valueRaw] = line.split(',');
-    if (!keyRaw || !valueRaw) return;
-    const key = keyRaw.trim().toLowerCase();
-    const value = valueRaw.trim().replace(/^"|"$/g, '');
+    if (!line.trim()) return;
+    const idx = line.indexOf(',');
+    if (idx < 0) return;
+    const key = line.slice(0, idx).trim().toLowerCase();
+    let value = line.slice(idx + 1).trim();
+    value = value.replace(/^"|"$/g, '');
     if (key.includes('start address')) {
       startStr = value;
     } else if (key.includes('finish address')) {
       finishStr = value;
-    } else if (key.includes('workers') || key.includes('# of workers')) {
-      workersCount = parseInt(value, 10);
+    } else if (key.includes('workers')) {
+      const num = parseInt(value, 10);
+      for (let i = 0; i < num; i++) {
+        vehicles.push({
+          vehicle_id: i,
+          skills:  "electrician",
+          worker_amount: 1,
+        });
+      }
     }
   });
 
   const parseAddress = (str: string): Address => {
-    const parts = str.split(',').map(s => s.trim());
+    const [streetPart, rest = ''] = str.split(',').map(s => s.trim());
+    const [zip = '', ...cityParts] = rest.split(/\s+/);
     return {
-      street: parts[0] || '',
-      zip_code: parts[1] || '',
-      city: parts[2] || '',
+      street: streetPart || '',
+      zip_code: zip || '',
+      city: cityParts.join(' ') || '',
     };
   };
 
   const companyInfo: CompanyInfo = {
     start_address: parseAddress(startStr),
     finish_address: parseAddress(finishStr),
-    vehicles: [{ id: 0, skills: [], woker_amount: workersCount }],
+    vehicles: vehicles,
   };
   return companyInfo;
 }

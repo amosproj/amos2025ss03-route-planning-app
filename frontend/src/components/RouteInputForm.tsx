@@ -4,9 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import apiClient from '@/utils/apiClient';
+import { addSolution } from '@/store/solutionsSlice';
+import { Solution } from '@/types/Solution';
+import type { AppDispatch, RootState } from '@/store';
 import { z } from 'zod';
 
-import { RootState } from '@/store';
 import { setCompanyInfo } from '@/store/companyInfoSlice';
 
 import { Button } from '@/components/ui/button';
@@ -43,16 +46,19 @@ type FormSchemaType = z.infer<typeof formSchema>;
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
+const GOOGLE_MAP_LIBRARIES = ['places'] as const;
+
 export function RouteInputForm({ date }: { date: string }) {
-  const dispatch = useDispatch();
-  // load Google maps places API
+  const dispatch = useDispatch<AppDispatch>();
+
+  const parsedDate = date.split('"')[1]
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
+    libraries: GOOGLE_MAP_LIBRARIES,
   });
 
   const existingCompany = useSelector(
-    (state: RootState) => state.companyInfo[date],
+    (state: RootState) => state.companyInfo[parsedDate],
   );
 
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
@@ -60,8 +66,9 @@ export function RouteInputForm({ date }: { date: string }) {
     (s: RootState) => s.excludedAppointments[date] ?? [],
   );
   const scenario = scenarios.find(
-    (s) => s.date.toString() === date.split('"')[1],
+    (s) => s.date.toString() === parsedDate,
   );
+
 
   const [startAddrObj, setStartAddrObj] = useState<Address>(defaultAddr);
   const [finishAddrObj, setFinishAddrObj] = useState<Address>(defaultAddr);
@@ -82,9 +89,12 @@ export function RouteInputForm({ date }: { date: string }) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      startAddress: '',
-      finishAddress: '',
-      workers: 1,
+      startAddress: existingCompany?.start_address
+        ? `${existingCompany.start_address.street}, ${existingCompany.start_address.zip_code} ${existingCompany.start_address.city}` : '',
+      finishAddress: existingCompany?.finish_address
+        ? `${existingCompany.finish_address.street}, ${existingCompany.finish_address.zip_code} ${existingCompany.finish_address.city}`
+      : '',
+      workers: existingCompany?.vehicles.length|| 1,
       optimizationPlan: 'profit',
     },
   });
@@ -94,7 +104,7 @@ export function RouteInputForm({ date }: { date: string }) {
     const comp = existingCompany ?? {
       start_address: defaultAddr,
       finish_address: defaultAddr,
-      vehicles: [{ id: 0, skills: [], woker_amount: 1 }],
+      // vehicles: [{ id: 0, skills: [], woker_amount: 1 }],
     };
     // Build display strings only if any part is non-empty
     const hasStart = comp.start_address.street || comp.start_address.zip_code || comp.start_address.city;
@@ -108,30 +118,45 @@ export function RouteInputForm({ date }: { date: string }) {
     form.reset({
       startAddress: displayStart,
       finishAddress: displayFinish,
-      workers: comp.vehicles[0]?.woker_amount || 1,
+      workers: comp.vehicles.length || 1,
       optimizationPlan: 'profit',
     });
     setStartAddrObj(comp.start_address);
     setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
 
-  const onSubmit = (values: FormSchemaType) => {
+  const onSubmit = async (values: FormSchemaType) => {
     const { workers } = values;
     // build companyInfo object
     const companyInfo = {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
-      vehicles: [{ id: 1, skills: [], woker_amount: workers }],
+      number_of_workers: existingCompany.vehicles
     };
-    dispatch(setCompanyInfo({ date, companyInfo }));
-    console.log('Form submitted:', values);
-    // filter out excluded jobs for this date
-    const appointments = scenario?.jobs.filter((_, idx) => !excluded.includes(idx)) || [];
+
+    // dispatch(setCompanyInfo({ date, companyInfo }));
+
+    const enhancedAppointments = scenario?.jobs.filter((_, idx) => !excluded.includes(idx)).map((app) => {
+      return {
+        appointment_start: new Date(app.appointment_start).toISOString(),
+        appointment_end: new Date(app.appointment_end).toISOString(),  // use correct end
+        address: app.address,
+        number_of_workers: app.number_of_workers,
+      };
+    }) || [];
+
     const request: OptimizationRequest = {
       company_info: companyInfo,
-      appointments,
+      appointments: enhancedAppointments,
     };
-    console.log('Optimization request:', request);
+    console.log('Optimization request:' + JSON.stringify(request, null, 2));
+    try {
+      const { data: solution } = await apiClient.post<Solution>('/api/check-and-solve', request);
+      dispatch(addSolution({ date, solution }));
+      console.log('Received solution:', solution);
+    } catch (error) {
+      console.error('Failed to get solution:', error);
+    }
   };
 
   if (loadError) return <div>Error loading Google Maps</div>;
@@ -157,11 +182,17 @@ export function RouteInputForm({ date }: { date: string }) {
                         const place = startAuto.getPlace();
                         const addr = parseAddress(place);
                         setStartAddrObj(addr);
-                        field.onChange(place.formatted_address || `${addr.street}, ${addr.zip_code} ${addr.city}`);
+                        field.onChange(
+                          place.formatted_address ||
+                            `${addr.street}, ${addr.zip_code} ${addr.city}`
+                        );
                       }
                     }}
                   >
-                    <Input placeholder="Enter start address" {...field} />
+                    <Input
+                      {...field}
+                      placeholder="Enter start address"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -185,11 +216,17 @@ export function RouteInputForm({ date }: { date: string }) {
                         const place = finishAuto.getPlace();
                         const addr = parseAddress(place);
                         setFinishAddrObj(addr);
-                        field.onChange(place.formatted_address || `${addr.street}, ${addr.zip_code} ${addr.city}`);
+                        field.onChange(
+                          place.formatted_address ||
+                            `${addr.street}, ${addr.zip_code} ${addr.city}`
+                        );
                       }
                     }}
                   >
-                    <Input placeholder="Enter finish address" {...field} />
+                    <Input
+                      {...field}
+                      placeholder="Enter finish address"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
