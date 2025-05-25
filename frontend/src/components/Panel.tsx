@@ -25,7 +25,7 @@ export default function Panel({ date, jobs, locations, excluded, selectedIdx, on
   const solution = exampleSolution;
 
   return (
-    <div className="flex flex-col h-full w-90 flex-shrink-0 bg-white shadow-lg rounded-r-lg p-4">
+    <div className="flex flex-col h-screen w-90 flex-shrink-0 bg-white shadow-lg overflow-auto rounded-r-lg p-4">
       <Tabs defaultValue="appointments" className="flex flex-col flex-1 w-full">
         <TabsList className="mb-6 grid grid-cols-2 bg-gray-100 p-1 rounded-full shadow-inner">
           <TabsTrigger
@@ -42,8 +42,8 @@ export default function Panel({ date, jobs, locations, excluded, selectedIdx, on
             Solution
           </TabsTrigger>
         </TabsList>
-        <div className="flex-1">
-          <TabsContent value="appointments" className="h-full">
+        <div className="flex-1 flex flex-col min-h-0">
+          <TabsContent value="appointments" className="flex-1 min-h-0 flex flex-col">
             <AppointmentList
               jobs={jobs}
               locations={locations}
@@ -53,7 +53,7 @@ export default function Panel({ date, jobs, locations, excluded, selectedIdx, on
               onToggleExclude={onToggleExclude}
             />
           </TabsContent>
-          <TabsContent value="solutions" className="h-full overflow-y-auto">
+          <TabsContent value="solutions" className="h-full ">
             {solution && <SolutionList solution={solution} />}
           </TabsContent>
         </div>

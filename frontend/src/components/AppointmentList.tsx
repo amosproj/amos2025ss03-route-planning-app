@@ -22,14 +22,10 @@ export default function AppointmentList({
 }: Props) {
   return (
     <div
-      className="relative transition-all duration-300 ease-in-out flex flex-col flex-1 min-h-0 bg-white border-r w-80 p-4 overflow-hidden"
+      className=" flex flex-col flex-1 min-h-0 bg-white border-r w-80 p-4"
     >
-      <div className="flex items-center justify-between mb-4">
-        {/* <h3 className="text-lg font-semibold mb-0">Appointments</h3> */}
 
-      </div>
-
-        <ul role="list" className="space-y-2 flex-1 min-h-0 overflow-y-auto">
+        <ul role="list" className="space-y-2 pr-1 flex-1">
           {jobs
             .map((job, idx) => ({ job, idx }))
             .sort(
@@ -43,7 +39,7 @@ export default function AppointmentList({
               const isExcluded = excluded.includes(idx);
               return (
                 <li
-                  key={idx}z
+                  key={idx}
                   role="listitem"
                   aria-selected={!isExcluded && selectedIdx === idx}
                   aria-invalid={hasError}

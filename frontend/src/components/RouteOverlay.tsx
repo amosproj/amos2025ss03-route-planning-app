@@ -2,13 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import type { RouteRequest } from '@/types/RouteRequest';
-
-const colors = [
-  '#FF0000', '#0000FF', '#008000', '#FFA500', '#800080', '#00FFFF',
-  '#FFC0CB', '#A52A2A', '#FFFF00', '#808000', '#00FF00', '#000080',
-  '#FF00FF', '#808080', '#00CED1', '#DA70D6', '#DC143C', '#7FFF00',
-  '#D2691E', '#4682B4',
-];
+import { getRouteColor } from '@/utils/routeColors';
 
 interface RouteOverlayProps {
   map: google.maps.Map | null;
@@ -41,7 +35,7 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
         origin: { lat: origin.lat, lng: origin.lng },
         destination: { lat: dest.lat, lng: dest.lng },
         waypoints,
-        color: colors[idx % colors.length],
+        color: getRouteColor(idx),
         appointments: route.appointments,
       };
     });
