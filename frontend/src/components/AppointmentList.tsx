@@ -1,6 +1,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { EnhancedAddressResponse } from '@/types/EnhancedAddressResponse';
 import { Appointment } from '@/types/Appointment';
+import { User } from 'lucide-react';
 
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   onToggleExclude: (idx: number) => void;
+  onToggleAll: (selectAll: boolean) => void;
 }
 
 export default function AppointmentList({
@@ -19,11 +21,30 @@ export default function AppointmentList({
   selectedIdx,
   onSelect,
   onToggleExclude,
+  onToggleAll,
 }: Props) {
+  const allCount = jobs.length;
+  const excludedCount = excluded.length;
+  const isAllSelected = excludedCount === 0 && allCount > 0;
+  const isIndeterminate = excludedCount > 0 && excludedCount < allCount;
   return (
     <div
       className=" flex flex-col flex-1 min-h-0 bg-white border-r w-80 p-4"
     >
+      {/* Header with title and Select All control */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Appointments</h2>
+        <label className="flex items-center cursor-pointer">
+          <Checkbox
+            checked={isAllSelected}
+            onClick={() => onToggleAll(!isAllSelected)}
+            aria-label="Select all appointments"
+            aria-checked={isIndeterminate ? 'mixed' : isAllSelected}
+            className="mr-2"
+          />
+          <span className="text-sm">Select All</span>
+        </label>
+      </div>
 
         <ul role="list" className="space-y-2 pr-1 flex-1">
           {jobs

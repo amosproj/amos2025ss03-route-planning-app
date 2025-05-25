@@ -25,11 +25,19 @@ const excludedAppointmentsSlice = createSlice({
     clearExcludedAppointments(state, action: PayloadAction<string>) {
       delete state[action.payload];
     },
+    setExcludedAppointments(
+      state,
+      action: PayloadAction<{ date: string; idxList: number[] }>
+    ) {
+      const { date, idxList } = action.payload;
+      state[date] = idxList;
+    },
   },
 });
 
 export const {
   toggleExcludedAppointment,
   clearExcludedAppointments,
+  setExcludedAppointments,
 } = excludedAppointmentsSlice.actions;
 export default excludedAppointmentsSlice.reducer;

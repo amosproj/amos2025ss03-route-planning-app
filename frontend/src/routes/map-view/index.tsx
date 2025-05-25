@@ -14,7 +14,7 @@ import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
-import { toggleExcludedAppointment } from '../../store/excludedAppointmentsSlice';
+import { toggleExcludedAppointment, setExcludedAppointments } from '../../store/excludedAppointmentsSlice';
 import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
@@ -204,6 +204,15 @@ function MapView() {
             }
           }}
           onToggleExclude={(idx) => dispatch(toggleExcludedAppointment({ date, idx }))}
+          onToggleAll={(selectAll) => {
+            const allIdx = scenario.jobs.map((_, i) => i);
+            dispatch(
+              setExcludedAppointments({
+                date,
+                idxList: selectAll ? [] : allIdx,
+              }),
+            );
+          }}
         />
         {/* Map container */}
         {!isLoading ? (

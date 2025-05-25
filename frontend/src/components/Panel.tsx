@@ -19,9 +19,10 @@ interface PanelProps {
   selectedIdx: number | null;
   onSelect: (idx: number) => void;
   onToggleExclude: (idx: number) => void;
+  onToggleAll: (selectAll: boolean) => void;
 }
 
-export default function Panel({ date, jobs, locations, excluded, selectedIdx, onSelect, onToggleExclude }: PanelProps) {
+export default function Panel({ jobs, locations, excluded, selectedIdx, onSelect, onToggleExclude, onToggleAll }: PanelProps) {
   const solution = exampleSolution;
 
   return (
@@ -39,7 +40,7 @@ export default function Panel({ date, jobs, locations, excluded, selectedIdx, on
             disabled={!solution}
             className="text-lg font-semibold py-2 px-6 rounded-full data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
           >
-            Solution
+            Routes
           </TabsTrigger>
         </TabsList>
         <div className="flex-1 flex flex-col min-h-0">
@@ -51,6 +52,7 @@ export default function Panel({ date, jobs, locations, excluded, selectedIdx, on
               selectedIdx={selectedIdx}
               onSelect={onSelect}
               onToggleExclude={onToggleExclude}
+              onToggleAll={onToggleAll}
             />
           </TabsContent>
           <TabsContent value="solutions" className="h-full ">

@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
-import {Download} from 'lucide-react';
+import { Download } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface SolutionListProps {
   solution: Solution;
@@ -28,15 +29,15 @@ export default function SolutionList({ solution }: SolutionListProps) {
   };
   const downloadSolution = () => {
     const dataStr =
-        'data:text/json;charset=utf-8,' +
-        encodeURIComponent(JSON.stringify(solution));
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(solution));
     const a = document.createElement('a');
     a.href = dataStr;
     a.download = `solution-${solution.total_distance_traveled}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }
+  };
 
   return (
     <Accordion type="single" collapsible className="space-y-2">
@@ -62,7 +63,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
                     downloadRoute(route);
                   }}
                 >
-                  <Download/>
+                  <Download />
                 </Button>
               </div>
             </AccordionTrigger>
@@ -114,13 +115,19 @@ export default function SolutionList({ solution }: SolutionListProps) {
                         <time className="block mb-1 text-xs text-gray-500">
                           {start} - {end}
                         </time>
-                        <p className="text-sm text-gray-700">
+                        <p className=" flex text-sm text-gray-700">
                           {appt.address.street}, {appt.address.zip_code}{' '}
                           {appt.address.city}
+                          <User />
+                          {appt.number_of_workers}
                         </p>
+
                         {/* Interval label */}
                         {diffMin != null && (
-                          <span style={{color: color}} className="absolute opacity-40 left-3 bottom-0 bg-white italic font-semibold px-1 text-xs text-gray-500 -translate-y-1/2">
+                          <span
+                            style={{ color: color }}
+                            className="absolute opacity-40 left-3 bottom-0 bg-white italic font-semibold px-1 text-xs text-gray-500 -translate-y-1/2"
+                          >
                             {diffMin} min
                           </span>
                         )}
@@ -133,8 +140,8 @@ export default function SolutionList({ solution }: SolutionListProps) {
           </AccordionItem>
         );
       })}
-      <Button size='lg' className='w-full' onClick={downloadSolution}>
-        <Download/>
+      <Button size="lg" className="w-full" onClick={downloadSolution}>
+        <Download />
       </Button>
     </Accordion>
   );
