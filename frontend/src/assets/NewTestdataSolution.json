@@ -1,0 +1,333 @@
+{
+    "total_distance_traveled": 192904.0,
+    "max_distance_traveled": 64509.0,
+    "routes": [
+        {
+            "route_id": 0,
+            "vehicle_id": 0,
+            "distance_traveled": 39705.0,
+            "time_traveled": 261.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 09:00:00.000",
+                    "appointment_end": "2025-04-29 11:00:00.000",
+                    "address": {
+                        "street": "Delbrückstraße 37",
+                        "zip_code": "14193",
+                        "city": "Berlin"
+                    },
+                    "service_time": 60,
+                    "location": {
+                        "id": "Delbrückstraße 37-14193-Berlin",
+                        "lat": 52.5031112,
+                        "lng": 13.3217026
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 15:00:00.000",
+                    "address": {
+                        "street": "Alte Schönhauser Str. 46",
+                        "zip_code": "10119",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Alte Schönhauser Str. 46-10119-Berlin",
+                        "lat": 52.52663399999999,
+                        "lng": 13.4080465
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 14:00:00.000",
+                    "appointment_end": "2025-04-29 14:30:00.000",
+                    "address": {
+                        "street": "Allerstraße 11",
+                        "zip_code": "12049",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Allerstraße 11-12049-Berlin",
+                        "lat": 52.47498849999999,
+                        "lng": 13.4239202
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 15:00:00.000",
+                    "appointment_end": "2025-04-29 16:30:00.000",
+                    "address": {
+                        "street": "Grunewaldstraße 54",
+                        "zip_code": "10825",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Grunewaldstraße 54-10825-Berlin",
+                        "lat": 52.4880055,
+                        "lng": 13.3379483
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 1,
+            "vehicle_id": 1,
+            "distance_traveled": 64509.0,
+            "time_traveled": 340.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 09:00:00.000",
+                    "appointment_end": "2025-04-29 11:00:00.000",
+                    "address": {
+                        "street": "Johannisthaler Ch 46",
+                        "zip_code": "12437",
+                        "city": "Berlin"
+                    },
+                    "service_time": 60,
+                    "location": {
+                        "id": "Johannisthaler Ch 46-12437-Berlin",
+                        "lat": 52.4479323,
+                        "lng": 13.4841446
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 10:00:00.000",
+                    "appointment_end": "2025-04-29 12:30:00.000",
+                    "address": {
+                        "street": "Spichernstraße 24",
+                        "zip_code": "10777",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Spichernstraße 24-10777-Berlin",
+                        "lat": 52.4976816,
+                        "lng": 13.3340756
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 11:00:00.000",
+                    "appointment_end": "2025-04-29 12:30:00.000",
+                    "address": {
+                        "street": "Straße des 17. Juni 135",
+                        "zip_code": "10623",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Straße des 17. Juni 135-10623-Berlin",
+                        "lat": 52.5108164,
+                        "lng": 13.3280515
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 10:00:00.000",
+                    "appointment_end": "2025-04-29 13:30:00.000",
+                    "address": {
+                        "street": "Rollbergstraße 70",
+                        "zip_code": "12049",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Rollbergstraße 70-12049-Berlin",
+                        "lat": 52.4786365,
+                        "lng": 13.4272965
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 14:00:00.000",
+                    "appointment_end": "2025-04-29 16:00:00.000",
+                    "address": {
+                        "street": "Späthstraße 80-81",
+                        "zip_code": "12437",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Späthstraße 80-81-12437-Berlin",
+                        "lat": 52.4529029,
+                        "lng": 13.4718397
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 15:00:00.000",
+                    "appointment_end": "2025-04-29 16:30:00.000",
+                    "address": {
+                        "street": "Bamberger Str. 49",
+                        "zip_code": "10779",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Bamberger Str. 49-10779-Berlin",
+                        "lat": 52.49406949999999,
+                        "lng": 13.3375464
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 2,
+            "vehicle_id": 2,
+            "distance_traveled": 54108.0,
+            "time_traveled": 286.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 09:00:00.000",
+                    "appointment_end": "2025-04-29 11:00:00.000",
+                    "address": {
+                        "street": "Spandauer Damm 157",
+                        "zip_code": "14050",
+                        "city": "Berlin"
+                    },
+                    "service_time": 60,
+                    "location": {
+                        "id": "Spandauer Damm 157-14050-Berlin",
+                        "lat": 52.5195218,
+                        "lng": 13.2707295
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 13:00:00.000",
+                    "appointment_end": "2025-04-29 14:30:00.000",
+                    "address": {
+                        "street": "Richard-Sorge-Straße 21",
+                        "zip_code": "10249",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Richard-Sorge-Straße 21-10249-Berlin",
+                        "lat": 52.5200219,
+                        "lng": 13.4478154
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 12:00:00.000",
+                    "appointment_end": "2025-04-29 14:30:00.000",
+                    "address": {
+                        "street": "Hauptstraße 9",
+                        "zip_code": "13158",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Hauptstraße 9-13158-Berlin",
+                        "lat": 52.585242,
+                        "lng": 13.3668631
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 15:00:00.000",
+                    "appointment_end": "2025-04-29 16:30:00.000",
+                    "address": {
+                        "street": "Schönhauser Str. 41",
+                        "zip_code": "13158",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Schönhauser Str. 41-13158-Berlin",
+                        "lat": 52.5914026,
+                        "lng": 13.3993389
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        },
+        {
+            "route_id": 3,
+            "vehicle_id": 3,
+            "distance_traveled": 34582.0,
+            "time_traveled": 163.0,
+            "appointments": [
+                {
+                    "appointment_start": "2025-04-29 09:00:00.000",
+                    "appointment_end": "2025-04-29 11:00:00.000",
+                    "address": {
+                        "street": "Messedamm 26",
+                        "zip_code": "14055",
+                        "city": "Berlin"
+                    },
+                    "service_time": 60,
+                    "location": {
+                        "id": "Messedamm 26-14055-Berlin",
+                        "lat": 52.50012719999999,
+                        "lng": 13.2707922
+                    },
+                    "number_of_workers": 1
+                },
+                {
+                    "appointment_start": "2025-04-29 15:00:00.000",
+                    "appointment_end": "2025-04-29 16:30:00.000",
+                    "address": {
+                        "street": "Strausberger Str. 46",
+                        "zip_code": "10243",
+                        "city": "Berlin"
+                    },
+                    "service_time": 30,
+                    "location": {
+                        "id": "Strausberger Str. 46-10243-Berlin",
+                        "lat": 52.5218544,
+                        "lng": 13.4327016
+                    },
+                    "number_of_workers": 1
+                }
+            ]
+        }
+    ],
+    "method_used": "Path Cheapest Arc",
+    "problem_metrics": [
+        {
+            "name": "total_appointment_time",
+            "value": 1800
+        },
+        {
+            "name": "total_service_time",
+            "value": 600
+        },
+        {
+            "name": "average_appointment_distance(time)",
+            "value": 22
+        },
+        {
+            "name": "max_appointment_distance(time)",
+            "value": 51
+        },
+        {
+            "name": "max_overlap",
+            "value": 6
+        },
+        {
+            "name": "max_overlap_with_endtime_shifted_by_avg_traveltime",
+            "value": 7
+        },
+        {
+            "name": "Max overlap with endtime shifted by median travel time: 7",
+            "value": 7
+        },
+        {
+            "name": "Max overlap with endtime shifted by bottom25 quantile travel time: 7",
+            "value": 7
+        },
+        {
+            "name": "Max overlap with endtime shifted by bottom10 quantile travel time: 7",
+            "value": 7
+        }
+    ]
+}

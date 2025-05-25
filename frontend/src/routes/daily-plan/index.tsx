@@ -9,7 +9,7 @@ import {
 } from '@react-google-maps/api';
 import { useEffect, useRef, useState } from 'react';
 
-import dailyPlanData from '../../../testData/dailyPlanData.json';
+// import dailyPlanData from '../../../testData/dailyPlanData.json';
 import { DailyRouteForm } from '@/components/DailyRouteForm';
 
 //--------type start--------//
@@ -95,6 +95,9 @@ function DailyPlan() {
 
   const [activeMarker, setActiveMarker] = useState<MarkerData | null>(null);
 
+  const [dailyPlanData, setDailyPlanData] = useState<any>({});
+  const [routeRequests, setRouteRequests] = useState<RouteRequest[]>([]);
+
   const colors = [
     '#FF0000', // Red
     '#0000FF', // Blue
@@ -118,30 +121,38 @@ function DailyPlan() {
     '#4682B4', // Steel Blue
   ];
 
-  // Create route requests from dailyPlanData 
-  const routeRequests = dailyPlanData.routes.map((route, idx) => {
-    const waypoints = route.appointments.slice(1, -1).map((appt) => ({
-      location: { lat: appt.location.lat, lng: appt.location.lng },
-      stopover: true,
-    }));
+  useEffect(() => {
+    console.log('dailyPlanData props---', dailyPlanData);
+    if (!dailyPlanData || !dailyPlanData.routes) return;
+    // Create route requests from dailyPlanData 
+    setRouteRequests(
+      dailyPlanData.routes.map((route, idx) => {
+        const waypoints = route.appointments.slice(1, -1).map((appt) => ({
+          location: { lat: appt.location.lat, lng: appt.location.lng },
+          stopover: true,
+        }));
 
-    const origin = route.appointments[0].location;
-    const destination = route.appointments[route.appointments.length - 1].location;
+        const origin = route.appointments[0].location;
+        const destination = route.appointments[route.appointments.length - 1].location;
 
-    return {
-      id: `Route-${route.route_id + 1}`,
-      origin: { lat: origin.lat, lng: origin.lng },
-      destination: { lat: destination.lat, lng: destination.lng },
-      waypoints,
-      color: colors[idx % colors.length],
-      appointments: route.appointments,
-    };
-  });
+        return {
+          id: `Route-${route.route_id + 1}`,
+          origin: { lat: origin.lat, lng: origin.lng },
+          destination: { lat: destination.lat, lng: destination.lng },
+          waypoints,
+          color: colors[idx % colors.length],
+          appointments: route.appointments,
+        };
+      })
+    )
+  }, [dailyPlanData]);
+
 
   const [routes, setRoutes] = useState<Route[]>([]);
 
   useEffect(() => {
     if (!isLoaded) return;
+    if (routeRequests.length === 0) return;
 
     const directionsService = new google.maps.DirectionsService();
 
@@ -205,7 +216,7 @@ function DailyPlan() {
         mapRef.current.fitBounds(bounds);
       })
       .catch((error) => console.error('Error fetching routes:', error));
-  }, [isLoaded]);
+  }, [isLoaded, routeRequests]);
 
 
   const toggleVisibility = (id: string) => {
@@ -244,7 +255,7 @@ function DailyPlan() {
 
   return (
     <div>
-      <DailyRouteForm />
+      <DailyRouteForm setDailyPlanData={setDailyPlanData} />
 
       <div className="flex w-full h-[calc(100vh-11rem)] relative">
         <GoogleMap
@@ -371,7 +382,7 @@ function DailyPlan() {
         </GoogleMap>
 
         {/* Toggle Controls */}
-        <div className="absolute top-2.5 right-2.5 bg-white p-2.5 rounded-lg shadow-md">
+        {routes.length ? <div className="absolute top-2.5 right-2.5 bg-white p-2.5 rounded-lg shadow-md">
           <strong className="block mb-2">Toggle Routes:</strong>
           {routes.map(route => (
             <div key={route.id} className="flex items-center space-x-2 mb-1">
@@ -390,7 +401,7 @@ function DailyPlan() {
               </label>
             </div>
           ))}
-        </div>
+        </div> : ''}
       </div>
     </div>
   );

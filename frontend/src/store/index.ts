@@ -4,6 +4,7 @@ import scenariosReducer from './scenariosSlice';
 import companyInfoReducer from './companyInfoSlice';
 import enrichedAppointmentsReducer from './enrichedAppointmentsSlice';
 import excludedAppointmentsReducer from './excludedAppointmentsSlice';
+import dailyRouteReducer from "./dailyRouteSlice"
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import {
@@ -18,7 +19,7 @@ import {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['scenarios', 'companyInfo', 'enrichedAppointments', 'excludedAppointments'],
+  whitelist: ['scenarios', 'companyInfo', 'enrichedAppointments', 'excludedAppointments', 'dailyRoute'],
 };
 
 const rootReducer = combineReducers({
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   companyInfo: companyInfoReducer,
   enrichedAppointments: enrichedAppointmentsReducer,
   excludedAppointments: excludedAppointmentsReducer,
+  dailyRoute: dailyRouteReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
