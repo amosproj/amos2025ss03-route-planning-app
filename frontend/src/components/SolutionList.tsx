@@ -118,8 +118,6 @@ export default function SolutionList({ solution }: SolutionListProps) {
                         <p className=" flex text-sm text-gray-700">
                           {appt.address.street}, {appt.address.zip_code}{' '}
                           {appt.address.city}
-                          <User />
-                          {appt.number_of_workers}
                         </p>
 
                         {/* Interval label */}
