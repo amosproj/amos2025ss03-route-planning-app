@@ -31,7 +31,6 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
     assert isinstance(city, str), "city must be a string"
 
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-    print("API Key:", api_key)  # Debugging line to check if the API key is loaded
     if not api_key:
         raise RuntimeError("GOOGLE_MAPS_API_KEY is not set in environment variables")
 
@@ -54,7 +53,6 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
 
     data = response.json()
 
-    print("Google Maps API Response:", data)
 
     if not data.get("results"):
         return EnhancedAddressResponse(
