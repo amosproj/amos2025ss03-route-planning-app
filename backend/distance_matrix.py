@@ -1,119 +1,57 @@
 import os
 from typing import List
-
 import numpy as np
 import requests
 
-from solver.models import Location, MatrixElement, DistanceMatrixResponse, DistanceAndDurationMatrices
+from solver.models import Location, DistanceAndDurationMatrices
 
-
-def build_location_string(locations: List[Location]) -> str:
-    return "|".join([f"{loc.lat},{loc.lng}" for loc in locations])
-
-def get_full_distance_matrix(locations: List[Location]) -> DistanceMatrixResponse:
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-    if not api_key:
-        raise EnvironmentError("API key not set")
-
-    matrix = []
-    max_elements = 100
-    max_destinations = max_elements  # since we'll send 1 origin per request
-
-    destination_strings = [f"{loc.lat},{loc.lng}" for loc in locations]
-
-    for i, origin in enumerate(locations):
-        origin_str = f"{origin.lat},{origin.lng}"
-        from_id = origin.id
-
-        for j in range(0, len(locations), max_destinations):
-            dest_batch = destination_strings[j:j + max_destinations]
-            dest_ids = locations[j:j + max_destinations]
-            dest_str = "|".join(dest_batch)
-
-            url = (
-                f"https://maps.googleapis.com/maps/api/distancematrix/json?"
-                f"origins={origin_str}&destinations={dest_str}&"
-                f"mode=driving&units=metric&key={api_key}"
-            )
-
-            response = requests.get(url)
-            data = response.json()
-
-            if data["status"] != "OK":
-                raise ValueError(data.get("error_message", "Distance Matrix API error"))
-
-            elements = data["rows"][0]["elements"]
-
-            for offset, element in enumerate(elements):
-                to_id = dest_ids[offset].id
-                if element["status"] == "OK":
-                    matrix.append(MatrixElement(
-                        from_id=from_id,
-                        to_id=to_id,
-                        distance_text=element["distance"]["text"],
-                        distance_value=element["distance"]["value"],
-                        duration_text=element["duration"]["text"],
-                        duration_value=element["duration"]["value"]
-                    ))
-                else:
-                    matrix.append(MatrixElement(
-                        from_id=from_id,
-                        to_id=to_id,
-                        distance_text="N/A",
-                        distance_value=0,
-                        duration_text="N/A",
-                        duration_value=0
-                    ))
-
-    return DistanceMatrixResponse(matrix=matrix)
 
 def get_distance_matrix_2d(locations: List[Location]) -> DistanceAndDurationMatrices:
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     if not api_key:
-        raise EnvironmentError("API key not set")
+        raise EnvironmentError("Google Maps API key not set")
 
     n = len(locations)
-    distance_matrix = np.zeros((n, n), dtype=int)
-    duration_matrix = np.zeros((n, n), dtype=int)
+    distance_matrix = np.full((n, n), -1, dtype=int)
+    duration_matrix = np.full((n, n), -1, dtype=int)
 
-    # Google API limit: max 100 elements = origins x destinations
+    # API limit: 100 elements per request = origins × destinations
     max_elements = 100
-    max_destinations = max_elements  # because we only send 1 origin per batch
+    max_destinations = 25
+    max_origins = max_elements // max_destinations
 
-    # Pre-format all destination strings
-    destination_strings = [
-        f"{loc.lat},{loc.lng}" for loc in locations
-    ]
+    # Prepare formatted coordinates
+    coordinates = [f"{loc.lat},{loc.lng}" for loc in locations]
 
-    for i, origin in enumerate(locations):
-        origin_str = f"{origin.lat},{origin.lng}"
+    for origin_start in range(0, n, max_origins):
+        origin_end = min(origin_start + max_origins, n)
+        origin_batch = coordinates[origin_start:origin_end]
 
-        for j in range(0, n, max_destinations):
-            # Slice destination batch
-            dest_batch = destination_strings[j:j + max_destinations]
-            dest_str = "|".join(dest_batch)
+        for dest_start in range(0, n, max_destinations):
+            dest_end = min(dest_start + max_destinations, n)
+            dest_batch = coordinates[dest_start:dest_end]
 
             url = (
                 f"https://maps.googleapis.com/maps/api/distancematrix/json?"
-                f"origins={origin_str}&destinations={dest_str}&"
+                f"origins={'|'.join(origin_batch)}&destinations={'|'.join(dest_batch)}&"
                 f"mode=driving&units=metric&key={api_key}"
             )
 
             response = requests.get(url)
             data = response.json()
 
-            if data["status"] != "OK":
-                raise ValueError(data.get("error_message", "Distance Matrix API error"))
+            if data.get("status") != "OK":
+                raise ValueError(data.get("error_message", f"Distance Matrix API error: {data.get('status')}"))
 
-            elements = data["rows"][0]["elements"]
-            for offset, element in enumerate(elements):
-                dest_index = j + offset
-                if element["status"] == "OK":
-                    distance_matrix[i][dest_index] = element["distance"]["value"]
-                    duration_matrix[i][dest_index] = element["duration"]["value"] // 60  # seconds → minutes
-                else:
-                    distance_matrix[i][dest_index] = -1
-                    duration_matrix[i][dest_index] = -1
+            rows = data.get("rows", [])
+            for i, row in enumerate(rows):
+                for j, element in enumerate(row.get("elements", [])):
+                    origin_idx = origin_start + i
+                    dest_idx = dest_start + j
+                    if element.get("status") == "OK":
+                        distance_matrix[origin_idx][dest_idx] = element["distance"]["value"]  # in meters
+                        duration_matrix[origin_idx][dest_idx] = element["duration"]["value"] // 60  # seconds → minutes
+
 
     ids = [loc.id for loc in locations]
     response = DistanceAndDurationMatrices(
@@ -121,4 +59,5 @@ def get_distance_matrix_2d(locations: List[Location]) -> DistanceAndDurationMatr
         distance_matrix=distance_matrix.tolist(),
         duration_matrix=duration_matrix.tolist()
     )
+    
     return response
