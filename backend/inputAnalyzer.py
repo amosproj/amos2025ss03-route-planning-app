@@ -158,10 +158,14 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
             errors.append(exceptionStrings.APPOINTMENT_END_BEFORE_START)
             all_valid = False
 
-        appointment_duration = (end - start).total_seconds() / 3600  # duration in hours
+        appointment_duration_hours = (end - start).total_seconds() / 3600  # duration in hours
+        appointment_duration_minutes = (end - start).total_seconds() / 60  # duration in minutes
         appointment_max_duration = 24  # wahrscheinlich wird diese Ausnahme hauptsächlich durch Tippfehler in der Endzeit verursacht
-        if appointment_duration > appointment_max_duration:
+        if appointment_duration_hours > appointment_max_duration:
             errors.append(exceptionStrings.APPOINTMENT_DURATION_TOO_LONG)
+            all_valid = False
+        if appointment_duration_minutes < appointment.service_time:
+            errors.append(exceptionStrings.SERVICETIME_EXCEEDS_APPOINTMENT_LENGTH)
             all_valid = False
 
         if not appointment.address.street.strip():
@@ -178,6 +182,7 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
         if appointment.number_of_workers < 1:
             errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
             all_valid = False
+
 
         address_info = validate_single_address_with_google_maps(
             appointment.address.street,
@@ -262,6 +267,7 @@ def convert_to_enhanced_appointment(appointment: Appointment,location:Location) 
         appointment_start=appointment.appointment_start,
         appointment_end=appointment.appointment_end,
         address=appointment.address,
+        service_time = appointment.service_time,
         location=location,
         number_of_workers=appointment.number_of_workers
     )
@@ -275,6 +281,19 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
 
     appointment_validation_response = validate_appointments(appointments)
     company_info_validation_response = validate_company_info(company_info)
+
+    company_locations = convert_to_locations(company_info_validation_response.address_responses)
+
+    start_location = company_locations[0]
+    end_location = company_locations[-1]
+
+    enhanced_company_info = EnhancedCompanyInfo(
+        start_address=company_info.start_address,
+        start_location=start_location,
+        finish_address=company_info.finish_address,
+        finish_location=end_location,
+        number_of_workers=company_info.number_of_workers
+    )
 
     if not company_info_validation_response.all_valid:
         raise HTTPException(
@@ -295,7 +314,7 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
                 "errors": errors
             }
         )
-    #jetzt sind alle addressen gültig, d.h. ich habe lat, long
+    #now all addresses are valid, therefore we have lat, long
     depot_location = convert_to_locations(company_info_validation_response.address_responses)
     locations = convert_to_locations(address_responses)
 
@@ -312,8 +331,8 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     distance_matrix = distance_matrix_response.distance_matrix
 
     enhanced_opti_request = EnhancedOptimizationRequest(
-        company_info=company_info,
-        appointments=enhanced_appointments,
+        company_info = enhanced_company_info,
+        appointments = enhanced_appointments,
         time_matrix = duration_matrix,
         distance_matrix = distance_matrix
     )

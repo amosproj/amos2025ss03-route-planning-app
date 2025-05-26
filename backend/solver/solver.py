@@ -4,52 +4,21 @@ import numpy as np
 from typing import Any
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
-from exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
-from solver.models import *
-from solver.preprocessing import *
-from solver.util import *
-from solver.validate_routes import validate_routes
+from backend.exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
+from backend.solver.models import *
+from backend.solver.preprocessing import *
+from backend.solver.util import *
+from backend.solver.validate_routes import validate_routes
 
 
-def solve_appointment_routing_pca(
+def solve_appointment_routing(
     request: EnhancedOptimizationRequest,
-    slack_max: int = 120,
+    slack_max: int = 1440,
     max_time_per_vehicle: int = 1440,
     optimization_time_limit: int = 15
 ) -> Solution:
 
-    if not validate_appointment_overlap(request, slack_max, max_time_per_vehicle):
-        print(APPOINTMENT_OVERLAP_TO_BIG)
-        return Solution(
-            total_distance_traveled=0,
-            max_distance_traveled=0,
-            routes=[],
-            method_used= APPOINTMENT_OVERLAP_TO_BIG
-        )
-
-    optimization_problem_information: List[str] = []
-    total_appointment_time = sum_appointment_durations(request)
-    optimization_problem_information.append(f"Total appointment time: "+ str(total_appointment_time))
-
-    avg_time, max_time = calculate_average_and_max_travel_time(request.time_matrix)
-    optimization_problem_information.append(f"Average appointment distance: {round(avg_time)} minutes")
-    optimization_problem_information.append(f"Maximal appointment distance: {max_time} minutes")
-
-    quantiles = [
-        ("median travel time", 0.5),
-        ("bottom25 quantile travel time", 0.25),
-        ("bottom10 quantile travel time", 0.10),
-    ]
-
-    optimization_problem_information.append(
-        f"Max overlap : {calculate_max_overlap_with_shifted_end_times(request.appointments, 0)}")
-    optimization_problem_information.append(
-        f"Max overlap with endtime shifted by avg travel time: {calculate_max_overlap_with_shifted_end_times(request.appointments, avg_time)}")
-
-    for label, q in quantiles:
-        travel_time = calculate_travel_time_quantile(request.time_matrix, q)
-        max_overlap = calculate_max_overlap_with_shifted_end_times(request.appointments, travel_time)
-        optimization_problem_information.append(f"Max overlap with endtime shifted by {label}: {max_overlap}")
+    optimization_problem_information: List[ProblemMetric] = collect_problem_metrics(request)
 
     company_info = request.company_info
     appointments = request.appointments
@@ -72,9 +41,7 @@ def solve_appointment_routing_pca(
     # Service times in minutes
     service_times = [0]  # Depot
     for appt in appointments:
-        start = to_minutes(appt.appointment_start)
-        end = to_minutes(appt.appointment_end)
-        service_times.append(max(1, end - start))  # Minimum 1 minute
+        service_times.append(appt.service_time)
 
     num_locations = len(addresses)
     num_vehicles = len(company_info.number_of_workers)
@@ -121,22 +88,27 @@ def solve_appointment_routing_pca(
         cumul.SetRange(start, end)
         routing.solver().Add(cumul + service_times[idx] <= end)
 
+    #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
+    penalty = 10000
+    for idx in range(1, num_locations):
+        routing.AddDisjunction([manager.NodeToIndex(idx)], penalty)
+
     # Search parameters
     search_params = pywrapcp.DefaultRoutingSearchParameters()
-    search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
     search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     search_params.time_limit.FromSeconds(optimization_time_limit)
-    search_params.log_search = False  # production-friendly
+    search_params.log_search = False
 
     # Solve
     solution = routing.SolveWithParameters(search_params)
     if not solution:
-        no_solution_info = ", ".join(optimization_problem_information)
         return Solution(
             total_distance_traveled=0,
             max_distance_traveled=0,
             routes=[],
-            method_used=f"No solution {no_solution_info}"
+            method_used="No solution",
+            problem_metrics = optimization_problem_information
         )
 
     total_time = 0
@@ -150,6 +122,8 @@ def solve_appointment_routing_pca(
         route_time = 0
         route_distance = 0
         vehicle_route = []
+
+        previous_index = index
 
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
@@ -180,6 +154,40 @@ def solve_appointment_routing_pca(
 
             index = next_index
 
+        last_node = manager.IndexToNode(previous_index)
+        depot_node = manager.IndexToNode(routing.End(vehicle_id))
+
+        travel_time_to_depot = time_matrix[last_node][depot_node]
+        travel_distance_to_depot = distance_matrix[last_node][depot_node]
+
+        route_time += travel_time_to_depot
+        route_distance += travel_distance_to_depot
+
+        # Add dummy depot start and end
+        #get dummy times first
+        start, end = extract_day_bounds(appointments[0].appointment_start)
+
+
+        vehicle_route.insert(0, EnhancedAppointment(
+            address=request.company_info.start_address,
+            appointment_start= start,
+            appointment_end= end,
+            service_time=0,
+            location=request.company_info.start_location,
+            id="depot_start",
+            number_of_workers=0
+        ))
+
+        vehicle_route.append(EnhancedAppointment(
+            address=request.company_info.finish_address,
+            appointment_start= start,
+            appointment_end= end,
+            service_time=0,
+            location=request.company_info.finish_location,
+            id="depot_end",
+            number_of_workers=0
+        ))
+
         total_time += route_time
         total_distance += route_distance
         max_distance = max(max_distance, route_distance)
@@ -199,7 +207,8 @@ def solve_appointment_routing_pca(
         total_distance_traveled=total_distance,
         max_distance_traveled=max_distance,
         routes=routes,
-        method_used="Path Cheapest Arc"
+        method_used="Path Cheapest Arc",
+        problem_metrics = optimization_problem_information
     )
     
     # Check routes for validity
