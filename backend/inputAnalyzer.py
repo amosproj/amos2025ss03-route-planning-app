@@ -284,6 +284,19 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     appointment_validation_response = validate_appointments(appointments)
     company_info_validation_response = validate_company_info(company_info)
 
+    company_locations = convert_to_locations(company_info_validation_response.address_responses)
+
+    start_location = company_locations[0]
+    end_location = company_locations[-1]
+
+    enhanced_company_info = EnhancedCompanyInfo(
+        start_address=company_info.start_address,
+        start_location=start_location,
+        finish_address=company_info.finish_address,
+        finish_location=end_location,
+        number_of_workers=company_info.number_of_workers
+    )
+
     if not company_info_validation_response.all_valid:
         raise HTTPException(
             status_code=400,
@@ -303,7 +316,7 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
                 "errors": errors
             }
         )
-    #jetzt sind alle addressen gültig, d.h. ich habe lat, long
+    #now all addresses are valid, therefore we have lat, long
     depot_location = convert_to_locations(company_info_validation_response.address_responses)
     locations = convert_to_locations(address_responses)
 
@@ -320,8 +333,8 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     distance_matrix = distance_matrix_response.distance_matrix
 
     enhanced_opti_request = EnhancedOptimizationRequest(
-        company_info=company_info,
-        appointments=enhanced_appointments,
+        company_info = enhanced_company_info,
+        appointments = enhanced_appointments,
         time_matrix = duration_matrix,
         distance_matrix = distance_matrix
     )

@@ -37,6 +37,13 @@ class CompanyInfo(BaseModel):
     finish_address: Address
     number_of_workers: List[FilledVehicle]
 
+class EnhancedCompanyInfo(BaseModel):
+    start_address: Address
+    start_location: Location
+    finish_address: Address
+    finish_location: Location
+    number_of_workers: List[FilledVehicle]
+
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
     appointments: List[Appointment]
@@ -72,7 +79,7 @@ class AppointmentValidationResponse(BaseModel):
     address_responses:List[EnhancedAddressResponse]
 
 class EnhancedOptimizationRequest(BaseModel):
-    company_info: CompanyInfo
+    company_info: EnhancedCompanyInfo
     appointments: List[EnhancedAppointment]
     time_matrix: List[List[int]]
     distance_matrix: List[List[int]]

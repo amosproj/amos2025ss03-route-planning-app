@@ -123,6 +123,8 @@ def solve_appointment_routing(
         route_distance = 0
         vehicle_route = []
 
+        previous_index = index
+
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
 
@@ -151,6 +153,40 @@ def solve_appointment_routing(
             route_distance += travel_distance
 
             index = next_index
+
+        last_node = manager.IndexToNode(previous_index)
+        depot_node = manager.IndexToNode(routing.End(vehicle_id))
+
+        travel_time_to_depot = time_matrix[last_node][depot_node]
+        travel_distance_to_depot = distance_matrix[last_node][depot_node]
+
+        route_time += travel_time_to_depot
+        route_distance += travel_distance_to_depot
+
+        # Add dummy depot start and end
+        #get dummy times first
+        start, end = extract_day_bounds(appointments[0].appointment_start)
+
+
+        vehicle_route.insert(0, EnhancedAppointment(
+            address=request.company_info.start_address,
+            appointment_start= start,
+            appointment_end= end,
+            service_time=0,
+            location=request.company_info.start_location,
+            id="depot_start",
+            number_of_workers=0
+        ))
+
+        vehicle_route.append(EnhancedAppointment(
+            address=request.company_info.finish_address,
+            appointment_start= start,
+            appointment_end= end,
+            service_time=0,
+            location=request.company_info.finish_location,
+            id="depot_end",
+            number_of_workers=0
+        ))
 
         total_time += route_time
         total_distance += route_distance
