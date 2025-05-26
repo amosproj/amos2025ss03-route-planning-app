@@ -7,9 +7,7 @@ import type { RootState } from '@/store';
 import type { Appointment } from '@/types/Appointment';
 import type { EnhancedAddressResponse } from '@/types/EnhancedAddressResponse';
 import { Solution } from '@/types/Solution';
-import example from '@/assets/NewTestdataSolution.json';
 
-const exampleSolution: Solution = example as unknown as Solution;
 
 interface PanelProps {
   date: string;
@@ -22,8 +20,10 @@ interface PanelProps {
   onToggleAll: (selectAll: boolean) => void;
 }
 
-export default function Panel({ jobs, locations, excluded, selectedIdx, onSelect, onToggleExclude, onToggleAll }: PanelProps) {
-  const solution = exampleSolution;
+export default function Panel({date, jobs, locations, excluded, selectedIdx, onSelect, onToggleExclude, onToggleAll }: PanelProps) {
+    const solutions = useSelector((state: RootState) => state.solutions);
+    const solution:Solution = solutions.byDate[date]
+    console.log('Panel solution', solution);
 
   return (
     <div className="flex flex-col h-screen w-90 flex-shrink-0 bg-white shadow-lg overflow-auto rounded-r-lg p-4">

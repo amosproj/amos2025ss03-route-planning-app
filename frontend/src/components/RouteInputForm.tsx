@@ -51,7 +51,7 @@ const GOOGLE_MAP_LIBRARIES = ['places'] as const;
 export function RouteInputForm({ date }: { date: string }) {
   const dispatch = useDispatch<AppDispatch>();
 
-  const parsedDate = date.split('"')[1]
+  const parsedDate = date.split('"')[1];
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries: GOOGLE_MAP_LIBRARIES,
@@ -65,23 +65,26 @@ export function RouteInputForm({ date }: { date: string }) {
   const excluded = useSelector(
     (s: RootState) => s.excludedAppointments[date] ?? [],
   );
-  const scenario = scenarios.find(
-    (s) => s.date.toString() === parsedDate,
-  );
-
+  const scenario = scenarios.find((s) => s.date.toString() === parsedDate);
 
   const [startAddrObj, setStartAddrObj] = useState<Address>(defaultAddr);
   const [finishAddrObj, setFinishAddrObj] = useState<Address>(defaultAddr);
-  const [startAuto, setStartAuto] = useState<google.maps.places.Autocomplete | null>(null);
-  const [finishAuto, setFinishAuto] = useState<google.maps.places.Autocomplete | null>(null);
+  const [startAuto, setStartAuto] =
+    useState<google.maps.places.Autocomplete | null>(null);
+  const [finishAuto, setFinishAuto] =
+    useState<google.maps.places.Autocomplete | null>(null);
 
   const parseAddress = (place: google.maps.places.PlaceResult): Address => {
-    let streetNum = '', route = '', zip = '', city = '';
-    place.address_components?.forEach(comp => {
+    let streetNum = '',
+      route = '',
+      zip = '',
+      city = '';
+    place.address_components?.forEach((comp) => {
       if (comp.types.includes('street_number')) streetNum = comp.long_name;
       if (comp.types.includes('route')) route = comp.long_name;
       if (comp.types.includes('postal_code')) zip = comp.long_name;
-      if (comp.types.includes('locality') || comp.types.includes('postal_town')) city = comp.long_name;
+      if (comp.types.includes('locality') || comp.types.includes('postal_town'))
+        city = comp.long_name;
     });
     return { street: `${streetNum} ${route}`.trim(), zip_code: zip, city };
   };
@@ -90,11 +93,12 @@ export function RouteInputForm({ date }: { date: string }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       startAddress: existingCompany?.start_address
-        ? `${existingCompany.start_address.street}, ${existingCompany.start_address.zip_code} ${existingCompany.start_address.city}` : '',
+        ? `${existingCompany.start_address.street}, ${existingCompany.start_address.zip_code} ${existingCompany.start_address.city}`
+        : '',
       finishAddress: existingCompany?.finish_address
         ? `${existingCompany.finish_address.street}, ${existingCompany.finish_address.zip_code} ${existingCompany.finish_address.city}`
-      : '',
-      workers: existingCompany?.vehicles.length|| 1,
+        : '',
+      workers: existingCompany?.vehicles.length || 1,
       optimizationPlan: 'profit',
     },
   });
@@ -107,8 +111,14 @@ export function RouteInputForm({ date }: { date: string }) {
       // vehicles: [{ id: 0, skills: [], woker_amount: 1 }],
     };
     // Build display strings only if any part is non-empty
-    const hasStart = comp.start_address.street || comp.start_address.zip_code || comp.start_address.city;
-    const hasFinish = comp.finish_address.street || comp.finish_address.zip_code || comp.finish_address.city;
+    const hasStart =
+      comp.start_address.street ||
+      comp.start_address.zip_code ||
+      comp.start_address.city;
+    const hasFinish =
+      comp.finish_address.street ||
+      comp.finish_address.zip_code ||
+      comp.finish_address.city;
     const displayStart = hasStart
       ? `${comp.start_address.street}${comp.start_address.street && ','} ${comp.start_address.zip_code} ${comp.start_address.city}`.trim()
       : '';
@@ -131,19 +141,31 @@ export function RouteInputForm({ date }: { date: string }) {
     const companyInfo = {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
-      number_of_workers: existingCompany.vehicles
+      number_of_workers: existingCompany.vehicles,
     };
 
     // dispatch(setCompanyInfo({ date, companyInfo }));
 
-    const enhancedAppointments = scenario?.jobs.filter((_, idx) => !excluded.includes(idx)).map((app) => {
-      return {
-        appointment_start: new Date(app.appointment_start).toISOString(),
-        appointment_end: new Date(app.appointment_end).toISOString(),  // use correct end
-        address: app.address,
-        number_of_workers: app.number_of_workers,
-      };
-    }) || [];
+    const enhancedAppointments =
+      scenario?.jobs
+        .filter((_, idx) => !excluded.includes(idx))
+        .map((app) => {
+          return {
+            appointment_start: new Date(app.appointment_start)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0]
+              .concat('.000'),
+            appointment_end: new Date(app.appointment_end)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0]
+              .concat('.000'),
+            address: app.address,
+            number_of_workers: app.number_of_workers,
+            service_time: 30,
+          };
+        }) || [];
 
     const request: OptimizationRequest = {
       company_info: companyInfo,
@@ -151,7 +173,10 @@ export function RouteInputForm({ date }: { date: string }) {
     };
     console.log('Optimization request:' + JSON.stringify(request, null, 2));
     try {
-      const { data: solution } = await apiClient.post<Solution>('/api/check-and-solve', request);
+      const { data: solution } = await apiClient.post<Solution>(
+        '/api/check-and-solve',
+        request,
+      );
       dispatch(addSolution({ date, solution }));
       console.log('Received solution:', solution);
     } catch (error) {
@@ -184,15 +209,12 @@ export function RouteInputForm({ date }: { date: string }) {
                         setStartAddrObj(addr);
                         field.onChange(
                           place.formatted_address ||
-                            `${addr.street}, ${addr.zip_code} ${addr.city}`
+                            `${addr.street}, ${addr.zip_code} ${addr.city}`,
                         );
                       }
                     }}
                   >
-                    <Input
-                      {...field}
-                      placeholder="Enter start address"
-                    />
+                    <Input {...field} placeholder="Enter start address" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -218,15 +240,12 @@ export function RouteInputForm({ date }: { date: string }) {
                         setFinishAddrObj(addr);
                         field.onChange(
                           place.formatted_address ||
-                            `${addr.street}, ${addr.zip_code} ${addr.city}`
+                            `${addr.street}, ${addr.zip_code} ${addr.city}`,
                         );
                       }
                     }}
                   >
-                    <Input
-                      {...field}
-                      placeholder="Enter finish address"
-                    />
+                    <Input {...field} placeholder="Enter finish address" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />

@@ -8,14 +8,9 @@ interface RouteOverlayProps {
   map: google.maps.Map | null;
   date: string;
 }
-import { Solution } from '@/types/Solution';
-import example from '@/assets/NewTestdataSolution.json';
-
-const exampleSolution: Solution = example as unknown as Solution;
 
 export function RouteOverlay({ map, date }: RouteOverlayProps) {
-  // const solution = useSelector((state: RootState) => state.solutions.byDate[date.split('"')[1]]);
-  const solution = exampleSolution
+  const solution = useSelector((state: RootState) => state.solutions.byDate[date]);
   const polylineRefs = useRef<Record<string, google.maps.Polyline>>({});
 
   useEffect(() => {
@@ -23,13 +18,14 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
     const directionsService = new google.maps.DirectionsService();
 
     // build requests
-    const requests: RouteRequest[] = solution.routes.map((route, idx) => {
+    const validRoutes = solution.routes.filter((route) => route.appointments.length >= 2);
+    const requests: RouteRequest[] = validRoutes.map((route, idx) => {
       const waypoints = route.appointments.map((appt) => ({
         location: { lat: appt.location.lat, lng: appt.location.lng },
         stopover: true,
       }));
-      const origin = route.appointments[0].location;
-      const dest = route.appointments[route.appointments.length - 1].location;
+      const origin = route.appointments[0]?.location;
+      const dest = route.appointments[route.appointments.length - 1]?.location;
       return {
         id: `Route-${route.route_id + 1}`,
         origin: { lat: origin.lat, lng: origin.lng },

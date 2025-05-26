@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
 import { Download } from 'lucide-react';
-import { User } from 'lucide-react';
 
 interface SolutionListProps {
   solution: Solution;
@@ -42,6 +41,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
   return (
     <Accordion type="single" collapsible className="space-y-2">
       {solution.routes.map((route, idx) => {
+        // if (route.appointments.length <= 2) return null; // skip routes with less than 2 appointments
         const color = getRouteColor(idx);
         return (
           <AccordionItem
@@ -53,7 +53,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
             <AccordionTrigger>
               <div className="flex justify-between items-center w-full">
                 <span className="font-medium text-xl mx-2">
-                  Route {route.route_id + 1}
+                  Vehicle {route.route_id + 1}
                 </span>
                 <Button
                   size="sm"
@@ -70,14 +70,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
             <AccordionContent className="pt-2 ">
               <ul className="relative mx-2 pl-2 pt-4 border-2 rounded-lg border-gray-200 ">
                 {(() => {
-                  const sorted = route.appointments
-                    .slice()
-                    .sort(
-                      (a, b) =>
-                        new Date(a.appointment_start).getTime() -
-                        new Date(b.appointment_start).getTime(),
-                    );
-                  return sorted.map((appt, idx) => {
+                  return route.appointments.map((appt, idx) => {
                     const start = new Date(
                       appt.appointment_start,
                     ).toLocaleTimeString([], {
@@ -90,7 +83,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
                       hour: '2-digit',
                       minute: '2-digit',
                     });
-                    const next = sorted[idx + 1];
+                    const next = route.appointments[idx + 1];
                     const diffMin = next
                       ? Math.round(
                           (new Date(next.appointment_start).getTime() -

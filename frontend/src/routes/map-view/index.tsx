@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
+import { timestampToDateString } from '@/utils/helper';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -41,10 +42,14 @@ function MapView() {
   // Prepare appointments payload 
   const appointmentsPayload =
     scenario?.jobs.map((job) => ({
-      ...job,
+      address: job.address,
+      number_of_workers: job.number_of_workers,
+      service_time: 30,
       appointment_start: new Date(job.appointment_start).toISOString(),
       appointment_end: new Date(job.appointment_end).toISOString(),
     })) || [];
+
+    console.log('MapView appointmentsPayload', appointmentsPayload);
 
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],

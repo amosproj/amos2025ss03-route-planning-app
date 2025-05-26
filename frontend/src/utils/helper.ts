@@ -3,6 +3,7 @@ import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Adress';
+import { jsonData } from '../../../backend/testdata/optimizationRequest.json'
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
@@ -35,10 +36,52 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     skills: '',
     worker_amount: 1,
   } as Vehicle;
-  return Object.entries(groups).map(
-    ([date, jobs]) =>
-      ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
-  );
+  return Object.entries(groups)
+    .map(
+      ([date, jobs]) =>
+        ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
+    )
+  
+}
+export function parseScenariofromJson(jsonData: string): Scenario {
+  try {
+    const data = JSON.parse(jsonData);
+    const scenario: Scenario = {
+      jobs: data.appointments.map((appt: any) => ({
+        appointment_start: new Date(appt.appointment_start).getTime(),
+        appointment_end: new Date(appt.appointment_end).getTime(),
+        address: {
+          street: appt.address.street,
+          zip_code: appt.address.zip_code,
+          city: appt.address.city,
+        } as Address,
+        number_of_workers: appt.number_of_workers,
+        skills: appt.skills || null,
+      })),
+      date: new Date('2025-05-01').getTime(),
+      vehicles: data.number_of_workers.map((veh: any) => ({
+        vehicle_id: veh.vehicle_id,
+        skills: veh.skills || '',
+        worker_amount: veh.worker_amount || 1,
+      })),
+    };
+    return scenario;
+  } catch (error) {
+    console.error('Failed to parse JSON data:', error);
+    return {
+      jobs: [],
+      date: new Date('2025-05-01').getTime(),
+      vehicles: [],
+    };
+  }
+}
+export function timestampToDateString(timestamp: number | string): string {
+  const dateString = new Date(timestamp)
+    .toISOString()
+    .replace('T', ' ')
+    .split('.')[0]
+    .concat('.000');
+  return dateString;
 }
 
 export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
@@ -63,7 +106,7 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
       for (let i = 0; i < num; i++) {
         vehicles.push({
           vehicle_id: i,
-          skills:  "electrician",
+          skills: 'electrician',
           worker_amount: 1,
         });
       }
@@ -71,7 +114,7 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
   });
 
   const parseAddress = (str: string): Address => {
-    const [streetPart, rest = ''] = str.split(',').map(s => s.trim());
+    const [streetPart, rest = ''] = str.split(',').map((s) => s.trim());
     const [zip = '', ...cityParts] = rest.split(/\s+/);
     return {
       street: streetPart || '',
