@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
-import { timestampToDateString } from '@/utils/helper';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 

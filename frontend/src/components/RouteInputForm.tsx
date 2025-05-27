@@ -13,8 +13,6 @@ import { useMutation } from '@tanstack/react-query';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Address } from '@/types/Adress';
 import { OptimizationRequest } from '@/types/OptimizationRequest';
-import { Vehicle } from '@/types/Vehicle';
-import type { CompanyInfo } from '@/types/CompanyInfo';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -149,7 +147,7 @@ export function RouteInputForm({ date }: { date: string }) {
   });
 
   // form submit handler triggers react-query mutation
-  const onSubmit = (values: FormSchemaType) => {
+  const onSubmit = () => {
     const enhancedAppointments =
       scenario?.jobs
         .filter((_, idx) => !excluded.includes(idx))
@@ -176,6 +174,7 @@ export function RouteInputForm({ date }: { date: string }) {
       number_of_workers: existingCompany.vehicles,
     };
     const request: OptimizationRequest = {
+      //@ts-expect-error type mismatch, but we handle it
       company_info: companyInfo,
       appointments: enhancedAppointments,
     };

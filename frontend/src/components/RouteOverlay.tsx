@@ -16,7 +16,6 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
 
   useEffect(() => {
     if (!map || !solution) return;
-    // determine visible routes and clear old overlays
     const validRoutes = solution.routes.filter(
       (route) => route.appointments.length >= 2 && (visibilityMap[route.route_id] ?? true)
     );

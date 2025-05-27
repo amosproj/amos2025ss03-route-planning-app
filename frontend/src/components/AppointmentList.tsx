@@ -1,7 +1,6 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { EnhancedAddressResponse } from '@/types/EnhancedAddressResponse';
 import { Appointment } from '@/types/Appointment';
-import { User } from 'lucide-react';
 
 
 interface Props {
