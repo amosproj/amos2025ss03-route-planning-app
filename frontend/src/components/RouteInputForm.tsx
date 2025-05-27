@@ -1,16 +1,14 @@
 'use client';
 
+import type { AppDispatch, RootState } from '@/store';
+import { addSolution } from '@/store/solutionsSlice';
+import { Solution } from '@/types/Solution';
+import apiClient from '@/utils/apiClient';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import apiClient from '@/utils/apiClient';
-import { addSolution } from '@/store/solutionsSlice';
-import { Solution } from '@/types/Solution';
-import type { AppDispatch, RootState } from '@/store';
 import { z } from 'zod';
-
-import { setCompanyInfo } from '@/store/companyInfoSlice';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,9 +28,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { OptimizationRequest } from '@/types/OptimizationRequest';
-import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Address } from '@/types/Adress';
+import { OptimizationRequest } from '@/types/OptimizationRequest';
+import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 
 const formSchema = z.object({
   startAddress: z.string().min(1, 'Start Address is required'),
@@ -89,6 +87,8 @@ export function RouteInputForm({ date }: { date: string }) {
     return { street: `${streetNum} ${route}`.trim(), zip_code: zip, city };
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -136,6 +136,7 @@ export function RouteInputForm({ date }: { date: string }) {
   }, [existingCompany, form]);
 
   const onSubmit = async (values: FormSchemaType) => {
+    setIsSubmitting(true);
     const { workers } = values;
     // build companyInfo object
     const companyInfo = {
@@ -181,6 +182,8 @@ export function RouteInputForm({ date }: { date: string }) {
       console.log('Received solution:', solution);
     } catch (error) {
       console.error('Failed to get solution:', error);
+    } finally {
+      setIsSubmitting(false); // Stop loading
     }
   };
 
@@ -309,7 +312,35 @@ export function RouteInputForm({ date }: { date: string }) {
           />
         </div>
 
-        <Button type="submit">Start Optimization</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <svg
+                className="animate-spin mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                ></path>
+              </svg>
+              Optimizing...
+            </>
+          ) : (
+            'Start Optimization'
+          )}
+        </Button>
       </form>
     </Form>
   );
