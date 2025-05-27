@@ -1,11 +1,20 @@
+import { Address } from "./Adress";
+
 export interface Appointment {
-    start: number;
-    end: number;
-    street: string;
-    zip: string;
-    city: string;
-    workers: number;
-    skills: string[] | null;
+    appointment_start: string;
+    appointment_end: string;
+    address: Address
+    number_of_workers: number;
+    service_time: number;
+}
+
+export interface EnhancedAppointment extends Appointment {
+    address: Address
+    location : {
+        id: string;
+        lat: number;
+        lng: number;
+    }
 }
 
 export interface EnhancedAddressResponse {

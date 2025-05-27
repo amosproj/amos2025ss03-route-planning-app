@@ -7,8 +7,9 @@ import { parseScenarioFromCsv, parseCompanyInfoFromCsv } from '../utils/helper';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { CompanyInfo } from '../types/CompanyInfo';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -17,6 +18,18 @@ export const Route = createFileRoute('/')({
 function Index() {
   const dispatch = useDispatch();
   const scenarios = useSelector((state: RootState) => state.scenarios.scenarios);
+
+  // track default companyInfo to apply across all scenarios
+  const [defaultCompanyInfo, setDefaultCompanyInfo] = useState<CompanyInfo | null>(null);
+
+  // apply defaults when scenarios or uploaded defaults change
+  useEffect(() => {
+    if (defaultCompanyInfo) {
+      scenarios.forEach(scenario => {
+        dispatch(setCompanyInfo({ date: scenario.date.toString(), companyInfo: defaultCompanyInfo }));
+      });
+    }
+  }, [scenarios, defaultCompanyInfo, dispatch]);
 
   const handleAppointmentsDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -42,16 +55,14 @@ function Index() {
         const text = await file.text();
         const companyInfo = parseCompanyInfoFromCsv(text);
         console.log('Parsed company info:', companyInfo);
-        // apply as defaults for all scenarios by date
-        scenarios.forEach((scenario) => {
-          dispatch(setCompanyInfo({ date: scenario.date.toString(), companyInfo }));
-        });
+        // set uploaded data as default for all scenarios
+        setDefaultCompanyInfo(companyInfo);
       } catch (error) {
         console.error('Error reading worker file:', error);
         alert('Failed to read worker file.');
       }
     },
-    [dispatch, scenarios],
+    [],
   );
 
   return (

@@ -1,5 +1,5 @@
 export interface Vehicle {
-    id: number;
-    skills: string[];
-    woker_amount: number;
+    vehicle_id: number;
+    skills: string | null;        
+    worker_amount: number;         
 }
