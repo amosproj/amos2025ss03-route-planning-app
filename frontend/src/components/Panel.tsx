@@ -53,7 +53,7 @@ export default function Panel({
         <TabsList className="mb-6 grid grid-cols-2 bg-gray-100 p-1 rounded-full shadow-inner">
           <TabsTrigger
             value="appointments"
-            className="text-lg font-semibold py-2 px-6 rounded-full data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
+            className="text-lg font-semibold  px-6 rounded-full"
           >
             Appointments
           </TabsTrigger>

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Appointment } from '../../types/Appointment';
 import { Scenario } from '../../types/Scenario';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,21 @@ function ScenarioList() {
   const [selected, setSelected] = useState<Scenario | null>(null);
   const navigate = useNavigate();
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
-  const sorted = [...scenarios].sort((a, b) => a.date - b.date);
+  const solutions = useSelector((state: RootState) => state.solutions.byDate);
+    
+  const company_infos = useSelector(
+    (state: RootState) => state.companyInfo,
+  );
+  // const sorted = [...scenarios].sort((a, b) => a.date - b.date);
+  const sorted = useMemo(() => {
+    return [...scenarios]
+      .map((item) => ({
+        ...item,
+        solution: !!solutions[`"${item.date}"`],
+      }))
+      .sort((a, b) => a.date - b.date);
+  }, [scenarios, solutions]);
+
 
   // Map dates to scenarios
   const dateMap = new Map(
@@ -54,31 +68,42 @@ function ScenarioList() {
         {weeks.map((week, wi) => (
           <div key={wi} className="flex flex-row space-x-2">
             {week.map((day) => {
+              console.log(day.getTime())
               const keyStr = day.toISOString();
+              const company_info = company_infos[`${day.getTime()}`]
+              console.log(company_info)
               const sc = dateMap.get(day.toDateString());
               return (
                 <div
                   key={keyStr}
-                  className={`flex-1 border border-gray-200 rounded-md p-2 flex flex-col ${
-                    sc ? 'cursor-pointer hover:bg-gray-50' : ''
-                  }`}
+                  className={`flex-1 border border-gray-200 rounded-md p-2 flex flex-col ${sc ? 'cursor-pointer hover:bg-gray-50' : ''
+                    }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-lg font-semibold">{day.getDate()}</h4>
-                    {sc && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          navigate({
-                            to: '/map-view',
-                            search: { date: sc.date.toString() },
-                          })
-                        }
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    )}
+                  <div className='relative'>
+                    <div className='absolute -right-3 -top-3 p-1'>
+                      {sc?.solution ?
+                        <span className="relative flex size-3">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
+                          <span className="relative inline-flex size-3 rounded-full bg-sky-500"></span>
+                        </span> : ""}
+                    </div>
+                    <div className="flex justify-between items-center relative">
+                      <h4 className="text-lg font-semibold">{day.getDate()}</h4>
+                      {sc && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            navigate({
+                              to: '/map-view',
+                              search: { date: sc.date.toString() },
+                            })
+                          }
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   {sc && (
                     <span
@@ -92,7 +117,7 @@ function ScenarioList() {
                   {sc && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded bg-primary text-primary-foreground text-xs font-medium">
                       <Truck className="h-4 w-4" />
-                      {sc.vehicles.length} vehicles
+                      {company_info.vehicles.length} vehicles
                     </span>
                   )}
                 </div>
@@ -123,7 +148,7 @@ function ScenarioList() {
               </thead>
               <tbody>
                 {selected.jobs
-                  .sort((a: Appointment, b: Appointment) => a.appointment_start - b.appointment_start)
+                  .sort((a: Appointment, b: Appointment) => new Date(a.appointment_start).getTime() - new Date(b.appointment_start).getTime())
                   .map((job: Appointment, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-4 py-2 text-sm text-gray-700">

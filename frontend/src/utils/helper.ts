@@ -3,7 +3,6 @@ import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Adress';
-import { jsonData } from '../../../backend/testdata/optimizationRequest.json'
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
@@ -14,14 +13,15 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       v.replace(/^"|"$/g, ''),
     );
     return {
-      appointment_start: new Date(start).getTime(),
-      appointment_end: new Date(end).getTime(),
+      appointment_start: new Date(start).toISOString(),
+      appointment_end: new Date(end).toISOString(),
       address: {
         street: streetRaw,
         zip_code: zip,
         city,
       } as Address,
       number_of_workers: parseInt(workers, 10),
+      service_time: 0,
       skills: null,
     };
   });
@@ -47,7 +47,7 @@ export function parseScenariofromJson(jsonData: string): Scenario {
   try {
     const data = JSON.parse(jsonData);
     const scenario: Scenario = {
-      jobs: data.appointments.map((appt: any) => ({
+      jobs: data.appointments.map((appt: { appointment_start: string; appointment_end: string; address: { street: string; zip_code: string; city: string; }; number_of_workers: number; skills?: string }) => ({
         appointment_start: new Date(appt.appointment_start).getTime(),
         appointment_end: new Date(appt.appointment_end).getTime(),
         address: {
@@ -59,6 +59,7 @@ export function parseScenariofromJson(jsonData: string): Scenario {
         skills: appt.skills || null,
       })),
       date: new Date('2025-05-01').getTime(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vehicles: data.number_of_workers.map((veh: any) => ({
         vehicle_id: veh.vehicle_id,
         skills: veh.skills || '',
