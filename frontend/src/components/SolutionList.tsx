@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '@/store';
 import { setRouteVisibility } from '@/store/routeVisibilitySlice';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
 import { Download } from 'lucide-react';
@@ -47,10 +48,36 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
     document.body.removeChild(a);
   };
 
+  const routeIds = solution.routes
+    .filter((r) => r.appointments.length > 2)
+    .map((r) => r.route_id);
+  const masterChecked =
+    routeIds.length > 0 && routeIds.every((id) => visibilityMap[id] ?? true);
+  const toggleAll = (checked: boolean) => {
+    routeIds.forEach((routeId) =>
+      dispatch(
+        setRouteVisibility({ date, routeId, isVisible: checked })
+      )
+    );
+  };
   return (
     <Accordion type="single" collapsible className="space-y-2">
+      {/* Master toggle to show/hide all routes */}
+      <div className="flex justify-between items-center px-4 pt-2 border-b-2">
+        <span className="text-xl font-semibold mr-2">
+          Routes
+        </span>
+        <Switch
+          checked={masterChecked}
+          onClick={(e) => e.stopPropagation()}
+          onCheckedChange={(checked) => toggleAll(checked)}
+          className="mr-4"
+        >
+          Show All
+        </Switch>
+      </div>
       {solution.routes.map((route, idx) => {
-        // if (route.appointments.length <= 2) return null; // skip routes with less than 2 appointments
+        if (route.appointments.length <= 2) return null; // skip routes with less than 2 appointments
         const color = getRouteColor(idx);
         const isVisible = visibilityMap[route.route_id] ?? true;
         return (
@@ -67,36 +94,37 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                     Vehicle {route.route_id + 1}
                   </span>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadRoute(route);
-                  }}
-                >
-                  <Download />
-                </Button>
+                <div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadRoute(route);
+                    }}
+                  >
+                    <Download />
+                  </Button>
+                  <Switch
+                    checked={isVisible}
+                    onClick={(e) => e.stopPropagation()}
+                    onCheckedChange={(checked) =>
+                      dispatch(
+                        setRouteVisibility({
+                          date,
+                          routeId: route.route_id,
+                          isVisible: checked,
+                        }),
+                      )
+                    }
+                    className="ml-2"
+                  >
+                    Show
+                  </Switch>
+                </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 ">
-              <label className="ml-4 mb-1 flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={isVisible}
-                  onChange={() =>
-                    dispatch(
-                      setRouteVisibility({
-                        date,
-                        routeId: route.route_id,
-                        isVisible: !isVisible,
-                      }),
-                    )
-                  }
-                  className="mr-1"
-                />
-                Show
-              </label>
               <ul className="relative mx-2 pl-2 pt-4 border-2 rounded-lg border-gray-200 ">
                 {(() => {
                   return route.appointments.map((appt, idx) => {
@@ -113,15 +141,15 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                       minute: '2-digit',
                     });
                     const next = route.appointments[idx + 1];
-                    const diffMin = next
-                      ? Math.round(
-                          (new Date(next.appointment_start).getTime() -
-                            new Date(appt.appointment_end).getTime()) /
-                            60000,
-                        )
-                      : null;
+                    // const diffMin = next
+                    //   ? Math.round(
+                    //       (new Date(next.appointment_start).getTime() -
+                    //         new Date(appt.appointment_end).getTime()) /
+                    //         60000,
+                    //     )
+                    //   : null;
                     return (
-                      <li key={idx} className="relative  pb-8 pl-6">
+                      <li key={idx} className="relative  pb-4 pl-6">
                         {/* Bullet */}
                         <span
                           className="absolute left-0 top-1.5 block h-3 w-3 rounded-full opacity-65"
@@ -143,14 +171,14 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                         </p>
 
                         {/* Interval label */}
-                        {diffMin != null && (
+                        {/* {diffMin != null && (
                           <span
                             style={{ color: color }}
                             className="absolute opacity-40 left-3 bottom-0 bg-white italic font-semibold px-1 text-xs text-gray-500 -translate-y-1/2"
                           >
                             {diffMin} min
                           </span>
-                        )}
+                        )} */}
                       </li>
                     );
                   });

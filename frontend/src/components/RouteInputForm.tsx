@@ -189,14 +189,14 @@ export function RouteInputForm({ date }: { date: string }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full mx-auto p-4 bg-white flex gap-5 justify-between items-end"
+        className="w-full mx-auto p-1 bg-white flex gap-2 justify-between items-end"
       >
         <div className="w-full">
           <FormField
             control={form.control}
             name="startAddress"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Start Address</FormLabel>
                 <FormControl>
                   <Autocomplete
@@ -213,7 +213,7 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter start address" />
+                    <Input {...field} placeholder="Enter start address" className="h-7" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -227,7 +227,7 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="finishAddress"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Finish Address</FormLabel>
                 <FormControl>
                   <Autocomplete
@@ -244,7 +244,7 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter finish address" />
+                    <Input {...field} placeholder="Enter finish address" className="h-7" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -258,10 +258,10 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="workers"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Number of Workers</FormLabel>
                 <FormControl>
-                  <div className="flex items-center space-x-4 py-1.5">
+                  <div className="flex items-center space-x-1 py-1">
                     <Slider
                       value={[field.value ?? 1]}
                       onValueChange={([val]) => field.onChange(val)}
@@ -284,14 +284,14 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="optimizationPlan"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Optimization Plan</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger size="sm" className="w-full h-7">
                       <SelectValue placeholder="Select Plan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -308,7 +308,7 @@ export function RouteInputForm({ date }: { date: string }) {
           />
         </div>
 
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button size="sm" type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? 'Optimizing...' : 'Start Optimization'}
         </Button>
       </form>

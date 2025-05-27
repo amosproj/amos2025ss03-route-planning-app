@@ -16,12 +16,16 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
 
   useEffect(() => {
     if (!map || !solution) return;
-    const directionsService = new google.maps.DirectionsService();
-
-    // build requests
+    // determine visible routes and clear old overlays
     const validRoutes = solution.routes.filter(
       (route) => route.appointments.length >= 2 && (visibilityMap[route.route_id] ?? true)
     );
+    Object.values(polylineRefs.current).forEach((pl) => pl.setMap(null));
+    polylineRefs.current = {};
+    if (validRoutes.length === 0) return;
+    const directionsService = new google.maps.DirectionsService();
+
+    // build requests
     const requests: RouteRequest[] = validRoutes.map((route) => {
       const waypoints = route.appointments.map((appt) => ({
         location: { lat: appt.location.lat, lng: appt.location.lng },
