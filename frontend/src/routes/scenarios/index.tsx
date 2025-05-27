@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Appointment } from '../../types/Appointment';
 import { Scenario } from '../../types/Scenario';
 import { Button } from '@/components/ui/button';
