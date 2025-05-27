@@ -5,8 +5,8 @@ const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'Calendar', path: '/scenarios' },
     // { name: 'Map View', path: '/map-view' },
-    { name: 'Daily Plan', path: '/daily-plan' },
-    { name: 'Worker View', path: '/worker-view' },
+    // { name: 'Daily Plan', path: '/daily-plan' },
+    // { name: 'Worker View', path: '/worker-view' },
   ];
 
   return (
