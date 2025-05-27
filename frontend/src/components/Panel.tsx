@@ -50,7 +50,7 @@ export default function Panel({
         onValueChange={setActiveTab}
         className="flex flex-col flex-1 w-full"
       >
-        <TabsList className="mb-6 grid grid-cols-2 bg-gray-100 p-1 rounded-full shadow-inner">
+        <TabsList className="mb-4 grid grid-cols-2 bg-gray-100 p-1 rounded-full shadow-inner min-h-min">
           <TabsTrigger
             value="appointments"
             className="text-lg font-semibold  px-6 rounded-full"

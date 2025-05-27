@@ -96,8 +96,6 @@ export function RouteInputForm({
     return { street: `${streetNum} ${route}`.trim(), zip_code: zip, city };
   };
 
-  const [loading, setLoading] = useState(false);
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -144,6 +142,30 @@ export function RouteInputForm({
     setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
 
+  const extractAndGroupErrors = (detail: string): string[] => {
+    try {
+      const match = detail.match(/{.*}/);
+      if (!match) return [];
+
+      const jsonStr = match[0].replace(/'/g, '"');
+      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
+
+      const errors = parsed.errors || [];
+
+      const counts: Record<string, number> = {};
+      errors.forEach((err) => {
+        counts[err] = (counts[err] || 0) + 1;
+      });
+
+      return Object.entries(counts).map(([msg, count]) =>
+        count > 1 ? `${msg} (x${count})` : msg,
+      );
+    } catch (e) {
+      console.error('Failed to extract and group errors:', e);
+      return [];
+    }
+  };
+
   // react-query mutation for optimization
   const mutation = useMutation<Solution, Error, OptimizationRequest>({
     mutationFn: (req) =>
@@ -154,11 +176,18 @@ export function RouteInputForm({
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    onError: (error) => console.error('Failed to get solution:', error),
+    onError: (error) => {
+      console.error('Failed to get solution:', error);
+
+      const detail = error?.response?.data?.detail;
+      const groupedErrors = extractAndGroupErrors(detail || '');
+      setOptimizationErrors?.(groupedErrors);
+    },
   });
 
   // form submit handler triggers react-query mutation
   const onSubmit = () => {
+    setOptimizationErrors?.([]);
     const enhancedAppointments =
       scenario?.jobs
         .filter((_, idx) => !excluded.includes(idx))
@@ -223,7 +252,11 @@ export function RouteInputForm({
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter start address" className="h-7" />
+                    <Input
+                      {...field}
+                      placeholder="Enter start address"
+                      className="h-7"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -254,7 +287,11 @@ export function RouteInputForm({
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter finish address" className="h-7" />
+                    <Input
+                      {...field}
+                      placeholder="Enter finish address"
+                      className="h-7"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
