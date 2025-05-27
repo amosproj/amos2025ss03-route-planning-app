@@ -167,7 +167,7 @@ export function RouteInputForm({ date }: { date: string }) {
               .concat('.000'),
             address: app.address,
             number_of_workers: app.number_of_workers,
-            service_time: 30,
+            service_time: 15,
           };
         }) || [];
     const companyInfo = {
