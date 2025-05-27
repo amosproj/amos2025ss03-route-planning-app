@@ -56,7 +56,7 @@ export default function Panel({date, jobs, locations, excluded, selectedIdx, onS
             />
           </TabsContent>
           <TabsContent value="solutions" className="h-full ">
-            {solution && <SolutionList solution={solution} />}
+            {solution && <SolutionList solution={solution} date={date} />}
           </TabsContent>
         </div>
       </Tabs>

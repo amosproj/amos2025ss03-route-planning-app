@@ -5,6 +5,9 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/accordion';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '@/store';
+import { setRouteVisibility } from '@/store/routeVisibilitySlice';
 import { Button } from '@/components/ui/button';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
@@ -12,9 +15,15 @@ import { Download } from 'lucide-react';
 
 interface SolutionListProps {
   solution: Solution;
+  date: string;
 }
 
-export default function SolutionList({ solution }: SolutionListProps) {
+export default function SolutionList({ solution, date }: SolutionListProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const visibilityMap = useSelector(
+    (state: RootState) => state.routeVisibility.byDate[date] || {},
+  );
+
   const downloadRoute = (route: Solution['routes'][0]) => {
     const dataStr =
       'data:text/json;charset=utf-8,' +
@@ -43,6 +52,7 @@ export default function SolutionList({ solution }: SolutionListProps) {
       {solution.routes.map((route, idx) => {
         // if (route.appointments.length <= 2) return null; // skip routes with less than 2 appointments
         const color = getRouteColor(idx);
+        const isVisible = visibilityMap[route.route_id] ?? true;
         return (
           <AccordionItem
             key={route.route_id}
@@ -52,9 +62,11 @@ export default function SolutionList({ solution }: SolutionListProps) {
           >
             <AccordionTrigger>
               <div className="flex justify-between items-center w-full">
-                <span className="font-medium text-xl mx-2">
-                  Vehicle {route.route_id + 1}
-                </span>
+                <div className="flex items-center">
+                  <span className="font-medium text-xl mx-2">
+                    Vehicle {route.route_id + 1}
+                  </span>
+                </div>
                 <Button
                   size="sm"
                   variant="outline"
@@ -68,6 +80,23 @@ export default function SolutionList({ solution }: SolutionListProps) {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 ">
+              <label className="ml-4 mb-1 flex items-center text-sm">
+                <input
+                  type="checkbox"
+                  checked={isVisible}
+                  onChange={() =>
+                    dispatch(
+                      setRouteVisibility({
+                        date,
+                        routeId: route.route_id,
+                        isVisible: !isVisible,
+                      }),
+                    )
+                  }
+                  className="mr-1"
+                />
+                Show
+              </label>
               <ul className="relative mx-2 pl-2 pt-4 border-2 rounded-lg border-gray-200 ">
                 {(() => {
                   return route.appointments.map((appt, idx) => {

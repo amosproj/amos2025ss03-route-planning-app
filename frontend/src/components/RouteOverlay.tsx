@@ -11,6 +11,7 @@ interface RouteOverlayProps {
 
 export function RouteOverlay({ map, date }: RouteOverlayProps) {
   const solution = useSelector((state: RootState) => state.solutions.byDate[date]);
+  const visibilityMap = useSelector((state: RootState) => state.routeVisibility.byDate[date] || {});
   const polylineRefs = useRef<Record<string, google.maps.Polyline>>({});
 
   useEffect(() => {
@@ -18,8 +19,10 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
     const directionsService = new google.maps.DirectionsService();
 
     // build requests
-    const validRoutes = solution.routes.filter((route) => route.appointments.length >= 2);
-    const requests: RouteRequest[] = validRoutes.map((route, idx) => {
+    const validRoutes = solution.routes.filter(
+      (route) => route.appointments.length >= 2 && (visibilityMap[route.route_id] ?? true)
+    );
+    const requests: RouteRequest[] = validRoutes.map((route) => {
       const waypoints = route.appointments.map((appt) => ({
         location: { lat: appt.location.lat, lng: appt.location.lng },
         stopover: true,
@@ -31,7 +34,7 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
         origin: { lat: origin.lat, lng: origin.lng },
         destination: { lat: dest.lat, lng: dest.lng },
         waypoints,
-        color: getRouteColor(idx),
+        color: getRouteColor(route.route_id),
         appointments: route.appointments,
       };
     });
@@ -70,7 +73,7 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
       Object.values(polylineRefs.current).forEach((pl) => pl.setMap(null));
       polylineRefs.current = {};
     };
-  }, [map, solution]);
+  }, [map, solution, visibilityMap]);
 
   return null;
 }
