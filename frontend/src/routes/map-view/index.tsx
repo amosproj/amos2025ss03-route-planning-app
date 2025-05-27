@@ -117,9 +117,7 @@ function MapView() {
     lng: number;
   } | null>(null);
 
-  const [optimizationErrors, setOptimizationErrors] = useState<string[string]>(
-    [],
-  );
+  const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoaded && companyInfo) {

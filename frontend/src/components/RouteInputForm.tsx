@@ -176,7 +176,8 @@ export function RouteInputForm({
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    onError: (error) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
       console.error('Failed to get solution:', error);
 
       const detail = error?.response?.data?.detail;

@@ -82,7 +82,7 @@ export default function Panel({
             />
           </TabsContent>
           <TabsContent value="solutions" className="h-full">
-            {solution && <SolutionList solution={solution} />}
+            {solution && <SolutionList  solution={solution} date={date} />}
             {!solution && optimizationErrors.length > 0 && (
               <div className="flex items-center justify-center">
                 <Alert variant="destructive">
