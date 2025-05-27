@@ -46,7 +46,15 @@ const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
 const GOOGLE_MAP_LIBRARIES = ['places'] as const;
 
-export function RouteInputForm({ date }: { date: string }) {
+interface RouteInputFormProps {
+  date: string;
+  setOptimizationErrors?: (errors: string[]) => void;
+}
+
+export function RouteInputForm({
+  date,
+  setOptimizationErrors,
+}: RouteInputFormProps) {
   const dispatch = useDispatch<AppDispatch>();
 
   const parsedDate = date.split('"')[1];
@@ -87,7 +95,7 @@ export function RouteInputForm({ date }: { date: string }) {
     return { street: `${streetNum} ${route}`.trim(), zip_code: zip, city };
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -129,14 +137,14 @@ export function RouteInputForm({ date }: { date: string }) {
       startAddress: displayStart,
       finishAddress: displayFinish,
       workers: comp.vehicles.length || 1,
-      optimizationPlan: 'profit',
+      optimizationPlan: 'time',
     });
     setStartAddrObj(comp.start_address);
     setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
 
   const onSubmit = async (values: FormSchemaType) => {
-    setIsSubmitting(true);
+    setLoading(true);
     const { workers } = values;
     // build companyInfo object
     const companyInfo = {
@@ -168,6 +176,30 @@ export function RouteInputForm({ date }: { date: string }) {
           };
         }) || [];
 
+    const extractAndGroupErrors = (detail: string): string[] => {
+      try {
+        const match = detail.match(/{.*}/);
+        if (!match) return [];
+
+        const jsonStr = match[0].replace(/'/g, '"');
+        const parsed = JSON.parse(jsonStr) as { errors?: string[] };
+
+        const errors = parsed.errors || [];
+
+        const counts: Record<string, number> = {};
+        errors.forEach((err) => {
+          counts[err] = (counts[err] || 0) + 1;
+        });
+
+        return Object.entries(counts).map(([msg, count]) =>
+          count > 1 ? `${msg} (x${count})` : msg,
+        );
+      } catch (e) {
+        console.error('Failed to extract and group errors:', e);
+        return [];
+      }
+    };
+
     const request: OptimizationRequest = {
       company_info: companyInfo,
       appointments: enhancedAppointments,
@@ -179,11 +211,11 @@ export function RouteInputForm({ date }: { date: string }) {
         request,
       );
       dispatch(addSolution({ date, solution }));
-      console.log('Received solution:', solution);
     } catch (error) {
       console.error('Failed to get solution:', error);
+      setOptimizationErrors(extractAndGroupErrors(error?.response?.data?.detail || ''));
     } finally {
-      setIsSubmitting(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -299,9 +331,9 @@ export function RouteInputForm({ date }: { date: string }) {
                       <SelectValue placeholder="Select Plan" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="profit">
+                      {/* <SelectItem value="profit">
                         Profit Optimization
-                      </SelectItem>
+                      </SelectItem> */}
                       <SelectItem value="time">Time Optimization</SelectItem>
                     </SelectContent>
                   </Select>
@@ -312,8 +344,8 @@ export function RouteInputForm({ date }: { date: string }) {
           />
         </div>
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
+        <Button type="submit" disabled={loading}>
+          {loading ? (
             <>
               <svg
                 className="animate-spin mr-2 h-4 w-4 text-white"
