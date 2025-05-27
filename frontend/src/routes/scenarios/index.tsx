@@ -123,19 +123,19 @@ function ScenarioList() {
               </thead>
               <tbody>
                 {selected.jobs
-                  .sort((a: Appointment, b: Appointment) => a.start - b.start)
+                  .sort((a: Appointment, b: Appointment) => new Date(a.appointment_start).getTime() - new Date(b.appointment_start).getTime())
                   .map((job: Appointment, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-4 py-2 text-sm text-gray-700">
-                        {new Date(job.start).toLocaleTimeString()}
+                        {new Date(job.appointment_start).toLocaleTimeString()}
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-700">
-                        {new Date(job.end).toLocaleTimeString()}
+                        {new Date(job.appointment_end).toLocaleTimeString()}
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-700">
-                        {`${job.street}, ${job.zip} ${job.city}`}
+                        {`${job.address.street}, ${job.address.zip_code} ${job.address.city}`}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-700">{job.workers}</td>
+                      <td className="px-4 py-2 text-sm text-gray-700">{job.number_of_workers}</td>
                     </tr>
                   ))}
               </tbody>

@@ -1,6 +1,5 @@
 import { RouteInputForm } from '@/components/RouteInputForm';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   GoogleMap,
   InfoWindow,
@@ -15,9 +14,11 @@ import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
-import { toggleExcludedAppointment } from '../../store/excludedAppointmentsSlice';
+import { toggleExcludedAppointment, setExcludedAppointments } from '../../store/excludedAppointmentsSlice';
 import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
+import { RouteOverlay } from '@/components/RouteOverlay';
+import Panel from '@/components/Panel';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -35,18 +36,19 @@ function MapView() {
     (s) => s.date.toString() === date.split('"')[1],
   );
 
-  // Prepare appointments payload
+
+
+  // Prepare appointments payload 
   const appointmentsPayload =
     scenario?.jobs.map((job) => ({
-      appointment_start: new Date(job.start).toISOString(),
-      appointment_end: new Date(job.end).toISOString(),
-      address: {
-        street: job.street,
-        zip_code: job.zip,
-        city: job.city,
-      },
-      number_of_workers: job.workers,
+      address: job.address,
+      number_of_workers: job.number_of_workers,
+      service_time: 30,
+      appointment_start: new Date(job.appointment_start).toISOString(),
+      appointment_end: new Date(job.appointment_end).toISOString(),
     })) || [];
+
+    console.log('MapView appointmentsPayload', appointmentsPayload);
 
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
@@ -190,107 +192,33 @@ function MapView() {
   return (
     <>
       <div className="flex w-full h-[calc(100vh-4rem)]">
-        {/* Side panel */}
-        <aside
-          className="w-80 bg-white border-r overflow-y-auto p-4"
-          role="region"
-          aria-label="Appointments list"
-        >
-          <h3 className="text-lg font-semibold mb-2">Appointments</h3>
-          <ul role="list" className="space-y-2">
-            {scenario.jobs
-              .map((job, idx) => ({ job, idx }))
-              .sort((a, b) => a.job.start - b.job.start)
-              .map(({ job, idx }) => {
-                const loc = locations[idx];
-                const hasError = loc?.could_be_fully_found === false;
-                const isExcluded = excluded.includes(idx);
-                return (
-                  <li
-                    key={idx}
-                    role="listitem"
-                    aria-selected={!isExcluded && selectedIdx === idx}
-                    aria-invalid={hasError}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.currentTarget.click();
-                      }
-                    }}
-                    className={
-                      `p-2 rounded flex justify-between items-center ` +
-                      (isExcluded
-                        ? 'opacity-50 line-through cursor-default '
-                        : 'cursor-pointer ') +
-                      (!isExcluded && selectedIdx === idx
-                        ? 'bg-blue-100 '
-                        : '') +
-                      (hasError
-                        ? 'border border-red-500 text-red-600'
-                        : 'hover:bg-gray-200 border border-blue-400')
-                    }
-                  >
-                    <div
-                      onClick={() => {
-                        if (
-                          !isExcluded &&
-                          !hasError &&
-                          loc?.latitude != null &&
-                          loc?.longitude != null &&
-                          mapRef.current
-                        ) {
-                          mapRef.current.panTo({
-                            lat: loc.latitude,
-                            lng: loc.longitude,
-                          });
-                          mapRef.current.setZoom(14);
-                          // sync controlled center
-                          setMapCenter({
-                            lat: loc.latitude,
-                            lng: loc.longitude,
-                          });
-                          setSelectedIdx(idx);
-                        }
-                      }}
-                    >
-                      <div className="text-sm font-medium text-left">
-                        {new Date(job.start).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                        {' - '}
-                        {new Date(job.end).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-700">
-                        {job.street}, {job.zip} {job.city}
-                      </div>
-                    </div>
-                    <Checkbox
-                      checked={!isExcluded && !hasError}
-                      onChange={() =>
-                        dispatch(toggleExcludedAppointment({ date, idx }))
-                      }
-                      onClick={() =>
-                        dispatch(toggleExcludedAppointment({ date, idx }))
-                      }
-                      className="mr-2"
-                      aria-label={
-                        isExcluded
-                          ? 'Include appointment'
-                          : 'Exclude appointment'
-                      }
-                    />
-                    {hasError && <span className="text-red-500">⚠️</span>}
-                  </li>
-                );
-              })}
-          </ul>
-        </aside>
+        <Panel
+          date={date}
+          jobs={scenario.jobs}
+          locations={locations}
+          excluded={excluded}
+          selectedIdx={selectedIdx}
+          onSelect={(idx) => {
+            const loc = locations[idx];
+            if (loc?.latitude != null && loc?.longitude != null && mapRef.current) {
+              mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
+              mapRef.current.setZoom(14);
+              setMapCenter({ lat: loc.latitude, lng: loc.longitude });
+              setSelectedIdx(idx);
+            }
+          }}
+          onToggleExclude={(idx) => dispatch(toggleExcludedAppointment({ date, idx }))}
+          onToggleAll={(selectAll) => {
+            const allIdx = scenario.jobs.map((_, i) => i);
+            dispatch(
+              setExcludedAppointments({
+                date,
+                idxList: selectAll ? [] : allIdx,
+              }),
+            );
+          }}
+        />
         {/* Map container */}
-
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
@@ -362,6 +290,7 @@ function MapView() {
                     }}
                   />
                 )}
+                <RouteOverlay map={mapRef.current} date={date} />
                 {/* InfoWindow for selected appointment */}
                 {selectedIdx !== null && locations[selectedIdx] && (
                   <InfoWindow
@@ -373,15 +302,15 @@ function MapView() {
                   >
                     <div className="bg-white p-4 rounded-lg shadow-lg min-w-[200px] space-y-2">
                       <div className="text-lg font-bold text-gray-800">
-                        {new Date(scenario.jobs[selectedIdx].start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(scenario.jobs[selectedIdx].appointment_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         {' - '}
-                        {new Date(scenario.jobs[selectedIdx].end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(scenario.jobs[selectedIdx].appointment_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <div className="text-gray-600">
                         <span className="font-semibold">{locations[selectedIdx].street}</span>, {locations[selectedIdx].zipcode} {locations[selectedIdx].city}
                       </div>
                       <div className="text-sm text-gray-500">
-                        Workers: {scenario.jobs[selectedIdx].workers}
+                        Workers: {scenario.jobs[selectedIdx].number_of_workers}
                       </div>
                     </div>
                   </InfoWindow>
