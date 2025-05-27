@@ -17,6 +17,10 @@ function ScenarioList() {
   const navigate = useNavigate();
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
+    
+  const company_infos = useSelector(
+    (state: RootState) => state.companyInfo,
+  );
   // const sorted = [...scenarios].sort((a, b) => a.date - b.date);
   const sorted = useMemo(() => {
     return [...scenarios]
@@ -64,7 +68,10 @@ function ScenarioList() {
         {weeks.map((week, wi) => (
           <div key={wi} className="flex flex-row space-x-2">
             {week.map((day) => {
+              console.log(day.getTime())
               const keyStr = day.toISOString();
+              const company_info = company_infos[`${day.getTime()}`]
+              console.log(company_info)
               const sc = dateMap.get(day.toDateString());
               return (
                 <div
@@ -110,7 +117,7 @@ function ScenarioList() {
                   {sc && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded bg-primary text-primary-foreground text-xs font-medium">
                       <Truck className="h-4 w-4" />
-                      {sc.vehicles.length} vehicles
+                      {company_info.vehicles.length} vehicles
                     </span>
                   )}
                 </div>
