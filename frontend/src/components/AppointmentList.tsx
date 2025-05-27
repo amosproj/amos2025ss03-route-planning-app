@@ -1,7 +1,6 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { EnhancedAddressResponse } from '@/types/EnhancedAddressResponse';
 import { Appointment } from '@/types/Appointment';
-import { User } from 'lucide-react';
 
 
 interface Props {
@@ -29,7 +28,7 @@ export default function AppointmentList({
   const isIndeterminate = excludedCount > 0 && excludedCount < allCount;
   return (
     <div
-      className=" flex flex-col flex-1 min-h-0 bg-white border-r w-80 p-4"
+      className=" flex flex-col flex-1 min-h-0 bg-white w-80 p-4"
     >
       {/* Header with title and Select All control */}
       <div className="flex items-center justify-between mb-4">

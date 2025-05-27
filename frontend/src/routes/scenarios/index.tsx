@@ -141,7 +141,7 @@ function ScenarioList() {
               </thead>
               <tbody>
                 {selected.jobs
-                  .sort((a: Appointment, b: Appointment) => a.appointment_start - b.appointment_start)
+                  .sort((a: Appointment, b: Appointment) => new Date(a.appointment_start).getTime() - new Date(b.appointment_start).getTime())
                   .map((job: Appointment, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-4 py-2 text-sm text-gray-700">

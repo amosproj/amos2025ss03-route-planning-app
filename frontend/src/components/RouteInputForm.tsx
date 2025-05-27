@@ -9,9 +9,10 @@ import { addSolution } from '@/store/solutionsSlice';
 import { Solution } from '@/types/Solution';
 import type { AppDispatch, RootState } from '@/store';
 import { z } from 'zod';
-
-import { setCompanyInfo } from '@/store/companyInfoSlice';
-
+import { useMutation } from '@tanstack/react-query';
+import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { Address } from '@/types/Adress';
+import { OptimizationRequest } from '@/types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -30,10 +31,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { OptimizationRequest } from '@/types/OptimizationRequest';
-import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import { Address } from '@/types/Adress';
 
+// validation schema for the form
 const formSchema = z.object({
   startAddress: z.string().min(1, 'Start Address is required'),
   finishAddress: z.string().min(1, 'Finish Address is required'),
@@ -46,15 +45,13 @@ type FormSchemaType = z.infer<typeof formSchema>;
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
-const GOOGLE_MAP_LIBRARIES = ['places'] as const;
-
 export function RouteInputForm({ date }: { date: string }) {
   const dispatch = useDispatch<AppDispatch>();
 
   const parsedDate = date.split('"')[1];
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: GOOGLE_MAP_LIBRARIES,
+    libraries: ['places'],
   });
 
   const existingCompany = useSelector(
@@ -74,6 +71,7 @@ export function RouteInputForm({ date }: { date: string }) {
   const [finishAuto, setFinishAuto] =
     useState<google.maps.places.Autocomplete | null>(null);
 
+  // function to parse Google Places API response into Address object
   const parseAddress = (place: google.maps.places.PlaceResult): Address => {
     let streetNum = '',
       route = '',
@@ -135,17 +133,21 @@ export function RouteInputForm({ date }: { date: string }) {
     setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
 
-  const onSubmit = async (values: FormSchemaType) => {
-    const { workers } = values;
-    // build companyInfo object
-    const companyInfo = {
-      start_address: startAddrObj,
-      finish_address: finishAddrObj,
-      number_of_workers: existingCompany.vehicles,
-    };
+  // react-query mutation for optimization
+  const mutation = useMutation<Solution, Error, OptimizationRequest>({
+    mutationFn: (req) =>
+      apiClient
+        .post<Solution>('/api/check-and-solve', req)
+        .then((res) => res.data),
+    onSuccess: (data) => {
+      dispatch(addSolution({ date, solution: data }));
+      console.log('Received solution:', data);
+    },
+    onError: (error) => console.error('Failed to get solution:', error),
+  });
 
-    // dispatch(setCompanyInfo({ date, companyInfo }));
-
+  // form submit handler triggers react-query mutation
+  const onSubmit = () => {
     const enhancedAppointments =
       scenario?.jobs
         .filter((_, idx) => !excluded.includes(idx))
@@ -163,25 +165,21 @@ export function RouteInputForm({ date }: { date: string }) {
               .concat('.000'),
             address: app.address,
             number_of_workers: app.number_of_workers,
-            service_time: 30,
+            service_time: 15,
           };
         }) || [];
-
+    const companyInfo = {
+      start_address: startAddrObj,
+      finish_address: finishAddrObj,
+      number_of_workers: existingCompany.vehicles,
+    };
     const request: OptimizationRequest = {
+      //@ts-expect-error type mismatch, but we handle it
       company_info: companyInfo,
       appointments: enhancedAppointments,
     };
-    console.log('Optimization request:' + JSON.stringify(request, null, 2));
-    try {
-      const { data: solution } = await apiClient.post<Solution>(
-        '/api/check-and-solve',
-        request,
-      );
-      dispatch(addSolution({ date, solution }));
-      console.log('Received solution:', solution);
-    } catch (error) {
-      console.error('Failed to get solution:', error);
-    }
+    console.log('Optimization request:', request);
+    mutation.mutate(request);
   };
 
   if (loadError) return <div>Error loading Google Maps</div>;
@@ -190,14 +188,14 @@ export function RouteInputForm({ date }: { date: string }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full mx-auto p-4 bg-white flex gap-5 justify-between items-end"
+        className="w-full mx-auto p-1 bg-white flex gap-2 justify-between items-end"
       >
         <div className="w-full">
           <FormField
             control={form.control}
             name="startAddress"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Start Address</FormLabel>
                 <FormControl>
                   <Autocomplete
@@ -214,7 +212,7 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter start address" />
+                    <Input {...field} placeholder="Enter start address" className="h-7" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -228,7 +226,7 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="finishAddress"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Finish Address</FormLabel>
                 <FormControl>
                   <Autocomplete
@@ -245,7 +243,7 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter finish address" />
+                    <Input {...field} placeholder="Enter finish address" className="h-7" />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -259,10 +257,10 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="workers"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Number of Workers</FormLabel>
                 <FormControl>
-                  <div className="flex items-center space-x-4 py-1.5">
+                  <div className="flex items-center space-x-1 py-1">
                     <Slider
                       value={[field.value ?? 1]}
                       onValueChange={([val]) => field.onChange(val)}
@@ -285,14 +283,14 @@ export function RouteInputForm({ date }: { date: string }) {
             control={form.control}
             name="optimizationPlan"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="gap-1 py-1">
                 <FormLabel>Optimization Plan</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger size="sm" className="w-full h-7">
                       <SelectValue placeholder="Select Plan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -309,7 +307,9 @@ export function RouteInputForm({ date }: { date: string }) {
           />
         </div>
 
-        <Button type="submit">Start Optimization</Button>
+        <Button size="sm" type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? 'Optimizing...' : 'Start Optimization'}
+        </Button>
       </form>
     </Form>
   );

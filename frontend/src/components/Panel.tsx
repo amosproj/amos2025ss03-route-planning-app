@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import AppointmentList from '@/components/AppointmentList';
@@ -23,22 +22,22 @@ interface PanelProps {
 export default function Panel({date, jobs, locations, excluded, selectedIdx, onSelect, onToggleExclude, onToggleAll }: PanelProps) {
     const solutions = useSelector((state: RootState) => state.solutions);
     const solution:Solution = solutions.byDate[date]
-    console.log('Panel solution', solution);
+    // console.log('Panel solution', solution);
 
   return (
     <div className="flex flex-col h-screen w-90 flex-shrink-0 bg-white shadow-lg overflow-auto rounded-r-lg p-4">
       <Tabs defaultValue="appointments" className="flex flex-col flex-1 w-full">
-        <TabsList className="mb-6 grid grid-cols-2 bg-gray-100 p-1 rounded-full shadow-inner">
+        <TabsList className="mx-auto mb-4">
           <TabsTrigger
             value="appointments"
-            className="text-lg font-semibold py-2 px-6 rounded-full data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
+            className="text-lg font-semibold  px-6 rounded-full"
           >
             Appointments
           </TabsTrigger>
           <TabsTrigger
             value="solutions"
             disabled={!solution}
-            className="text-lg font-semibold py-2 px-6 rounded-full data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
+            className="text-lg font-semibold  px-6 rounded-full"
           >
             Routes
           </TabsTrigger>
@@ -56,7 +55,7 @@ export default function Panel({date, jobs, locations, excluded, selectedIdx, onS
             />
           </TabsContent>
           <TabsContent value="solutions" className="h-full ">
-            {solution && <SolutionList solution={solution} />}
+            {solution && <SolutionList solution={solution} date={date} />}
           </TabsContent>
         </div>
       </Tabs>
