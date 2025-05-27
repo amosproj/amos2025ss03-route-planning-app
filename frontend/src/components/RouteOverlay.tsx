@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-import type { RouteRequest } from '@/types/RouteRequest';
 import { getRouteColor } from '@/utils/routeColors';
 
 interface RouteOverlayProps {
@@ -25,7 +24,7 @@ export function RouteOverlay({ map, date }: RouteOverlayProps) {
     const directionsService = new google.maps.DirectionsService();
 
     // build requests
-    const requests: RouteRequest[] = validRoutes.map((route) => {
+    const requests = validRoutes.map((route) => {
       const waypoints = route.appointments.map((appt) => ({
         location: { lat: appt.location.lat, lng: appt.location.lng },
         stopover: true,
