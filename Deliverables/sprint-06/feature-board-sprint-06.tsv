@@ -1,0 +1,53 @@
+Title	URL	Assignees	Status	Estimated size	Real size
+Include Time Window Constraint from Vehicles	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/149		Product Backlog		
+Create Dummy Data & Write Script for Test Data	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/150		Product Backlog		
+Time Google OR Takes to Solve More Appointments	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/151		Product Backlog		
+Benchmark Distance Matrix Time on Large Datasets	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/152		Product Backlog		
+Improve Post-Validation to Include Service Time and Parameters	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/153		Product Backlog		
+Implement Valid Starting Time Logic	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/154		Product Backlog		
+Update Solver for Higher Appointment Capacity	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/155		Product Backlog		
+Calculate Waiting Time in Post Processing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/156		Product Backlog		
+Add Month Support to Calendar View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/157		Product Backlog		
+Add Button to Daily Plan and Worker Plan from Map View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/158		Product Backlog		
+Set Up Docker for Caching	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/159		Product Backlog		
+Include Skills in Optimization Logic	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/160		Product Backlog		
+Allow User to Configure Service Time per Appointment (With Default Fallback)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/129		Product Backlog		
+Enable Manual Route Editing from the Frontend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/103		Product Backlog		
+Convert Optimization Output to JSON	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/31		Product Backlog		
+Switch Between  Optimization Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/7		Product Backlog	5	
+Implement Caching Strategy for Distance Matrix	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/101		Product Backlog		
+Display and Export Individual Worker Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/128		Product Backlog		
+Display Daily Plan & Worker Plan as a List/Table with Export Option	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/127	jkleinau, SK-Subroto	In Progress	8	
+Perform Load Testing 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/144	fahimu10	In Progress	3	
+Validate Constraint Compliance in Solver Output (Post Google OR-Tools): First Draft 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/119	fahimu10	In Progress	5	
+Prepare Mid-Term Release Demo Data	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/142	SUFelix	Awaiting Review	3	
+Create Space and Distinguish between Service Time and  Appointment Time in Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/131	SUFelix	Awaiting Review	5	
+Implement Frontend Visualization for Information Raised in Preprocessing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/126	fariarahman15, SK-Subroto	Awaiting Review	5	
+Connect “Start Optimization” Button to Backend Optimization Trigger	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/107	fariarahman15, jkleinau	Awaiting Review	3	
+Update Project Documentation (Ongoing)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/81	SK-Subroto	Awaiting Review	3	
+Integrate Solver API Output to Frontend for Route Visualization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/130	SK-Subroto	Awaiting Review	8	
+Prepare Application for Deployment in Industry Partner's AWS Environment (Backend)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/80	fahimu10	Feature Archive	8	13
+Project Optimized Routes on the Map View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/102	jkleinau, SK-Subroto	Feature Archive	8	8
+Allow User to Uncheck Faulty Addresses and Proceed with Optimization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/104	jkleinau	Feature Archive	5	8
+Create and Submit Build Process Video	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/115	fahimu10	Feature Archive	5	5
+Implement Distance Calculation in the Route Optimization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/99	SUFelix	Feature Archive	3	3
+Implement Preprocessing Logic to Detect Potential Solver Failures: First Daft 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/116	SUFelix	Feature Archive	5	5
+Create Velocity Chart	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/110	arkadeepberlin, dkarkani	Feature Archive		
+Define and Submit Project Mission	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/111	arkadeepberlin, dkarkani	Feature Archive		
+Define and Submit Project-Specific Definition of Done	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/112	arkadeepberlin, dkarkani	Feature Archive		
+Define and Document Sprint Goal	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/109	arkadeepberlin, dkarkani	Feature Archive		
+Create and Submit Mid-Project Release Plan	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/113	arkadeepberlin, dkarkani	Feature Archive		
+Create and Maintain Burndown Chart	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/114	arkadeepberlin, dkarkani	Feature Archive		
+Implement Basic Map View with Location Points Only	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/77	jkleinau	Feature Archive	8	8
+Add Calendar View with Daily Appointment Overview	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/76	jkleinau	Feature Archive	3	5
+Explore Options for Handling Faulty Addresses from Uploaded files in the UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/79		Feature Archive	3	2
+Migrate Frontend Components to ShadcnUI and TailwindCSS	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/62	fariarahman15, SK-Subroto	Feature Archive	2	3
+Map Business data Sheet and Appointment Data to the UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/85	SK-Subroto	Feature Archive	3	5
+Move Editable Inputs and Start Button to Map View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/78	fariarahman15, SK-Subroto	Feature Archive	3	3
+Implement basic Optimization Plan : First Draft 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/75	fahimu10, SUFelix	Feature Archive	8	8
+Connecting Worker Address Address Validation and Distance Matrix	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/74	SUFelix	Feature Archive	3	3
+JSON Schema Validation for Uploaded File	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/42	jkleinau	Feature Archive	3	
+Create a routing structure on the frontend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/50	SK-Subroto	Feature Archive	3	3
+Build File Upload Component	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/35	SK-Subroto	Feature Archive	3	3
+Docker File Creation	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/84	fahimu10	Feature Archive	3	
+Create distance matrix from the uploaded address	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/48	fahimu10	Feature Archive	5	
