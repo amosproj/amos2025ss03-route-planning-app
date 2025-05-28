@@ -32,6 +32,7 @@ import { Address } from '@/types/Adress';
 import { OptimizationRequest } from '@/types/OptimizationRequest';
 import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 import { useMutation } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 
 // validation schema for the form
 const formSchema = z.object({
@@ -355,8 +356,15 @@ export function RouteInputForm({
             )}
           />
         </div>
-
-        <Button size="sm" type="submit" disabled={mutation.isPending}>
+        <Button
+          className="my-1"
+          size="sm"
+          type="submit"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending && (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          )}
           {mutation.isPending ? 'Optimizing...' : 'Start Optimization'}
         </Button>
       </form>
