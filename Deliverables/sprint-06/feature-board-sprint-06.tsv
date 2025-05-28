@@ -23,8 +23,6 @@ Validate Constraint Compliance in Solver Output (Post Google OR-Tools): First Dr
 Prepare Mid-Term Release Demo Data	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/142	SUFelix	Awaiting Review	3	
 Create Space and Distinguish between Service Time and  Appointment Time in Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/131	SUFelix	Awaiting Review	5	
 Implement Frontend Visualization for Information Raised in Preprocessing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/126	fariarahman15, SK-Subroto	Awaiting Review	5	
-Fix HTTPS conflict issue in production	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/168	fahimu10	Awaiting Review	5	
-Refactor Distance matrix API	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/169	fahimu10	Awaiting Review	2	
 Connect “Start Optimization” Button to Backend Optimization Trigger	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/107	fariarahman15, jkleinau	Awaiting Review	3	
 Update Project Documentation (Ongoing)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/81	SK-Subroto	Awaiting Review	3	
 Integrate Solver API Output to Frontend for Route Visualization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/130	SK-Subroto	Awaiting Review	8	
