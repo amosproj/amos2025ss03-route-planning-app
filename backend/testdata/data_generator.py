@@ -3,7 +3,7 @@ import random
 import json
 import csv
 from datetime import datetime, timedelta
-from backend.solver.models import *
+from solver.models import *
 
 # === HELPERS ===
 
