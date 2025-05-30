@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from inputAnalyzer import *
 from solver.solver import solve_appointment_routing
 from solver.models import *
+from testdata.data_generator import create_testdata_optimization_request
 
 load_dotenv()
 
@@ -61,6 +62,18 @@ def check_and_solve(request: OptimizationRequest):
     try:
         enh =  check_and_enhance_optimization_request(request)
         return solve_appointment_routing(enh)
+    except Exception as e:
+       raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/testdata/optimization-request")
+def get_testdata_optimization_request(request:TestdataRequest):
+    try:
+        opti_request = create_testdata_optimization_request(
+            num_vehicles = request.number_of_vehicles,
+            num_appointments = request.number_of_appointments,
+            appointment_duration_factor= request.appointment_duration_factor
+        )
+        return opti_request
     except Exception as e:
        raise HTTPException(status_code=500, detail=str(e))
 

@@ -89,17 +89,16 @@ class DistanceAndDurationMatrices(BaseModel):
     distance_matrix: List[List[int]]  # Matrix für Entfernungen (in Metern)
     duration_matrix: List[List[int]]  # Matrix für Dauer (in Sekunden)
 
+class ProblemMetric(BaseModel):
+    name: str
+    value: Union[str, float, int]
+
 class Route(BaseModel):
     route_id: int
     vehicle_id:Optional[int]
     distance_traveled: float
     time_traveled: float
-    appointments: List[EnhancedAppointment] #first and last appointments are not real appointments but the starting address
-
-#suggestion for next week
-class ProblemMetric(BaseModel):
-    name: str
-    value: Union[str, float, int]
+    appointments: List[EnhancedAppointment]
 
 class Solution(BaseModel):
     total_distance_traveled: float
@@ -108,9 +107,7 @@ class Solution(BaseModel):
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
 
-
-
-
-
-
-
+class TestdataRequest(BaseModel):
+    number_of_appointments:int
+    number_of_vehicles:int
+    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
