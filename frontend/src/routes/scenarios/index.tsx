@@ -17,7 +17,7 @@ function ScenarioList() {
   const navigate = useNavigate();
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
-    
+
   const company_infos = useSelector(
     (state: RootState) => state.companyInfo,
   );
@@ -36,6 +36,7 @@ function ScenarioList() {
   const dateMap = new Map(
     sorted.map((sc) => [new Date(sc.date).toDateString(), sc]),
   );
+  console.log("dateMap----", dateMap)
 
   // Determine date range start (Monday) and end
   const minDate = new Date(Math.min(...sorted.map((sc) => sc.date)));

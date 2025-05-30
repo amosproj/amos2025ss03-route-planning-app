@@ -15,6 +15,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
+import { Route as CalenderTestIndexImport } from './routes/calender-test/index'
 
 // Create/Update Routes
 
@@ -42,6 +43,12 @@ const MapViewIndexRoute = MapViewIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const CalenderTestIndexRoute = CalenderTestIndexImport.update({
+  id: '/calender-test/',
+  path: '/calender-test/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -51,6 +58,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/calender-test/': {
+      id: '/calender-test/'
+      path: '/calender-test'
+      fullPath: '/calender-test'
+      preLoaderRoute: typeof CalenderTestIndexImport
       parentRoute: typeof rootRoute
     }
     '/map-view/': {
@@ -81,6 +95,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calender-test': typeof CalenderTestIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -88,6 +103,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calender-test': typeof CalenderTestIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -96,6 +112,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/calender-test/': typeof CalenderTestIndexRoute
   '/map-view/': typeof MapViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
@@ -103,15 +120,27 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/map-view' | '/scenarios' | '/worker-view'
+  fullPaths:
+    | '/'
+    | '/calender-test'
+    | '/map-view'
+    | '/scenarios'
+    | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/map-view' | '/scenarios' | '/worker-view'
-  id: '__root__' | '/' | '/map-view/' | '/scenarios/' | '/worker-view/'
+  to: '/' | '/calender-test' | '/map-view' | '/scenarios' | '/worker-view'
+  id:
+    | '__root__'
+    | '/'
+    | '/calender-test/'
+    | '/map-view/'
+    | '/scenarios/'
+    | '/worker-view/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalenderTestIndexRoute: typeof CalenderTestIndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
@@ -119,6 +148,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalenderTestIndexRoute: CalenderTestIndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
@@ -135,6 +165,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/calender-test/",
         "/map-view/",
         "/scenarios/",
         "/worker-view/"
@@ -142,6 +173,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/calender-test/": {
+      "filePath": "calender-test/index.tsx"
     },
     "/map-view/": {
       "filePath": "map-view/index.tsx"
