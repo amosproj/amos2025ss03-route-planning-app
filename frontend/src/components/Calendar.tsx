@@ -3,7 +3,8 @@ import dayjs from 'dayjs'
 import weekday from 'dayjs/plugin/weekday'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import localeData from 'dayjs/plugin/localeData'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight, Map, MapPin, Table } from 'lucide-react'
+import { Button } from './ui/button'
 
 dayjs.extend(weekday)
 dayjs.extend(isoWeek)
@@ -12,7 +13,7 @@ dayjs.extend(localeData)
 const months = dayjs.months()
 const years = Array.from({ length: 10 }, (_, i) => dayjs().year() - 5 + i)
 
-export function Calendar({ dateMap }) {
+export function Calendar({ dateMap, setSelected, navigate }) {
     console.log("dateMap----", dateMap)
     const [currentDate, setCurrentDate] = useState(dayjs())
     const today = dayjs()
@@ -20,8 +21,8 @@ export function Calendar({ dateMap }) {
     const startOfMonth = currentDate.startOf('month')
     const endOfMonth = currentDate.endOf('month')
 
-    const startDate = startOfMonth.weekday(1) // Monday
-    const endDate = endOfMonth.weekday(7) // Sunday
+    const startDate = startOfMonth.weekday(0) // Monday
+    const endDate = endOfMonth.weekday(6) // Sunday
 
     const days = []
     let date = startDate
@@ -87,7 +88,7 @@ export function Calendar({ dateMap }) {
 
             {/* Weekdays */}
             <div className="grid grid-cols-7 text-center font-medium text-gray-600 mb-2">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                     <div key={day}>{day}</div>
                 ))}
             </div>
@@ -98,9 +99,7 @@ export function Calendar({ dateMap }) {
                     const isCurrentMonth = day.month() === currentDate.month()
                     const isToday = day.isSame(today, 'day')
                     const r_day = day.toDate().toDateString();
-                    // console.log("r_day", r_day)
                     const sc = dateMap.get(r_day);
-                    // console.log("sc", sc && sc.jobs.length)
                     return (
                         <div
                             key={day.format('YYYY-MM-DD')}
@@ -112,21 +111,48 @@ export function Calendar({ dateMap }) {
                                 ${!isCurrentMonth ? 'text-gray-400' : ''}
                                 `}
                         >
-                            <div className='p-2'>
+                            {isCurrentMonth && <div className='p-2'>
                                 <div className='flex justify-between items-center'>
-                                    <span>{day.date()}</span>
-                                    <ArrowRight className="h-4 w-4" />
+                                    <span className='text-xl font-semibold'>{day.date()}</span>
+                                    <div className='flex items-center gap-1'>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: '/map-view',
+                                                    search: { date: sc.date.toString() },
+                                                })
+                                            }
+                                        >
+                                            <Table className="h-4 w-4" />
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: '/map-view',
+                                                    search: { date: sc.date.toString() },
+                                                })
+                                            }
+                                        >
+                                            <Map className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    {/* <ArrowRight className="h-4 w-4" /> */}
                                 </div>
                                 {sc && (
                                     <span
                                         className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-primary text-primary-foreground text-xs font-medium"
-                                    // onClick={() => setSelected(sc)}
+                                        onClick={() => setSelected(sc)}
                                     >
                                         <MapPin className="h-4 w-4" />
                                         {sc.jobs.length} jobs
                                     </span>
                                 )}
-                            </div>
+                            </div>}
                         </div>
                     )
                 })}
