@@ -5,26 +5,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import localeData from 'dayjs/plugin/localeData'
 import { ChevronLeft, ChevronRight, Map, MapPin, Table } from 'lucide-react'
 import { useSearch, useNavigate } from '@tanstack/react-router'
-import { Appointment } from '@/types/Appointment'
-import { Vehicle } from '@/types/Vehicle'
-
-export type DateEntry = {
-    date: number // timestamp
-    jobs: Appointment[]
-    vehicles: Vehicle[]
-    solution: boolean
-}
-export type DateMapItem = {
-    key: string
-    value: DateEntry
-}
-export type DateMap = Record<string, DateEntry>
-
-type CalendarProps = {
-    dateMap: DateMapItem[] // or use DateMap if you're using an object
-    setSelected: React.Dispatch<React.SetStateAction<DateEntry | null>>
-}
-
+import { ScenarioByDate } from '@/types/Scenario'
 
 dayjs.extend(weekday)
 dayjs.extend(isoWeek)
@@ -33,10 +14,13 @@ dayjs.extend(localeData)
 const months = dayjs.months()
 const years = Array.from({ length: 10 }, (_, i) => dayjs().year() - 5 + i)
 
-export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
-    console.log("dateMap----", dateMap)
-    const search = useSearch({ from: '/scenarios/' }) as { year?: number; month?: number }
-    const navigate = useNavigate()
+export function ScenarioCalendar({ scenariosByDate, setSelected }: {
+    scenariosByDate: Map<string, ScenarioByDate>
+    setSelected: React.Dispatch<React.SetStateAction<ScenarioByDate | null>>
+}) {
+
+    const search = useSearch({ from: '/scenarios/' })
+    const navigate = useNavigate({ from: '/scenarios' })
 
     // Set initial date from query params or fallback to today
     const currentDate = useMemo(() => {
@@ -61,9 +45,7 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
         }
     }, [search.year, search.month, navigate])
 
-    // const [currentDate, setCurrentDate] = useState(dayjs())
     const today = dayjs()
-
     const startOfMonth = currentDate.startOf('month')
     const endOfMonth = currentDate.endOf('month')
 
@@ -90,18 +72,10 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
     const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
         setQuery(currentDate.year(parseInt(e.target.value)))
 
-    // const handlePrevMonth = () => setCurrentDate(currentDate.subtract(1, 'month'))
-    // const handleNextMonth = () => setCurrentDate(currentDate.add(1, 'month'))
-    // const handleToday = () => setCurrentDate(dayjs())
-    // const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    //     setCurrentDate(currentDate.month(parseInt(e.target.value)))
-    // const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    //     setCurrentDate(currentDate.year(parseInt(e.target.value)))
-
     return (
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-4">
+        <div className="max-w-4xl mx-auto bg-orange-50 rounded-lg shadow p-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
                 <div className="flex items-center gap-2">
                     <button onClick={handlePrevMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronLeft />
@@ -120,7 +94,7 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
 
                 <div className="flex items-center gap-2">
                     <select
-                        className="border rounded p-1"
+                        className="border-2 rounded p-1"
                         value={currentDate.month()}
                         onChange={handleMonthChange}
                     >
@@ -131,7 +105,7 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
                         ))}
                     </select>
                     <select
-                        className="border rounded p-1"
+                        className="border-2 rounded p-1"
                         value={currentDate.year()}
                         onChange={handleYearChange}
                     >
@@ -145,7 +119,7 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
             </div>
 
             {/* Weekdays */}
-            <div className="grid grid-cols-7 text-center font-medium text-gray-600 mb-2">
+            <div className="grid grid-cols-7 text-center font-bold text-gray-600 mb-2 text-xl font-serif">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                     <div key={day}>{day}</div>
                 ))}
@@ -156,8 +130,8 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
                 {days.map((day) => {
                     const isCurrentMonth = day.month() === currentDate.month()
                     const isToday = day.isSame(today, 'day')
-                    const r_day = day.toDate().toDateString();
-                    const sc = dateMap.get(r_day);
+                    const dateKey = day.toDate().toDateString();
+                    const sc = scenariosByDate.get(dateKey);
                     return (
                         <div
                             key={day.format('YYYY-MM-DD')}
@@ -202,9 +176,6 @@ export function ScenarioCalendar({ dateMap, setSelected }: CalendarProps) {
 
                                         </div>
                                     </>
-
-                                    // buttons
-
                                 )}
                             </div>}
                         </div>

@@ -4,10 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useMemo, useState } from 'react';
 import { Appointment } from '../../types/Appointment';
-import { Scenario } from '../../types/Scenario';
 import { ColumnDef } from "@tanstack/react-table";
-
-
 import {
   Dialog,
   DialogContent,
@@ -15,6 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DataTable } from '@/components/DataTable';
+import { z } from 'zod'
+import { ScenarioByDate } from '@/types/Scenario';
 
 // data table columns 
 const columns: ColumnDef<Appointment>[] = [
@@ -50,14 +49,19 @@ const columns: ColumnDef<Appointment>[] = [
 
 export const Route = createFileRoute('/scenarios/')({
   component: ScenarioList,
+  // Define expected search params
+  validateSearch: z.object({
+    year: z.coerce.number().optional(),
+    month: z.coerce.number().optional(),
+  }),
 })
 
 function ScenarioList() {
-  const [selected, setSelected] = useState<Scenario | null>(null);
+  const [selected, setSelected] = useState<ScenarioByDate | null>(null);
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
 
-  const sorted = useMemo(() => {
+  const sortedScenarios = useMemo(() => {
     return [...scenarios]
       .map((item) => ({
         ...item,
@@ -67,15 +71,15 @@ function ScenarioList() {
   }, [scenarios, solutions]);
 
   // Map dates to scenarios
-  const dateMap = new Map(
-    sorted.map((sc) => [new Date(sc.date).toDateString(), sc]),
+  const scenariosByDate = new Map(
+    sortedScenarios.map((sc) => [new Date(sc.date).toDateString(), sc]),
   );
 
 
   return (
     <div>
       <div className="p-4">
-        <ScenarioCalendar dateMap={dateMap} setSelected={setSelected} />
+        <ScenarioCalendar scenariosByDate={scenariosByDate} setSelected={setSelected} />
       </div>
       <Dialog open={!!selected} onOpenChange={(isOpen) => !isOpen && setSelected(null)}>
         {selected && (
