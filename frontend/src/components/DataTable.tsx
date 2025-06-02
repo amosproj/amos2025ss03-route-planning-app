@@ -17,9 +17,9 @@ import {
     ColumnDef,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { Job } from "@/types"; // Define or import your Job type
+import { Appointment } from "@/types/Appointment";
 
-export function DataTable({ columns, data }: { columns: ColumnDef<Job>[]; data: Job[] }) {
+export function DataTable({ columns, data }: { columns: ColumnDef<Appointment>[]; data: Appointment[] }) {
     const [filter, setFilter] = useState("");
 
     const table = useReactTable({

@@ -46,7 +46,6 @@ const columns: ColumnDef<Appointment>[] = [
   },
 ];
 
-
 export const Route = createFileRoute('/scenarios/')({
   component: ScenarioList,
   // Define expected search params
