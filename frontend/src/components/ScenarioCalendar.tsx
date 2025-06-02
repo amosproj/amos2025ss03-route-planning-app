@@ -65,7 +65,7 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
 
     const handlePrevMonth = () => setQuery(currentDate.subtract(1, 'month'))
     const handleNextMonth = () => setQuery(currentDate.add(1, 'month'))
-    const handleToday = () => setQuery(dayjs())
+    const handleCurrentMonth = () => setQuery(dayjs())
 
     const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
         setQuery(currentDate.month(parseInt(e.target.value)))
@@ -73,14 +73,14 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
         setQuery(currentDate.year(parseInt(e.target.value)))
 
     return (
-        <div className="max-w-4xl mx-auto bg-orange-50 rounded-lg shadow p-4">
+        <div className="max-w-4xl mx-auto bg-orange-50 rounded-lg shadow border-t-4 border-orange-400 p-4">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
                 <div className="flex items-center gap-2">
                     <button onClick={handlePrevMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronLeft />
                     </button>
-                    <button onClick={handleToday} className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-400 cursor-pointer">
+                    <button onClick={handleCurrentMonth} className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-400 cursor-pointer">
                         Current
                     </button>
                     <button onClick={handleNextMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">

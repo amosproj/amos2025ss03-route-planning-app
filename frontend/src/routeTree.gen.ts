@@ -14,7 +14,6 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
-import { Route as ScenariosOldIndexImport } from './routes/scenarios-old/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
 
 // Create/Update Routes
@@ -34,12 +33,6 @@ const WorkerViewIndexRoute = WorkerViewIndexImport.update({
 const ScenariosIndexRoute = ScenariosIndexImport.update({
   id: '/scenarios/',
   path: '/scenarios/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const ScenariosOldIndexRoute = ScenariosOldIndexImport.update({
-  id: '/scenarios-old/',
-  path: '/scenarios-old/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -67,13 +60,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapViewIndexImport
       parentRoute: typeof rootRoute
     }
-    '/scenarios-old/': {
-      id: '/scenarios-old/'
-      path: '/scenarios-old'
-      fullPath: '/scenarios-old'
-      preLoaderRoute: typeof ScenariosOldIndexImport
-      parentRoute: typeof rootRoute
-    }
     '/scenarios/': {
       id: '/scenarios/'
       path: '/scenarios'
@@ -96,7 +82,6 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/map-view': typeof MapViewIndexRoute
-  '/scenarios-old': typeof ScenariosOldIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -104,7 +89,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/map-view': typeof MapViewIndexRoute
-  '/scenarios-old': typeof ScenariosOldIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -113,35 +97,22 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/map-view/': typeof MapViewIndexRoute
-  '/scenarios-old/': typeof ScenariosOldIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/map-view'
-    | '/scenarios-old'
-    | '/scenarios'
-    | '/worker-view'
+  fullPaths: '/' | '/map-view' | '/scenarios' | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/map-view' | '/scenarios-old' | '/scenarios' | '/worker-view'
-  id:
-    | '__root__'
-    | '/'
-    | '/map-view/'
-    | '/scenarios-old/'
-    | '/scenarios/'
-    | '/worker-view/'
+  to: '/' | '/map-view' | '/scenarios' | '/worker-view'
+  id: '__root__' | '/' | '/map-view/' | '/scenarios/' | '/worker-view/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
-  ScenariosOldIndexRoute: typeof ScenariosOldIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
 }
@@ -149,7 +120,6 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
-  ScenariosOldIndexRoute: ScenariosOldIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
 }
@@ -166,7 +136,6 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/map-view/",
-        "/scenarios-old/",
         "/scenarios/",
         "/worker-view/"
       ]
@@ -176,9 +145,6 @@ export const routeTree = rootRoute
     },
     "/map-view/": {
       "filePath": "map-view/index.tsx"
-    },
-    "/scenarios-old/": {
-      "filePath": "scenarios-old/index.tsx"
     },
     "/scenarios/": {
       "filePath": "scenarios/index.tsx"
