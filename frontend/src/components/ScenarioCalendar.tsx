@@ -65,7 +65,7 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
 
     const handlePrevMonth = () => setQuery(currentDate.subtract(1, 'month'))
     const handleNextMonth = () => setQuery(currentDate.add(1, 'month'))
-    const handleCurrentMonth = () => setQuery(dayjs())
+    const handleToday = () => setQuery(dayjs())
 
     const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
         setQuery(currentDate.month(parseInt(e.target.value)))
@@ -80,8 +80,8 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
                     <button onClick={handlePrevMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronLeft />
                     </button>
-                    <button onClick={handleCurrentMonth} className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-400 cursor-pointer">
-                        Current
+                    <button onClick={handleToday} className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-400 cursor-pointer">
+                        Today
                     </button>
                     <button onClick={handleNextMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronRight />
