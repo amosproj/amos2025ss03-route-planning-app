@@ -8,7 +8,8 @@ from exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
 from solver.models import *
 from solver.preprocessing import *
 from solver.util import *
-from solver.validate_routes import validate_routes
+from solver.validation import validate_solution_and_report
+from solver.postprocessing import extract_enriched_metrics
 
 
 def solve_appointment_routing(
@@ -22,16 +23,9 @@ def solve_appointment_routing(
 
     company_info = request.company_info
     appointments = request.appointments
+    addresses = request.location_ids
     time_matrix = request.time_matrix
     distance_matrix = request.distance_matrix
-
-    depot_address = (
-        f"{company_info.start_address.street} {company_info.start_address.zip_code} {company_info.start_address.city}"
-    )
-
-    addresses = [depot_address] + [
-        f"{a.address.street} {a.address.zip_code} {a.address.city}" for a in appointments
-    ]
 
     # Time windows
     time_windows = [(0, 1440)]  # Depot open all day
@@ -167,7 +161,6 @@ def solve_appointment_routing(
         #get dummy times first
         start, end = extract_day_bounds(appointments[0].appointment_start)
 
-
         vehicle_route.insert(0, EnhancedAppointment(
             address=request.company_info.start_address,
             appointment_start= start,
@@ -203,15 +196,24 @@ def solve_appointment_routing(
             )
         )
 
+
+    # Check routes for validity
+    report = validate_solution_and_report(
+        routes=routes,
+        time_matrix=time_matrix,
+        addresses=addresses,
+        depot_start_location_id = generate_location_id(company_info.start_address),
+        depot_end_location_id = generate_location_id(company_info.finish_address)
+    )
+    
+
     response = Solution(
         total_distance_traveled=total_distance,
         max_distance_traveled=max_distance,
         routes=routes,
         method_used="Path Cheapest Arc",
-        problem_metrics = optimization_problem_information
+        problem_metrics = optimization_problem_information,
+        validation_report=report
     )
     
-    # Check routes for validity
-    validate_routes(routes)
-        
     return response

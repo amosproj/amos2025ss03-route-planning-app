@@ -1,4 +1,5 @@
 from datetime import datetime
+from solver.models import Address
 
 def to_minutes(dt_str: str) -> int:
     dt = datetime.fromisoformat(dt_str)
@@ -16,3 +17,6 @@ def extract_day_bounds(time_str: str) -> tuple[str, str]:
     end_str = end_dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
     return start_str, end_str
+
+def generate_location_id(address: Address) -> str:
+    return f"{address.street}-{address.zip_code}-{address.city}"

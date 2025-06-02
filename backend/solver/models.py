@@ -81,11 +81,12 @@ class AppointmentValidationResponse(BaseModel):
 class EnhancedOptimizationRequest(BaseModel):
     company_info: EnhancedCompanyInfo
     appointments: List[EnhancedAppointment]
+    location_ids : List[str]
     time_matrix: List[List[int]]
     distance_matrix: List[List[int]]
 
 class DistanceAndDurationMatrices(BaseModel):
-    ids: List[str]  # Liste der IDs
+    location_ids: List[str]  # Liste der IDs
     distance_matrix: List[List[int]]  # Matrix für Entfernungen (in Metern)
     duration_matrix: List[List[int]]  # Matrix für Dauer (in Sekunden)
 
@@ -100,14 +101,21 @@ class Route(BaseModel):
     time_traveled: float
     appointments: List[EnhancedAppointment]
 
+class SolutionValidationReport(BaseModel):
+    is_valid: bool
+    errors: List[str]
+    missing_appointments: List[str]  
+    duplicate_appointments: List[str] 
+
 class Solution(BaseModel):
     total_distance_traveled: float
     max_distance_traveled: float
     routes: List[Route]
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
-
+    validation_report: SolutionValidationReport
+    
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
+    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
