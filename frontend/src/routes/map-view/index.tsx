@@ -1,4 +1,7 @@
+import Panel from '@/components/Panel';
 import { RouteInputForm } from '@/components/RouteInputForm';
+import { RouteOverlay } from '@/components/RouteOverlay';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   GoogleMap,
@@ -8,20 +11,17 @@ import {
 } from '@react-google-maps/api';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { Fullscreen } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
+import {
+  setExcludedAppointments,
+  toggleExcludedAppointment,
+} from '../../store/excludedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
-import {
-  toggleExcludedAppointment,
-  setExcludedAppointments,
-} from '../../store/excludedAppointmentsSlice';
-import { Button } from '@/components/ui/button';
-import { Fullscreen } from 'lucide-react';
-import { RouteOverlay } from '@/components/RouteOverlay';
-import Panel from '@/components/Panel';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -116,6 +116,8 @@ function MapView() {
     lat: number;
     lng: number;
   } | null>(null);
+
+  const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoaded && companyInfo) {
@@ -224,6 +226,7 @@ function MapView() {
               }),
             );
           }}
+          optimizationErrors={optimizationErrors}
         />
         {/* Map container */}
         {!isLoading ? (
@@ -254,7 +257,10 @@ function MapView() {
                   {scenario.date}
                 </h2>
               </div>
-              <RouteInputForm date={date} />
+              <RouteInputForm
+                date={date}
+                setOptimizationErrors={setOptimizationErrors}
+              />
             </div>
 
             <div className="relative flex-1">

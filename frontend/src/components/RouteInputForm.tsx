@@ -1,18 +1,15 @@
 'use client';
 
+import type { AppDispatch, RootState } from '@/store';
+import { addSolution } from '@/store/solutionsSlice';
+import { Solution } from '@/types/Solution';
+import apiClient from '@/utils/apiClient';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import apiClient from '@/utils/apiClient';
-import { addSolution } from '@/store/solutionsSlice';
-import { Solution } from '@/types/Solution';
-import type { AppDispatch, RootState } from '@/store';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import { Address } from '@/types/Adress';
-import { OptimizationRequest } from '@/types/OptimizationRequest';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -31,6 +28,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Address } from '@/types/Adress';
+import { OptimizationRequest } from '@/types/OptimizationRequest';
+import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
+import { useMutation } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 
 // validation schema for the form
 const formSchema = z.object({
@@ -45,7 +47,15 @@ type FormSchemaType = z.infer<typeof formSchema>;
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
-export function RouteInputForm({ date }: { date: string }) {
+interface RouteInputFormProps {
+  date: string;
+  setOptimizationErrors?: (errors: string[]) => void;
+}
+
+export function RouteInputForm({
+  date,
+  setOptimizationErrors,
+}: RouteInputFormProps) {
   const dispatch = useDispatch<AppDispatch>();
 
   const parsedDate = date.split('"')[1];
@@ -127,11 +137,35 @@ export function RouteInputForm({ date }: { date: string }) {
       startAddress: displayStart,
       finishAddress: displayFinish,
       workers: comp.vehicles.length || 1,
-      optimizationPlan: 'profit',
+      optimizationPlan: 'time',
     });
     setStartAddrObj(comp.start_address);
     setFinishAddrObj(comp.finish_address);
   }, [existingCompany, form]);
+
+  const extractAndGroupErrors = (detail: string): string[] => {
+    try {
+      const match = detail.match(/{.*}/);
+      if (!match) return [];
+
+      const jsonStr = match[0].replace(/'/g, '"');
+      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
+
+      const errors = parsed.errors || [];
+
+      const counts: Record<string, number> = {};
+      errors.forEach((err) => {
+        counts[err] = (counts[err] || 0) + 1;
+      });
+
+      return Object.entries(counts).map(([msg, count]) =>
+        count > 1 ? `${msg} (x${count})` : msg,
+      );
+    } catch (e) {
+      console.error('Failed to extract and group errors:', e);
+      return [];
+    }
+  };
 
   // react-query mutation for optimization
   const mutation = useMutation<Solution, Error, OptimizationRequest>({
@@ -143,11 +177,19 @@ export function RouteInputForm({ date }: { date: string }) {
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    onError: (error) => console.error('Failed to get solution:', error),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.error('Failed to get solution:', error);
+
+      const detail = error?.response?.data?.detail;
+      const groupedErrors = extractAndGroupErrors(detail || '');
+      setOptimizationErrors?.(groupedErrors);
+    },
   });
 
   // form submit handler triggers react-query mutation
   const onSubmit = () => {
+    setOptimizationErrors?.([]);
     const enhancedAppointments =
       scenario?.jobs
         .filter((_, idx) => !excluded.includes(idx))
@@ -212,7 +254,11 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter start address" className="h-7" />
+                    <Input
+                      {...field}
+                      placeholder="Enter start address"
+                      className="h-7"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -243,7 +289,11 @@ export function RouteInputForm({ date }: { date: string }) {
                       }
                     }}
                   >
-                    <Input {...field} placeholder="Enter finish address" className="h-7" />
+                    <Input
+                      {...field}
+                      placeholder="Enter finish address"
+                      className="h-7"
+                    />
                   </Autocomplete>
                 </FormControl>
                 <FormMessage />
@@ -294,9 +344,9 @@ export function RouteInputForm({ date }: { date: string }) {
                       <SelectValue placeholder="Select Plan" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="profit">
+                      {/* <SelectItem value="profit">
                         Profit Optimization
-                      </SelectItem>
+                      </SelectItem> */}
                       <SelectItem value="time">Time Optimization</SelectItem>
                     </SelectContent>
                   </Select>
@@ -306,8 +356,15 @@ export function RouteInputForm({ date }: { date: string }) {
             )}
           />
         </div>
-
-        <Button size="sm" type="submit" disabled={mutation.isPending}>
+        <Button
+          className="my-1"
+          size="sm"
+          type="submit"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending && (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          )}
           {mutation.isPending ? 'Optimizing...' : 'Start Optimization'}
         </Button>
       </form>
