@@ -4,6 +4,7 @@ const Navbar = () => {
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Calendar', path: '/scenarios' },
+    { name: 'Settings', path: '/company-config' },
     // { name: 'Map View', path: '/map-view' },
     { name: 'Daily Plan', path: '/daily-plan' },
     // { name: 'Worker View', path: '/worker-view' },

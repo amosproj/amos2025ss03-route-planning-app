@@ -8,6 +8,13 @@ export interface Scenario {
 
 }
 
+export interface ScenarioByDate {
+    date: number // timestamp
+    jobs: Appointment[]
+    vehicles: Vehicle[]
+    solution: boolean
+}
+
 export interface Worker {
     startAddress: string;
     finishAddress: string;

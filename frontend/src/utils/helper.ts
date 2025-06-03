@@ -3,6 +3,9 @@ import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Adress';
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
+import { Warehouse } from 'lucide-react';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
@@ -109,6 +112,12 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
           vehicle_id: i,
           skills: 'electrician',
           worker_amount: 1,
+          operation_hours: [
+            {
+              start_minutes: 480, // 08:00
+              end_minutes: 960, // 16:00
+            },
+          ],
         });
       }
     }
@@ -131,3 +140,27 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
   };
   return companyInfo;
 }
+
+// Function to create a custom depot marker with warehouse icon
+export const createDepotMarkerIcon = () => {
+  // Create the Lucide Warehouse icon as a React element
+  const warehouseIcon = createElement(Warehouse, {
+    size: 16,
+    color: 'white',
+    strokeWidth: 2
+  });
+  
+  // Convert the React element to an SVG string
+  const warehouseIconSvg = renderToString(warehouseIcon);
+  
+  const svg = `
+    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18" fill="#2C3E50" stroke="#34495E" stroke-width="2"/>
+      <g transform="translate(12, 12)">
+        ${warehouseIconSvg}
+      </g>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
