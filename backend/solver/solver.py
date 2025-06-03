@@ -113,6 +113,22 @@ def solve_appointment_routing(
 
     for vehicle_id in range(num_vehicles):
         index = routing.Start(vehicle_id)
+        start_index = routing.Start(vehicle_id)
+        end_index = routing.End(vehicle_id)
+
+        start_time = solution.Value(time_dimension.CumulVar(start_index))
+        end_time = solution.Value(time_dimension.CumulVar(end_index))
+
+
+        start_hours = start_time // 60
+        start_minutes = start_time % 60
+        end_hours = end_time // 60
+        end_minutes = end_time % 60
+        # TODO add this starting_time to route information as soon as the data structure exists
+        print(f"Vehicle {vehicle_id}:")
+        print(f"  Leaves the depot at {start_hours:02d}:{start_minutes:02d}")
+        print(f"  Returns to the depot at {end_hours:02d}:{end_minutes:02d}")
+
         route_time = 0
         route_distance = 0
         vehicle_route = []
