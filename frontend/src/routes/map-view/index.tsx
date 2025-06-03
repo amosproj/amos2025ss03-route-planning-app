@@ -14,7 +14,10 @@ import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import apiClient from '../../utils/apiClient';
-import { toggleExcludedAppointment, setExcludedAppointments } from '../../store/excludedAppointmentsSlice';
+import {
+  toggleExcludedAppointment,
+  setExcludedAppointments,
+} from '../../store/excludedAppointmentsSlice';
 import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
@@ -36,9 +39,7 @@ function MapView() {
     (s) => s.date.toString() === date.split('"')[1],
   );
 
-
-
-  // Prepare appointments payload 
+  // Prepare appointments payload
   const appointmentsPayload =
     scenario?.jobs.map((job) => ({
       address: job.address,
@@ -48,7 +49,7 @@ function MapView() {
       appointment_end: new Date(job.appointment_end).toISOString(),
     })) || [];
 
-    console.log('MapView appointmentsPayload', appointmentsPayload);
+  console.log('MapView appointmentsPayload', appointmentsPayload);
 
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
@@ -56,8 +57,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -200,14 +201,20 @@ function MapView() {
           selectedIdx={selectedIdx}
           onSelect={(idx) => {
             const loc = locations[idx];
-            if (loc?.latitude != null && loc?.longitude != null && mapRef.current) {
+            if (
+              loc?.latitude != null &&
+              loc?.longitude != null &&
+              mapRef.current
+            ) {
               mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
               mapRef.current.setZoom(14);
               setMapCenter({ lat: loc.latitude, lng: loc.longitude });
               setSelectedIdx(idx);
             }
           }}
-          onToggleExclude={(idx) => dispatch(toggleExcludedAppointment({ date, idx }))}
+          onToggleExclude={(idx) =>
+            dispatch(toggleExcludedAppointment({ date, idx }))
+          }
           onToggleAll={(selectAll) => {
             const allIdx = scenario.jobs.map((_, i) => i);
             dispatch(
@@ -244,6 +251,7 @@ function MapView() {
                     month: '2-digit',
                     day: '2-digit',
                   })}
+                  {scenario.date}
                 </h2>
               </div>
               <RouteInputForm date={date} />
@@ -264,8 +272,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
@@ -302,12 +310,26 @@ function MapView() {
                   >
                     <div className="bg-white p-4 rounded-lg shadow-lg min-w-[200px] space-y-2">
                       <div className="text-lg font-bold text-gray-800">
-                        {new Date(scenario.jobs[selectedIdx].appointment_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(
+                          scenario.jobs[selectedIdx].appointment_start,
+                        ).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                         {' - '}
-                        {new Date(scenario.jobs[selectedIdx].appointment_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(
+                          scenario.jobs[selectedIdx].appointment_end,
+                        ).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </div>
                       <div className="text-gray-600">
-                        <span className="font-semibold">{locations[selectedIdx].street}</span>, {locations[selectedIdx].zipcode} {locations[selectedIdx].city}
+                        <span className="font-semibold">
+                          {locations[selectedIdx].street}
+                        </span>
+                        , {locations[selectedIdx].zipcode}{' '}
+                        {locations[selectedIdx].city}
                       </div>
                       <div className="text-sm text-gray-500">
                         Workers: {scenario.jobs[selectedIdx].number_of_workers}
@@ -331,6 +353,7 @@ function MapView() {
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
               </h2>
+              <span>Date{scenario.date}</span>
             </div>
           </Skeleton>
         )}
