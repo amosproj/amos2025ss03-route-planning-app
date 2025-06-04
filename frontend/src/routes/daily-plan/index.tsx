@@ -6,6 +6,7 @@ import { Solution } from '@/types/Solution';
 import { RouteCard } from '@/components/RouteCard';
 import { getRouteColor } from '@/utils/routeColors';
 import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
@@ -67,13 +68,17 @@ function DailyPlan() {
   };
 
   return (
-    <div className="container mt-8">
-      <h2 className="text-xl text-center font-semibold text-primary my-5">
-        Daily Plan for {formatDateString(date)}
-      </h2>
-      <div className="flex flex-wrap gap-3 my-5 w-full justify-center items-center">
-        <Button>View Metrics & Errors</Button>
-        <Button onClick={downloadSolution}>Download Day Plan</Button>
+    <div className="container my-8">
+      <div className="flex flex-wrap gap-3 my-5 w-full justify-between items-center">
+        <h2 className="text-xl text-center text-blue-900 font-semibold my-5">
+          Daily Plan for {formatDateString(date)}
+        </h2>
+        <Button
+          onClick={downloadSolution}
+          className="bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm"
+        >
+          <Download /> Download Day Plan
+        </Button>
       </div>
       {solution.routes.map((route, idx) => (
         <RouteCard
@@ -83,6 +88,12 @@ function DailyPlan() {
           color={getRouteColor(idx)}
         />
       ))}
+
+      <div className="flex justify-end">
+        <Button className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm">
+          View Metrics & Errors
+        </Button>
+      </div>
     </div>
   );
 }
