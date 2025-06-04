@@ -80,7 +80,7 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
                     <button onClick={handlePrevMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronLeft />
                     </button>
-                    <button onClick={handleToday} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
+                    <button onClick={handleToday} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer font-semibold">
                         Today
                     </button>
                     <button onClick={handleNextMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
