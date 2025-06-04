@@ -1,5 +1,5 @@
 from typing import List
-from solver.models import Route, RouteMetrics, EnrichedRoute, EnhancedAppointment
+from solver.models import Route, RouteMetrics
 from solver.util import to_minutes
 
 
@@ -8,7 +8,7 @@ def extract_enriched_metrics(
     time_matrix: List[List[int]],
     distance_matrix: List[List[float]],
     location_ids: List[str],
-) -> List[EnrichedRoute]:
+) -> List[Route]:
     enriched_routes = []
 
     for route in routes:
@@ -60,7 +60,7 @@ def extract_enriched_metrics(
             total_idle_time_min=total_idle_time,
         )
 
-        enriched_routes.append(EnrichedRoute(
+        enriched_routes.append(Route(
             route_id=route.route_id,
             vehicle_id=route.vehicle_id,
             distance_traveled=route.distance_traveled,

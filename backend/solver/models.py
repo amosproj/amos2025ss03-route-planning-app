@@ -96,13 +96,6 @@ class ProblemMetric(BaseModel):
     name: str
     value: Union[str, float, int]
 
-class Route(BaseModel):
-    route_id: int
-    vehicle_id:Optional[int]
-    distance_traveled: float
-    time_traveled: float
-    appointments: List[EnhancedAppointment]
-
 class RouteMetrics(BaseModel):
     route_id: int
     vehicle_id: int
@@ -112,13 +105,14 @@ class RouteMetrics(BaseModel):
     total_service_time_min: int
     total_idle_time_min: int
 
-class EnrichedRoute(BaseModel):
+class Route(BaseModel):
     route_id: int
-    vehicle_id: Optional[int]
+    vehicle_id:Optional[int]
     distance_traveled: float
     time_traveled: float
     appointments: List[EnhancedAppointment]
-    route_metrics: RouteMetrics
+    route_metrics: Optional[RouteMetrics] = None
+
 
 class RouteValidationError(BaseModel):
     route_id: int
@@ -135,7 +129,7 @@ class SolutionValidationReport(BaseModel):
 class Solution(BaseModel):
     total_distance_traveled: float
     max_distance_traveled: float
-    routes: List[EnrichedRoute]
+    routes: List[Route]
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport
