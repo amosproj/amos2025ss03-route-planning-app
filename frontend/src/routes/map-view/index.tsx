@@ -123,6 +123,34 @@ function MapView() {
     lng: number;
   } | null>(null);
 
+  // Error when optimizing
+  const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
+
+  // extract and group errors from the response detail
+  const extractAndGroupErrors = (detail: string): string[] => {
+    try {
+      const match = detail.match(/{.*}/);
+      if (!match) return [];
+
+      const jsonStr = match[0].replace(/'/g, '"');
+      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
+
+      const errors = parsed.errors || [];
+
+      const counts: Record<string, number> = {};
+      errors.forEach((err) => {
+        counts[err] = (counts[err] || 0) + 1;
+      });
+
+      return Object.entries(counts).map(([msg, count]) =>
+        count > 1 ? `${msg} (x${count})` : msg,
+      );
+    } catch (e) {
+      console.error('Failed to extract and group errors:', e);
+      return [];
+    }
+  };
+
   // Optimization mutation
   const optimizationMutation = useMutation<
     Solution,
@@ -137,7 +165,14 @@ function MapView() {
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    onError: (error) => console.error('Failed to get solution:', error),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.error('Failed to get solution:', error);
+
+      const detail = error?.response?.data?.detail;
+      const groupedErrors = extractAndGroupErrors(detail || '');
+      setOptimizationErrors(groupedErrors);
+    },
   });
 
   const handleOptimize = () => {
@@ -309,7 +344,6 @@ function MapView() {
               }),
             );
           }}
-          //@ts-expect-error TODO: Fix type error
           optimizationErrors={optimizationErrors}
         />
         {!isLoading ? (

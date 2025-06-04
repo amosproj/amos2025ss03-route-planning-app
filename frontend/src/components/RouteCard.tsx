@@ -5,8 +5,9 @@ import { Route } from '@/types/Solution';
 interface RouteCardProps {
   route: Route;
   color: string;
+  download: () => void;
 }
-export function RouteCard({ route, color }: RouteCardProps) {
+export function RouteCard({ route, color, download }: RouteCardProps) {
   return (
     <div className="mb-6 border shadow-md p-6 rounded-md bg-neutral-50/10">
       <div className="flex justify-between items-center mb-2">
@@ -32,6 +33,7 @@ export function RouteCard({ route, color }: RouteCardProps) {
           <Button
             className="text-sm px-3 py-1.5 rounded  "
             style={{ background: color }}
+            onClick={download}
           >
             {' '}
             <Download />
