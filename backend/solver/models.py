@@ -101,11 +101,17 @@ class Route(BaseModel):
     time_traveled: float
     appointments: List[EnhancedAppointment]
 
+class RouteValidationError(BaseModel):
+    route_id: int
+    errors: List[str]
+
+
 class SolutionValidationReport(BaseModel):
     is_valid: bool
     errors: List[str]
-    missing_appointments: List[str]  
-    duplicate_appointments: List[str] 
+    missing_appointments: List[str]
+    duplicate_appointments: List[str]
+    route_level_errors: List[RouteValidationError]
 
 class Solution(BaseModel):
     total_distance_traveled: float
@@ -114,7 +120,7 @@ class Solution(BaseModel):
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport
-    
+
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int

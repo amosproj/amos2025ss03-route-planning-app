@@ -5,6 +5,11 @@ def to_minutes(dt_str: str) -> int:
     dt = datetime.fromisoformat(dt_str)
     return dt.hour * 60 + dt.minute
 
+def to_hhmm(minutes: int) -> str:
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours:02}:{mins:02}"
+
 def extract_day_bounds(time_str: str) -> tuple[str, str]:
     dt = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S.%f")
     date_only = dt.date()
