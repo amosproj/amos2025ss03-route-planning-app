@@ -1,5 +1,5 @@
 from typing import List
-from solver.models import Route, RouteMetrics, EnrichedRoute, EnhancedAppointment
+from solver.models import Route, RouteMetrics
 from solver.util import to_minutes
 
 
@@ -8,7 +8,7 @@ def extract_enriched_metrics(
     time_matrix: List[List[int]],
     distance_matrix: List[List[float]],
     location_ids: List[str],
-) -> List[EnrichedRoute]:
+) -> List[Route]:
     enriched_routes = []
 
     for route in routes:
@@ -37,12 +37,14 @@ def extract_enriched_metrics(
 
             total_service_time += current.service_time
 
-            current_end = to_minutes(current.appointment_start) + current.service_time
-            next_start = to_minutes(nxt.appointment_start)
-            wait_time = max(0, next_start - current_end)
-            total_idle_time += wait_time
+            # Skip idle time if current or next appointment is depot
+            if i > 0 and i < len(appts) - 2:
+                current_end = to_minutes(current.appointment_start) + current.service_time
+                next_start = to_minutes(nxt.appointment_start)
+                wait_time = max(0, next_start - current_end)
+                total_idle_time += wait_time
 
-        # Handle last appointment service time
+        # Add last appointment's service time
         last_appt = appts[-1]
         total_service_time += last_appt.service_time
         last_appt.travel_time_to_next_min = None
@@ -60,7 +62,7 @@ def extract_enriched_metrics(
             total_idle_time_min=total_idle_time,
         )
 
-        enriched_routes.append(EnrichedRoute(
+        enriched_routes.append(Route(
             route_id=route.route_id,
             vehicle_id=route.vehicle_id,
             distance_traveled=route.distance_traveled,
