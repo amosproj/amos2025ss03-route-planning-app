@@ -80,7 +80,7 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
                     <button onClick={handlePrevMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
                         <ChevronLeft />
                     </button>
-                    <button onClick={handleToday} className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-400 cursor-pointer">
+                    <button onClick={handleToday} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer font-semibold">
                         Today
                     </button>
                     <button onClick={handleNextMonth} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer">
@@ -137,7 +137,7 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
                             key={day.format('YYYY-MM-DD')}
                             className={`
                                 aspect-square w-full rounded transition-all
-                                ${isToday ? 'bg-green-500 text-white font-bold' : ''}
+                                ${isToday ? 'bg-green-200 text-green-900' : ''}
                                  ${!isCurrentMonth ? 'bg-gray-200 text-gray-500' : ''}
                                 ${isCurrentMonth && !isToday ? 'bg-blue-100 text-blue-900' : ''}
                                 ${!isCurrentMonth ? 'text-gray-400' : ''}
@@ -160,7 +160,14 @@ export function ScenarioCalendar({ scenariosByDate, setSelected }: {
                                         </div>
                                         <div className='flex justify-end items-center gap-1'>
 
-                                            {sc?.solution && <div className='cursor-pointer p-0.5 border rounded bg-white hover:opacity-60'>
+                                            {sc?.solution && <div className='cursor-pointer p-0.5 border rounded bg-white hover:opacity-60'
+                                                onClick={() =>
+                                                    navigate({
+                                                        to: '/daily-plan',
+                                                        search: { date: sc.date.toString() },
+                                                    })
+                                                }
+                                            >
                                                 <Table className="h-4.5 w-4.5" />
                                             </div>}
                                             <div className='cursor-pointer p-0.5 border rounded bg-white hover:opacity-60'
