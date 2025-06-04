@@ -101,6 +101,23 @@ class Route(BaseModel):
     time_traveled: float
     appointments: List[EnhancedAppointment]
 
+class RouteMetrics(BaseModel):
+    route_id: int
+    vehicle_id: int
+    num_appointments: int
+    total_travel_time_min: int
+    total_travel_distance_km: float
+    total_service_time_min: int
+    total_idle_time_min: int
+
+class EnrichedRoute(BaseModel):
+    route_id: int
+    vehicle_id: Optional[int]
+    distance_traveled: float
+    time_traveled: float
+    appointments: List[EnhancedAppointment]
+    route_metrics: RouteMetrics
+
 class RouteValidationError(BaseModel):
     route_id: int
     errors: List[str]
@@ -116,7 +133,7 @@ class SolutionValidationReport(BaseModel):
 class Solution(BaseModel):
     total_distance_traveled: float
     max_distance_traveled: float
-    routes: List[Route]
+    routes: List[EnrichedRoute]
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport

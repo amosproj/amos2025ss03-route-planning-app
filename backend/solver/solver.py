@@ -221,12 +221,22 @@ def solve_appointment_routing(
         depot_start_location_id = generate_location_id(company_info.start_address),
         depot_end_location_id = generate_location_id(company_info.finish_address)
     )
-    
+
+    # Enriched Routes
+    enriched_routes = extract_enriched_metrics(
+        routes=routes,
+        time_matrix=time_matrix,
+        distance_matrix=distance_matrix,
+        location_ids=addresses
+    )
+
+    print(enriched_routes)
+
 
     response = Solution(
         total_distance_traveled=total_distance,
         max_distance_traveled=max_distance,
-        routes=routes,
+        routes=enriched_routes,
         method_used="Path Cheapest Arc",
         problem_metrics = optimization_problem_information,
         validation_report=report
