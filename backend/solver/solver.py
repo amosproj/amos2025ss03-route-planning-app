@@ -230,9 +230,6 @@ def solve_appointment_routing(
         location_ids=addresses
     )
 
-    print(enriched_routes)
-
-
     response = Solution(
         total_distance_traveled=total_distance,
         max_distance_traveled=max_distance,

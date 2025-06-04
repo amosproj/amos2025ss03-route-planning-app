@@ -25,7 +25,9 @@ class EnhancedAppointment(BaseModel):
     address:Address
     service_time: int
     location:Location
-    number_of_workers: int
+    number_of_workers: int    
+    travel_time_to_next_min: Optional[int] = None
+    travel_distance_to_next_km: Optional[float] = None
 
 class FilledVehicle(BaseModel):
     vehicle_id:int
