@@ -1,7 +1,4 @@
-import Panel from '@/components/Panel';
-import { RouteInputForm } from '@/components/RouteInputForm';
-import { RouteOverlay } from '@/components/RouteOverlay';
-import { Button } from '@/components/ui/button';
+import { OptimizationBar } from '@/components/OptimizationBar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   GoogleMap,
@@ -9,19 +6,26 @@ import {
   Marker,
   useJsApiLoader,
 } from '@react-google-maps/api';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Fullscreen } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
-import {
-  setExcludedAppointments,
-  toggleExcludedAppointment,
-} from '../../store/excludedAppointmentsSlice';
+import { addSolution } from '../../store/solutionsSlice';
 import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
+import { Solution } from '../../types/Solution';
+import { OptimizationRequest } from '../../types/OptimizationRequest';
 import apiClient from '../../utils/apiClient';
+import {
+  toggleExcludedAppointment,
+  setExcludedAppointments,
+} from '../../store/excludedAppointmentsSlice';
+import { Button } from '@/components/ui/button';
+import { Fullscreen } from 'lucide-react';
+import { RouteOverlay } from '@/components/RouteOverlay';
+import Panel from '@/components/Panel';
+import { createDepotMarkerIcon } from '@/utils/helper';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -49,7 +53,7 @@ function MapView() {
       appointment_end: new Date(job.appointment_end).toISOString(),
     })) || [];
 
-  console.log('MapView appointmentsPayload', appointmentsPayload);
+  // console.log('MapView appointmentsPayload', appointmentsPayload);
 
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
@@ -107,8 +111,10 @@ function MapView() {
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const companyInfo = useSelector(
-    (s: RootState) => s.companyInfo[date] ?? null,
+    (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
   );
+
+  // console.log('MapView companyInfo', companyInfo);
   const [startLoc, setStartLoc] = useState<{ lat: number; lng: number } | null>(
     null,
   );
@@ -117,7 +123,119 @@ function MapView() {
     lng: number;
   } | null>(null);
 
+  // Error when optimizing
   const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
+
+  // extract and group errors from the response detail
+  const extractAndGroupErrors = (detail: string): string[] => {
+    try {
+      const match = detail.match(/{.*}/);
+      if (!match) return [];
+
+      const jsonStr = match[0].replace(/'/g, '"');
+      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
+
+      const errors = parsed.errors || [];
+
+      const counts: Record<string, number> = {};
+      errors.forEach((err) => {
+        counts[err] = (counts[err] || 0) + 1;
+      });
+
+      return Object.entries(counts).map(([msg, count]) =>
+        count > 1 ? `${msg} (x${count})` : msg,
+      );
+    } catch (e) {
+      console.error('Failed to extract and group errors:', e);
+      return [];
+    }
+  };
+
+  // Optimization mutation
+  const optimizationMutation = useMutation<
+    Solution,
+    Error,
+    OptimizationRequest
+  >({
+    mutationFn: (req) =>
+      apiClient
+        .post<Solution>('/api/check-and-solve', req)
+        .then((res) => res.data),
+    onSuccess: (data) => {
+      dispatch(addSolution({ date, solution: data }));
+      console.log('Received solution:', data);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      console.error('Failed to get solution:', error);
+
+      const detail = error?.response?.data?.detail;
+      const groupedErrors = extractAndGroupErrors(detail || '');
+      setOptimizationErrors(groupedErrors);
+    },
+  });
+
+  const handleOptimize = () => {
+    if (!scenario || !companyInfo) {
+      alert('Please ensure scenario and company information are configured.');
+      return;
+    }
+
+    const enhancedAppointments =
+      scenario.jobs
+        .filter((_, idx) => !excluded.includes(idx))
+        .map((app) => {
+          return {
+            appointment_start: new Date(app.appointment_start)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0]
+              .concat('.000'),
+            appointment_end: new Date(app.appointment_end)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0]
+              .concat('.000'),
+            address: app.address,
+            number_of_workers: app.number_of_workers,
+            service_time: 15,
+          };
+        }) || [];
+
+    const alteredCompanyInfo = {
+      start_address: companyInfo.start_address,
+      finish_address: companyInfo.finish_address,
+      number_of_workers: companyInfo.vehicles.map((v) => ({
+        vehicle_id: v.vehicle_id,
+        skills: v.skills,
+        worker_amount: v.worker_amount,
+      })),
+    };
+
+    const request: OptimizationRequest = {
+      //@ts-expect-error TODO: Wrong type because of old backend data structure
+      company_info: alteredCompanyInfo,
+      appointments: enhancedAppointments,
+    };
+
+    console.log('Optimization request:', request);
+    optimizationMutation.mutate(request);
+  };
+
+  // Calculate metrics for OptimizationBar
+  const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
+  const totalWorkers = companyInfo.vehicles.length || 0;
+  const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
+
+  // Check if start and end locations are the same (depot scenario)
+  const isSameLocation = useMemo(() => {
+    if (!startLoc || !finishLoc) return false;
+    const threshold = 0.0001; // ~10 meters tolerance
+    return (
+      Math.abs(startLoc.lat - finishLoc.lat) < threshold &&
+      Math.abs(startLoc.lng - finishLoc.lng) < threshold
+    );
+  }, [startLoc, finishLoc]);
 
   useEffect(() => {
     if (isLoaded && companyInfo) {
@@ -228,38 +346,36 @@ function MapView() {
           }}
           optimizationErrors={optimizationErrors}
         />
-        {/* Map container */}
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
-            <div className="container p-1  rounded shadow">
-              <div className="p-2 flex items-center justify-between border-b mb-2 ">
-                <span className="flex items-center ">
-                  <button
-                    onClick={() => navigate({ to: '/scenarios' })}
-                    className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
-                  >
-                    ←
-                  </button>
-                  <h3 className="font-semibold text-lg  ">
-                    Route & Worker Information
-                  </h3>
-                </span>
-
-                <h2 className="text-lg font-semibold text-primary">
-                  Map for{' '}
-                  {new Date(scenario.date).toLocaleDateString('de-DE', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  })}
-                </h2>
-              </div>
-              <RouteInputForm
-                date={date}
-                setOptimizationErrors={setOptimizationErrors}
+            <div className="p-2 flex items-center justify-between border-b ">
+              <span className="flex items-center ">
+                <button
+                  onClick={() => navigate({ to: '/scenarios' })}
+                  className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
+                >
+                  ←
+                </button>
+              </span>
+              <OptimizationBar
+                includedJobs={includedJobs}
+                totalWorkers={totalWorkers}
+                isOptimizing={optimizationMutation.isPending}
+                canOptimize={canOptimize}
+                onOptimize={handleOptimize}
+                scenarioDate={scenario ? new Date(scenario.date) : undefined}
               />
+
+              <h2 className="text-lg font-semibold text-primary">
+                Map for{' '}
+                {new Date(scenario.date).toLocaleDateString('de-DE', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                })}
+              </h2>
             </div>
 
             <div className="relative flex-1">
@@ -286,22 +402,38 @@ function MapView() {
                     />
                   ) : null,
                 )}
-                {/* Start and finish markers */}
-                {startLoc && (
+                {/* Start and finish markers - or depot marker if same location */}
+                {isSameLocation && startLoc ? (
                   <Marker
                     position={startLoc}
                     icon={{
-                      url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                      url: createDepotMarkerIcon(),
+                      scaledSize: new window.google.maps.Size(40, 40),
+                      anchor: new window.google.maps.Point(20, 40),
                     }}
+                    title="Depot (Start & End)"
                   />
-                )}
-                {finishLoc && (
-                  <Marker
-                    position={finishLoc}
-                    icon={{
-                      url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    }}
-                  />
+                ) : (
+                  <>
+                    {startLoc && (
+                      <Marker
+                        position={startLoc}
+                        icon={{
+                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                        }}
+                        title="Start Location"
+                      />
+                    )}
+                    {finishLoc && (
+                      <Marker
+                        position={finishLoc}
+                        icon={{
+                          url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                        }}
+                        title="End Location"
+                      />
+                    )}
+                  </>
                 )}
                 <RouteOverlay map={mapRef.current} date={date} />
                 {/* InfoWindow for selected appointment */}
@@ -358,6 +490,7 @@ function MapView() {
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
               </h2>
+              <span>Date{scenario.date}</span>
             </div>
           </Skeleton>
         )}

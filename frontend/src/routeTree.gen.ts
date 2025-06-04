@@ -15,6 +15,8 @@ import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
+import { Route as DailyPlanIndexImport } from './routes/daily-plan/index'
+import { Route as CompanyConfigIndexImport } from './routes/company-config/index'
 
 // Create/Update Routes
 
@@ -42,6 +44,18 @@ const MapViewIndexRoute = MapViewIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const DailyPlanIndexRoute = DailyPlanIndexImport.update({
+  id: '/daily-plan/',
+  path: '/daily-plan/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CompanyConfigIndexRoute = CompanyConfigIndexImport.update({
+  id: '/company-config/',
+  path: '/company-config/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -51,6 +65,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/company-config/': {
+      id: '/company-config/'
+      path: '/company-config'
+      fullPath: '/company-config'
+      preLoaderRoute: typeof CompanyConfigIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/daily-plan/': {
+      id: '/daily-plan/'
+      path: '/daily-plan'
+      fullPath: '/daily-plan'
+      preLoaderRoute: typeof DailyPlanIndexImport
       parentRoute: typeof rootRoute
     }
     '/map-view/': {
@@ -81,6 +109,8 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/company-config': typeof CompanyConfigIndexRoute
+  '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -88,6 +118,8 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/company-config': typeof CompanyConfigIndexRoute
+  '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -96,6 +128,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/company-config/': typeof CompanyConfigIndexRoute
+  '/daily-plan/': typeof DailyPlanIndexRoute
   '/map-view/': typeof MapViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
@@ -103,15 +137,36 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/map-view' | '/scenarios' | '/worker-view'
+  fullPaths:
+    | '/'
+    | '/company-config'
+    | '/daily-plan'
+    | '/map-view'
+    | '/scenarios'
+    | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/map-view' | '/scenarios' | '/worker-view'
-  id: '__root__' | '/' | '/map-view/' | '/scenarios/' | '/worker-view/'
+  to:
+    | '/'
+    | '/company-config'
+    | '/daily-plan'
+    | '/map-view'
+    | '/scenarios'
+    | '/worker-view'
+  id:
+    | '__root__'
+    | '/'
+    | '/company-config/'
+    | '/daily-plan/'
+    | '/map-view/'
+    | '/scenarios/'
+    | '/worker-view/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompanyConfigIndexRoute: typeof CompanyConfigIndexRoute
+  DailyPlanIndexRoute: typeof DailyPlanIndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
@@ -119,6 +174,8 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompanyConfigIndexRoute: CompanyConfigIndexRoute,
+  DailyPlanIndexRoute: DailyPlanIndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
@@ -135,6 +192,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/company-config/",
+        "/daily-plan/",
         "/map-view/",
         "/scenarios/",
         "/worker-view/"
@@ -142,6 +201,12 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/company-config/": {
+      "filePath": "company-config/index.tsx"
+    },
+    "/daily-plan/": {
+      "filePath": "daily-plan/index.tsx"
     },
     "/map-view/": {
       "filePath": "map-view/index.tsx"

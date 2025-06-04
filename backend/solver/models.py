@@ -25,7 +25,9 @@ class EnhancedAppointment(BaseModel):
     address:Address
     service_time: int
     location:Location
-    number_of_workers: int
+    number_of_workers: int    
+    travel_time_to_next_min: Optional[int] = None
+    travel_distance_to_next_km: Optional[float] = None
 
 class FilledVehicle(BaseModel):
     vehicle_id:int
@@ -81,36 +83,64 @@ class AppointmentValidationResponse(BaseModel):
 class EnhancedOptimizationRequest(BaseModel):
     company_info: EnhancedCompanyInfo
     appointments: List[EnhancedAppointment]
+    location_ids : List[str]
     time_matrix: List[List[int]]
     distance_matrix: List[List[int]]
 
 class DistanceAndDurationMatrices(BaseModel):
-    ids: List[str]  # Liste der IDs
+    location_ids: List[str]  # Liste der IDs
     distance_matrix: List[List[int]]  # Matrix für Entfernungen (in Metern)
     duration_matrix: List[List[int]]  # Matrix für Dauer (in Sekunden)
+
+class ProblemMetric(BaseModel):
+    name: str
+    value: Union[str, float, int]
 
 class Route(BaseModel):
     route_id: int
     vehicle_id:Optional[int]
     distance_traveled: float
     time_traveled: float
-    appointments: List[EnhancedAppointment] #first and last appointments are not real appointments but the starting address
+    appointments: List[EnhancedAppointment]
 
-#suggestion for next week
-class ProblemMetric(BaseModel):
-    name: str
-    value: Union[str, float, int]
+class RouteMetrics(BaseModel):
+    route_id: int
+    vehicle_id: int
+    num_appointments: int
+    total_travel_time_min: int
+    total_travel_distance_km: float
+    total_service_time_min: int
+    total_idle_time_min: int
+
+class EnrichedRoute(BaseModel):
+    route_id: int
+    vehicle_id: Optional[int]
+    distance_traveled: float
+    time_traveled: float
+    appointments: List[EnhancedAppointment]
+    route_metrics: RouteMetrics
+
+class RouteValidationError(BaseModel):
+    route_id: int
+    errors: List[str]
+
+
+class SolutionValidationReport(BaseModel):
+    is_valid: bool
+    errors: List[str]
+    missing_appointments: List[str]
+    duplicate_appointments: List[str]
+    route_level_errors: List[RouteValidationError]
 
 class Solution(BaseModel):
     total_distance_traveled: float
     max_distance_traveled: float
-    routes: List[Route]
+    routes: List[EnrichedRoute]
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
+    validation_report: SolutionValidationReport
 
-
-
-
-
-
-
+class TestdataRequest(BaseModel):
+    number_of_appointments:int
+    number_of_vehicles:int
+    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
