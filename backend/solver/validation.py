@@ -39,8 +39,13 @@ def validate_solution_and_report(
 
             from_id = current.location.id
             to_id = nxt.location.id
-            from_index = i
-            to_index = i + 1
+
+            try:
+                from_index = addresses.index(from_id)
+                to_index = addresses.index(to_id)
+            except ValueError:
+                route_errors.append(f"Location ID not found in address list: {from_id} or {to_id}")
+                continue
 
             current_start = to_minutes(current.appointment_start)
             current_end = to_minutes(current.appointment_end)
