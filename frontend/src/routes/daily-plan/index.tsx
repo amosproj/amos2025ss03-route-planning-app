@@ -50,7 +50,6 @@ function DailyPlan() {
       <div className="flex flex-wrap gap-3 my-5 w-full justify-center items-center">
         <Button>View Metrics & Errors</Button>
         <Button>Download Day Plan</Button>
-        <Button>View Appointments</Button>
       </div>
       {solution.routes.map((route, idx) => (
         <RouteCard
