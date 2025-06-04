@@ -1,14 +1,46 @@
-import { EnhancedAppointment } from "./Appointment";
+import { EnhancedAppointment } from './Appointment';
 export interface Solution {
-    total_distance_traveled: number;
-    max_distance_traveled: number;
-    routes: Route[]
+  total_distance_traveled: number;
+  max_distance_traveled: number;
+  routes: Route[];
+  method_used?: string;
+  problem_metrics: ProblemMetric[];
+  validation_report: SolutionValidationReport;
 }
 
-interface Route {
-    route_id: number;
-    vehicle_id: number;
-    distance_traveled: number;
-    time_traveled: number;
-    appointments: EnhancedAppointment[];
+export interface Route {
+  route_id: number;
+  vehicle_id: number;
+  distance_traveled: number;
+  time_traveled: number;
+  appointments: EnhancedAppointment[];
+  route_metrics: RouteMetrics;
+}
+
+interface ProblemMetric {
+  name: string;
+  value: string | number;
+}
+
+interface RouteMetrics {
+  route_id: number;
+  vehicle_id: number;
+  num_appointments: number;
+  total_travel_time_min: number;
+  total_travel_distance_km: number;
+  total_service_time_min: number;
+  total_idle_time_min: number;
+}
+
+interface RouteValidationError {
+  route_id: number;
+  errors: string[];
+}
+
+interface SolutionValidationReport {
+  is_valid: boolean;
+  errors: string[];
+  missing_appointments: string[];
+  duplicate_appointments: string[];
+  route_level_errors: RouteValidationError[];
 }
