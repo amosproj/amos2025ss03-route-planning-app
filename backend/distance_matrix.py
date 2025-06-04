@@ -55,9 +55,9 @@ def get_distance_matrix_2d(locations: List[Location]) -> DistanceAndDurationMatr
 
     ids = [loc.id for loc in locations]
     response = DistanceAndDurationMatrices(
-        ids=ids,
+        location_ids=ids,
         distance_matrix=distance_matrix.tolist(),
         duration_matrix=duration_matrix.tolist()
     )
-    
+
     return response
