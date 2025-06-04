@@ -327,12 +327,14 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
 
 
     distance_matrix_response = get_distance_matrix_2d(locations)
+    location_ids = distance_matrix_response.location_ids
     duration_matrix = distance_matrix_response.duration_matrix
     distance_matrix = distance_matrix_response.distance_matrix
 
     enhanced_opti_request = EnhancedOptimizationRequest(
         company_info = enhanced_company_info,
         appointments = enhanced_appointments,
+        location_ids = location_ids,
         time_matrix = duration_matrix,
         distance_matrix = distance_matrix
     )
