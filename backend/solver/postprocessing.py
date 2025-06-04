@@ -37,12 +37,14 @@ def extract_enriched_metrics(
 
             total_service_time += current.service_time
 
-            current_end = to_minutes(current.appointment_start) + current.service_time
-            next_start = to_minutes(nxt.appointment_start)
-            wait_time = max(0, next_start - current_end)
-            total_idle_time += wait_time
+            # Skip idle time if current or next appointment is depot
+            if i > 0 and i < len(appts) - 2:
+                current_end = to_minutes(current.appointment_start) + current.service_time
+                next_start = to_minutes(nxt.appointment_start)
+                wait_time = max(0, next_start - current_end)
+                total_idle_time += wait_time
 
-        # Handle last appointment service time
+        # Add last appointment's service time
         last_appt = appts[-1]
         total_service_time += last_appt.service_time
         last_appt.travel_time_to_next_min = None
