@@ -76,11 +76,6 @@ export function ScenarioCalendar({
   const handleNextMonth = () => setQuery(currentDate.add(1, 'month'));
   const handleToday = () => setQuery(dayjs());
 
-  //   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-  //     setQuery(currentDate.month(parseInt(e.target.value)));
-  //   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-  //     setQuery(currentDate.year(parseInt(e.target.value)));
-
   return (
     <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
       {/* Header */}
@@ -109,31 +104,6 @@ export function ScenarioCalendar({
         <h2 className="text-xl font-bold text-black">
           {currentDate.format('MMMM YYYY')}
         </h2>
-
-        {/* <div className="flex items-center gap-2">
-          <select
-            className="border-2 border-gray-400 rounded p-1 bg-white text-black"
-            value={currentDate.month()}
-            onChange={handleMonthChange}
-          >
-            {months.map((month, i) => (
-              <option key={month} value={i}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border-2 border-gray-400 rounded p-1 bg-white text-black"
-            value={currentDate.year()}
-            onChange={handleYearChange}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div> */}
 
         <div className="flex items-center gap-2">
           {/* Month Select */}
