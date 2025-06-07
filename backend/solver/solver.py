@@ -10,6 +10,22 @@ from solver.preprocessing import *
 from solver.util import *
 from solver.validation import validate_solution_and_report
 from solver.postprocessing import extract_enriched_metrics
+from typing import List
+
+from backend.solver.models import FilledVehicle
+
+
+def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> List[List[bool]]:
+    matrix = []
+    for appointment in appointments:
+        required_skills = appointment.skills_needed
+        row = []
+        for vehicle in vehicles:
+            vehicle_skills = vehicle.skills
+            is_compatible = required_skills.issubset(vehicle_skills)
+            row.append(is_compatible)
+        matrix.append(row)
+    return matrix
 
 
 def solve_appointment_routing(
@@ -83,9 +99,23 @@ def solve_appointment_routing(
         routing.solver().Add(cumul + service_times[idx] <= end)
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
-    penalty = 10000
-    for idx in range(1, num_locations):
-        routing.AddDisjunction([manager.NodeToIndex(idx)], penalty)
+    penalty_default = 10000
+    compat_matrix = build_compatibility_matrix(appointments, company_info.number_of_workers)
+
+    for appt_idx, row in enumerate(compat_matrix):
+        # depot = 0, therefore +1
+        node_index = manager.NodeToIndex(appt_idx + 1)
+
+        allowed_vehicle_ids = [vehicle_idx for vehicle_idx, is_ok in enumerate(row) if is_ok]
+
+        # Set only if there are allowed vehicles
+        if allowed_vehicle_ids:
+            routing.SetAllowedVehiclesForIndex(allowed_vehicle_ids, node_index)
+
+        # Set disjunction: 0 penalty if no vehicle can serve this appointment, else 10000
+        penalty = 0 if not allowed_vehicle_ids else penalty_default
+        #TODO inculde zero-compatibility-information in validation report
+        routing.AddDisjunction([node_index], penalty)
 
     # Search parameters
     search_params = pywrapcp.DefaultRoutingSearchParameters()
@@ -182,6 +212,7 @@ def solve_appointment_routing(
             appointment_start= start,
             appointment_end= end,
             service_time=0,
+            skills_needed = (),
             location=request.company_info.start_location,
             id="depot_start",
             number_of_workers=0
@@ -192,6 +223,7 @@ def solve_appointment_routing(
             appointment_start= start,
             appointment_end= end,
             service_time=0,
+            skills_needed=set(),
             location=request.company_info.finish_location,
             id="depot_end",
             number_of_workers=0

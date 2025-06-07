@@ -268,6 +268,7 @@ def convert_to_enhanced_appointment(appointment: Appointment,location:Location) 
         appointment_end=appointment.appointment_end,
         address=appointment.address,
         service_time = appointment.service_time,
+        skills_needed= appointment.skills_needed,
         location=location,
         number_of_workers=appointment.number_of_workers
     )

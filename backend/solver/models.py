@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Optional, Union
+from pydantic import BaseModel, Field
+from typing import List, Optional, Union, Set
 from dataclasses import dataclass
 
 class Address(BaseModel):
@@ -18,6 +18,7 @@ class Appointment(BaseModel):
     address:Address
     service_time: int
     number_of_workers: int
+    skills_needed: Set[str] = Field(default_factory=set)
 
 class EnhancedAppointment(BaseModel):
     appointment_start: str
@@ -25,13 +26,14 @@ class EnhancedAppointment(BaseModel):
     address:Address
     service_time: int
     location:Location
-    number_of_workers: int    
+    number_of_workers: int
+    skills_needed: Set[str] = Field(default_factory=set)
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
 
 class FilledVehicle(BaseModel):
     vehicle_id:int
-    skills:Optional[str]
+    skills: Set[str] = Field(default_factory=set)
     worker_amount:int
 
 class CompanyInfo(BaseModel):
