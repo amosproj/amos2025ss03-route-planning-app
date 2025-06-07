@@ -49,9 +49,9 @@ def solve_appointment_routing(
     distance_matrix = request.distance_matrix
 
     # Time windows
-    time_windows = [(0, 1440)]  # Depot open all day
+    appointment_time_windows = [(0, 1440)]  # Depot open all day
     for appt in appointments:
-        time_windows.append((to_minutes(appt.appointment_start), to_minutes(appt.appointment_end)))
+        appointment_time_windows.append((to_minutes(appt.appointment_start), to_minutes(appt.appointment_end)))
 
     # Service times in minutes
     service_times = [0]  # Depot
@@ -59,7 +59,7 @@ def solve_appointment_routing(
         service_times.append(appt.service_time)
 
     num_locations = len(addresses)
-    num_vehicles = len(company_info.number_of_workers)
+    num_vehicles = len(company_info.vehicles)
     depot_index = 0
 
     # Routing setup
@@ -94,9 +94,20 @@ def solve_appointment_routing(
     time_dimension.SetSlackCostCoefficientForAllVehicles(1)
     time_dimension.SetGlobalSpanCostCoefficient(100)
 
+    for vehicle_id, vehicle in enumerate(request.company_info.vehicles):
+        filled_vehicle = request.company_info.vehicles[vehicle_id]
+
+        start = filled_vehicle.operation_hours.start_minutes
+        end = filled_vehicle.operation_hours.end_minutes
+
+        start_index = routing.Start(vehicle_id)
+        end_index = routing.End(vehicle_id)
+
+        time_dimension.CumulVar(start_index).SetRange(start, end)
+        time_dimension.CumulVar(end_index).SetRange(start, end)
 
     # Apply time windows and enforce: arrival + service_time <= end
-    for idx, (start, end) in enumerate(time_windows):
+    for idx, (start, end) in enumerate(appointment_time_windows):
         index = manager.NodeToIndex(idx)
         cumul = time_dimension.CumulVar(index)
 
@@ -105,7 +116,7 @@ def solve_appointment_routing(
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
     penalty_default = 10000
-    compat_matrix = build_compatibility_matrix(appointments, company_info.number_of_workers)
+    compat_matrix = build_compatibility_matrix(appointments, company_info.vehicles)
 
     for appt_idx, row in enumerate(compat_matrix):
         # depot = 0, therefore +1
@@ -189,7 +200,7 @@ def solve_appointment_routing(
             arrival_time = solution.Value(time_dimension.CumulVar(index))
 
             # Service time and waiting time
-            appt_start = time_windows[node_index][0]
+            appt_start = appointment_time_windows[node_index][0]
             service_time = service_times[node_index]
             waiting_time = max(0, appt_start - arrival_time) if node_index > 0 else 0
 

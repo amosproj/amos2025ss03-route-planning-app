@@ -89,7 +89,8 @@ def generate_filled_vehicles(amount: int) -> list[FilledVehicle]:
         FilledVehicle(
             vehicle_id=i + 1,
             skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),
-            worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0]
+            worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0],
+            operation_hours = OperationHours(start_minutes = 0,end_minutes = 1440)#TODO change to real logic
         ) for i in range(amount)
     ]
 
@@ -150,7 +151,7 @@ def create_testdata_optimization_request(num_vehicles: int, num_appointments: in
     company_info = CompanyInfo(
         start_address=start_address,
         finish_address=finish_address,
-        number_of_workers=generate_filled_vehicles(num_vehicles)
+        vehicles =generate_filled_vehicles(num_vehicles)
     )
 
     appointments = generate_random_appointments(num_appointments,appointment_duration_factor)

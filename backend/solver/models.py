@@ -12,6 +12,10 @@ class Location(BaseModel):
     lat: float
     lng: float
 
+class OperationHours(BaseModel):
+    start_minutes: int
+    end_minutes: int
+
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
@@ -35,18 +39,19 @@ class FilledVehicle(BaseModel):
     vehicle_id:int
     skills: Set[str] = Field(default_factory=set)
     worker_amount:int
+    operation_hours:OperationHours
 
 class CompanyInfo(BaseModel):
     start_address: Address
     finish_address: Address
-    number_of_workers: List[FilledVehicle]
+    vehicles: List[FilledVehicle]
 
 class EnhancedCompanyInfo(BaseModel):
     start_address: Address
     start_location: Location
     finish_address: Address
     finish_location: Location
-    number_of_workers: List[FilledVehicle]
+    vehicles: List[FilledVehicle]
 
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
