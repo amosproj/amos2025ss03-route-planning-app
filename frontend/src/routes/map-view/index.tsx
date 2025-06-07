@@ -8,7 +8,7 @@ import {
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
@@ -26,6 +26,9 @@ import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
 import { createDepotMarkerIcon } from '@/utils/helper';
+
+
+
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
@@ -123,34 +126,6 @@ function MapView() {
     lng: number;
   } | null>(null);
 
-  // Error when optimizing
-  const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
-
-  // extract and group errors from the response detail
-  const extractAndGroupErrors = (detail: string): string[] => {
-    try {
-      const match = detail.match(/{.*}/);
-      if (!match) return [];
-
-      const jsonStr = match[0].replace(/'/g, '"');
-      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
-
-      const errors = parsed.errors || [];
-
-      const counts: Record<string, number> = {};
-      errors.forEach((err) => {
-        counts[err] = (counts[err] || 0) + 1;
-      });
-
-      return Object.entries(counts).map(([msg, count]) =>
-        count > 1 ? `${msg} (x${count})` : msg,
-      );
-    } catch (e) {
-      console.error('Failed to extract and group errors:', e);
-      return [];
-    }
-  };
-
   // Optimization mutation
   const optimizationMutation = useMutation<
     Solution,
@@ -165,14 +140,7 @@ function MapView() {
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      console.error('Failed to get solution:', error);
-
-      const detail = error?.response?.data?.detail;
-      const groupedErrors = extractAndGroupErrors(detail || '');
-      setOptimizationErrors(groupedErrors);
-    },
+    onError: (error) => console.error('Failed to get solution:', error),
   });
 
   const handleOptimize = () => {
@@ -201,7 +169,7 @@ function MapView() {
             service_time: 15,
           };
         }) || [];
-
+     
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
@@ -209,11 +177,12 @@ function MapView() {
         vehicle_id: v.vehicle_id,
         skills: v.skills,
         worker_amount: v.worker_amount,
+        operation_hours: v.operation_hours,
       })),
-    };
+    }    
 
     const request: OptimizationRequest = {
-      //@ts-expect-error TODO: Wrong type because of old backend data structure
+      //@ts-expect-error - the API expects a specific format
       company_info: alteredCompanyInfo,
       appointments: enhancedAppointments,
     };
@@ -321,31 +290,25 @@ function MapView() {
           selectedIdx={selectedIdx}
           onSelect={(idx) => {
             const loc = locations[idx];
-            if (
-              loc?.latitude != null &&
+            if (loc?.latitude != null &&
               loc?.longitude != null &&
-              mapRef.current
-            ) {
+              mapRef.current) {
               mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
               mapRef.current.setZoom(14);
               setMapCenter({ lat: loc.latitude, lng: loc.longitude });
               setSelectedIdx(idx);
             }
-          }}
-          onToggleExclude={(idx) =>
-            dispatch(toggleExcludedAppointment({ date, idx }))
-          }
+          } }
+          onToggleExclude={(idx) => dispatch(toggleExcludedAppointment({ date, idx }))}
           onToggleAll={(selectAll) => {
             const allIdx = scenario.jobs.map((_, i) => i);
             dispatch(
               setExcludedAppointments({
                 date,
                 idxList: selectAll ? [] : allIdx,
-              }),
+              })
             );
-          }}
-          optimizationErrors={optimizationErrors}
-        />
+          } } optimizationErrors={[]}        />
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
@@ -490,7 +453,6 @@ function MapView() {
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
               </h2>
-              <span>Date{scenario.date}</span>
             </div>
           </Skeleton>
         )}
