@@ -19,13 +19,18 @@ def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles
     matrix = []
     for appointment in appointments:
         required_skills = appointment.skills_needed
+        required_workers = appointment.number_of_workers
         row = []
         for vehicle in vehicles:
             vehicle_skills = vehicle.skills
-            is_compatible = required_skills.issubset(vehicle_skills)
+            available_workers = vehicle.worker_amount
+            has_required_skills = required_skills.issubset(vehicle_skills)
+            has_enough_workers = available_workers >= required_workers
+            is_compatible = has_required_skills and has_enough_workers
             row.append(is_compatible)
         matrix.append(row)
     return matrix
+
 
 
 def solve_appointment_routing(

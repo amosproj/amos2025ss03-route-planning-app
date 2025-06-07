@@ -63,7 +63,6 @@ def generate_random_addresses(n:int) -> Address:
         Address(street="Köpenicker Straße 76, Brückenstraße 1", zip_code="10179", city="Berlin"),
         Address(street="Singerstraße 109", zip_code="10179", city="Berlin"),
         Address(street="Holteistraße 6-9", zip_code="10245", city="Berlin"),
-        Address(street="Wönnichstraße 69-71", zip_code="10317", city="Berlin"),
         Address(street="Sewanstraße 41", zip_code="10319", city="Berlin"),
         Address(street="Königsheideweg 9b", zip_code="12437", city="Berlin"),
         Address(street="Johannisthaler Ch 46", zip_code="12437", city="Berlin"),
@@ -82,16 +81,18 @@ def get_random_service_time() -> int:
     choices = [30, 60, 45, 90]
     weights = [0.4, 0.3, 0.15, 0.15]
     return random.choices(choices, weights=weights, k=1)[0]
-skills_pool = ["electrician", "plumber","carpenter"]
-def generate_filled_vehicles(amount: int) -> List[FilledVehicle]:
 
+skills_pool = ["electrician", "plumber","carpenter"]
+
+def generate_filled_vehicles(amount: int) -> list[FilledVehicle]:
     return [
         FilledVehicle(
             vehicle_id=i + 1,
-            skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),  # ✅ hier Set
-            worker_amount=random.randint(1, 3)
+            skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),
+            worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0]
         ) for i in range(amount)
     ]
+
 def round_to_nearest_quarter(dt: datetime, direction: str = "down") -> datetime:
     minute = (dt.minute // 15) * 15
     if direction == "up" and dt.minute % 15 != 0:
@@ -131,7 +132,7 @@ def generate_random_appointments(n: int, appointment_duration_factor: float = 3.
             address=addresses[i],
             service_time=str(service_time),
             skills_needed=selected_skills,
-            number_of_workers=random.randint(1, 2)
+            number_of_workers=random.choices([1, 2, 3], weights=[0.7, 0.25, 0.05])[0]
         )
 
         appointments.append(appointment)
