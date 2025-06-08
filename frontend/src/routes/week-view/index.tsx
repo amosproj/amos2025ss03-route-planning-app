@@ -1,326 +1,354 @@
-import { createFileRoute, useSearch, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useSearch, useNavigate } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
+import apiClient from '../../utils/apiClient';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
+import { addSolution } from '../../store/solutionsSlice';
+import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 
-import dayjs from 'dayjs'
-import { useEffect, useMemo, useState } from 'react'
+import dayjs from 'dayjs';
+import { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, CircleCheck, Loader2, Map, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Scenario } from '@/types/Scenario';
 
 export const Route = createFileRoute('/week-view/')({
-    component: WeekViewPage,
-    validateSearch: (search) => {
-        const year = parseInt(search.year as string) || dayjs().year()
-        const week = parseInt(search.week as string) || getWeekStartingSunday(dayjs()).week
-        return { year, week }
-    },
-})
+  component: WeekViewPage,
+  validateSearch: (search) => {
+    const year = parseInt(search.year as string) || dayjs().year();
+    const week = parseInt(search.week as string) || getWeekStartingSunday(dayjs()).week;
+    return { year, week };
+  },
+});
 
 function getWeekStartingSunday(date: dayjs.Dayjs) {
-    const yearStart = dayjs(`${date.year()}-01-01`)
-    const daysSinceSunday = yearStart.day() // Sunday = 0
-    const firstSunday = yearStart.subtract(daysSinceSunday, 'day')
-    const diffInDays = date.startOf('day').diff(firstSunday, 'day')
-    const week = Math.floor(diffInDays / 7) + 1
-    return { year: date.year(), week }
+  const yearStart = dayjs(`${date.year()}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  const diffInDays = date.startOf('day').diff(firstSunday, 'day');
+  const week = Math.floor(diffInDays / 7) + 1;
+  return { year: date.year(), week };
 }
 
 function getStartOfWeek(year: number, week: number) {
-    const yearStart = dayjs(`${year}-01-01`)
-    const daysSinceSunday = yearStart.day() // Sunday = 0
-    const firstSunday = yearStart.subtract(daysSinceSunday, 'day')
-    return firstSunday.add(week - 1, 'week')
+  const yearStart = dayjs(`${year}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  return firstSunday.add(week - 1, 'week');
 }
 
 function WeekViewPage() {
-    const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
-    console.log('scenarios', scenarios)
-    const solutions = useSelector((state: RootState) => state.solutions.byDate);
+  const { year, week } = useSearch({ from: '/week-view/' });
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-    const sortedScenarios = useMemo(() => {
-        return [...scenarios]
-            .map((item) => ({
-                ...item,
-                solution: !!solutions[`"${item.date}"`],
-            }))
-            .sort((a, b) => a.date - b.date);
-    }, [scenarios, solutions]);
+  const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week]);
+  const weekDates = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'));
+  const weekRangeText = `${weekDates[0].format('MMM D')} – ${weekDates[6].format('D, YYYY')}`;
 
-    // Map dates to scenarios
-    const scenariosByDate = new Map(
-        sortedScenarios.map((sc) => [new Date(sc.date).toDateString(), sc]),
+  const handleWeekChange = (newWeek: number, newYear = year) => {
+    navigate({ search: { week: newWeek, year: newYear } });
+  };
+
+  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
+  const solutions = useSelector((state: RootState) => state.solutions.byDate);
+  const enrichedByDate = useSelector((state: RootState) => state.enrichedAppointments);
+  const solutionByDate = useSelector((state: RootState) => state.solutions.byDate);
+  const companyInfo = useSelector((s: RootState) => Object.values(s.companyInfo)[0]);
+
+  const sortedScenarios = useMemo(() => {
+    return [...scenarios]
+      .map((item) => ({
+        ...item,
+        solution: !!solutions[`"${item.date}"`],
+      }))
+      .sort((a, b) => a.date - b.date);
+  }, [scenarios, solutions]);
+
+  const scenariosByDate = useMemo(() => {
+    return Object.fromEntries(
+      sortedScenarios.map((sc) => [
+        new Date(sc.date).toDateString(),
+        { ...sc, date: sc.date.toString() },
+      ])
     );
+  }, [sortedScenarios]);
+
+  const filteredScenarios = useMemo(() => {
+    return weekDates
+      .map((date) => {
+        const dateKey = date.toDate().toDateString();
+        return scenariosByDate[dateKey] || null;
+      })
+      .filter((sc) => sc !== null);
+  }, [weekDates, scenariosByDate]);
+
+  const [enrichLoading, setEnrichLoading] = useState<Record<string, boolean>>({});
+  const [optimizeLoading, setOptimizeLoading] = useState<Record<string, boolean>>({});
+
+  // progress states
+  const [enrichProgress, setEnrichProgress] = useState(0);
+  const [optimizeProgress, setOptimizeProgress] = useState(0);
 
 
-    const { year, week } = useSearch({ from: '/week-view/' })
-    const navigate = useNavigate()
+  const enrichMutation = useMutation({
+    mutationFn: async (scenario: Scenario) => {
+      const date = `"${scenario.date}"`;
 
-    const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week])
-    const weekDates = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'))
+      const payload = scenario.jobs.map((job) => ({
+        address: job.address,
+        number_of_workers: job.number_of_workers,
+        service_time: 30,
+        appointment_start: new Date(job.appointment_start).toISOString(),
+        appointment_end: new Date(job.appointment_end).toISOString(),
+      }));
 
-    const filteredScenarios = useMemo(() => {
-        return weekDates.map(date => {
-            const dateKey = date.toDate().toDateString()
-            return scenariosByDate.get(dateKey) || null
-        }).filter(sc => sc !== null)
-    }, [weekDates, scenariosByDate])
+      const res = await apiClient.post('/api/appointments', payload);
+      return { date, data: res.data };
 
+    },
+    onSuccess: ({ date, data }) => {
+      dispatch(setEnrichedAppointments({ date, address_responses: data.address_responses }));
+    },
+  });
 
-    // prepare appointments for payload by date
-    // const appointmentsPayloadByDate = filteredScenarios.map((scenario) => ({
-    //     date: scenario.date,
-    //     appointments: scenario.jobs.map((job) => ({
-    //         address: job.address,
-    //         number_of_workers: job.number_of_workers,
-    //         service_time: 30, // override to 30
-    //         appointment_start: new Date(job.appointment_start).toISOString(),
-    //         appointment_end: new Date(job.appointment_end).toISOString()
-    //     })) || [],
-    // }));
+  const optimizeMutation = useMutation({
+    mutationFn: async (scenario: Scenario) => {
+      const date = `"${scenario.date}"`;
 
-    const [enrichedAppointmentsByDate, setEnrichedAppointmentsByDate] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [isAappointmentsEnriched, setIsAppointmentsEnriched] = useState(false);
+      const appointments = scenario.jobs.map((job) => ({
+        address: job.address,
+        number_of_workers: job.number_of_workers,
+        service_time: 15,
+        appointment_start: new Date(job.appointment_start).
+          toISOString().
+          replace('T', ' ')
+          .split('.')[0] + '.000',
+        appointment_end: new Date(job.appointment_end)
+          .toISOString()
+          .replace('T', ' ')
+          .split('.')[0] + '.000',
+      }));
 
-    const [solutionByDate, setSolutionByDate] = useState<{ [date: string]: any }>({});
+      const companyPayload = {
+        start_address: companyInfo.start_address,
+        finish_address: companyInfo.finish_address,
+        number_of_workers: companyInfo.vehicles.map((v) => ({
+          vehicle_id: v.vehicle_id,
+          skills: v.skills,
+          worker_amount: v.worker_amount,
+        })),
+      };
 
-    const handleEnrichAppointments = async () => {
-        setLoading(true);
+      const res = await apiClient.post('/api/check-and-solve', {
+        company_info: companyPayload,
+        appointments,
+      });
 
-        const appointmentsPayloadByDate = filteredScenarios.map((scenario) => ({
-            date: scenario.date,
-            appointments: scenario.jobs.map((job) => ({
-                address: job.address,
-                number_of_workers: job.number_of_workers,
-                service_time: 30, // override to 30
-                appointment_start: new Date(job.appointment_start).toISOString(),
-                appointment_end: new Date(job.appointment_end).toISOString(),
-            })) || [],
-        }));
+      return { date, solution: res.data };
+    },
+    onSuccess: ({ date, solution }) => {
+      dispatch(addSolution({ date, solution }));
+    },
+  });
 
-        console.log('appointmentsPayloadByDate', appointmentsPayloadByDate);
+  const handleEnrichAppointments = async () => {
+    const tasks = filteredScenarios
+      .filter((scenario) => !enrichedByDate[`"${scenario.date}"`])
+      .map(async (scenario, idx, arr) => {
+        const date = `"${scenario.date}"`;
+        setEnrichLoading((prev) => ({ ...prev, [date]: true }));
 
-        const results: { [date: string]: any } = {};
-
-        for (const payload of appointmentsPayloadByDate) {
-            try {
-                const response = await fetch('http://localhost:8080/api/appointments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload.appointments),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed for date ${payload.date}: ${response.statusText}`);
-                }
-
-                const enrichedAppointments = await response.json();
-
-                results[payload.date] = enrichedAppointments;
-            } catch (error) {
-                console.error('Error enriching appointments:', error);
-            }
-
-        }
-
-        setEnrichedAppointmentsByDate(results);
-        setLoading(false);
-        setIsAppointmentsEnriched(true);
-    };
-
-    useEffect(() => {
-        if (isAappointmentsEnriched) {
-            console.log('isAappointmentsEnriched:', isAappointmentsEnriched);
-        }
-    }, [isAappointmentsEnriched]);
-
-    useEffect(() => {
-        console.log('Enriched Appointments By Date:', enrichedAppointmentsByDate);
-    }, [enrichedAppointmentsByDate]);
-
-    const companyInfo = useSelector(
-        (s: RootState) => Object.values(s.companyInfo)[0],
-    );
-    console.log('companyInfo', companyInfo);
-
-    const handleOptimization = async () => {
-        // Handle optimization logic here
-        console.log('Optimization started');
-        const payload = {
-            scenarios: filteredScenarios
-                .filter((sc) => enrichedAppointmentsByDate[sc.date]?.all_valid === true)
-                .map((sc) => ({
-                    date: sc.date,
-                    jobs: sc.jobs.map((job) => ({
-                        address: job.address,
-                        number_of_workers: job.number_of_workers,
-                        service_time: 30, // override to 30
-                        appointment_start: new Date(job.appointment_start)
-                            .toISOString()
-                            .replace('T', ' ')
-                            .split('.')[0]
-                            .concat('.000'),
-                        appointment_end: new Date(job.appointment_end)
-                            .toISOString()
-                            .replace('T', ' ')
-                            .split('.')[0]
-                            .concat('.000'),
-                    })),
-                })),
-            alteredCompanyInfo: {
-                start_address: companyInfo.start_address,
-                finish_address: companyInfo.finish_address,
-                number_of_workers: companyInfo.vehicles.map((v) => ({
-                    vehicle_id: v.vehicle_id,
-                    skills: v.skills,
-                    worker_amount: v.worker_amount,
-                })),
-            },
-        };
-
-        console.log('Optimization payload:', payload);
-
-        // Call API for each scenario
         try {
-            const results = await Promise.all(
-                payload.scenarios.map(async (scenario) => {
-                    const response = await fetch('http://localhost:8080/api/check-and-solve', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            company_info: payload.alteredCompanyInfo,
-                            appointments: scenario.jobs,
-                        }),
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed for date ${scenario.date}: ${response.statusText}`);
-                    }
-                    const data = await response.json();
-                    console.log(`Result for ${scenario.date}:`, data);
-                    setSolutionByDate((prev) => ({
-                        ...prev,
-                        [scenario.date]: data,
-                    }));
-                    return { date: scenario.date, result: data };
-                })
-            );
-            // Optionally, do something with results
-            console.log('All optimization results:', results);
-        } catch (error) {
-            console.error('Error during optimization:', error);
+          await enrichMutation.mutateAsync(scenario);
+        } catch (err) {
+          console.error('Error enriching', date, err);
+        } finally {
+          setEnrichLoading((prev) => ({ ...prev, [date]: false }));
+          setEnrichProgress((prev) => prev + 1 / arr.length);
         }
-    }
+      });
+
+    setEnrichProgress(0);
+    await Promise.allSettled(tasks);
+  };
 
 
-    // ---------------------------------------------------------------------------
+  const allLocationsFullyFound = (locations: { could_be_fully_found: boolean }[] = []) =>
+    locations.every((loc) => loc.could_be_fully_found);
+
+  const handleOptimization = async () => {
+    const tasks = filteredScenarios
+      .filter((scenario) => {
+        const date = `"${scenario.date}"`;
+
+        return (
+          !solutionByDate[date] &&
+          allLocationsFullyFound(enrichedByDate[date])
+        );
+      })
+      .map(async (scenario, idx, arr) => {
+        const date = `"${scenario.date}"`;
+
+        setOptimizeLoading((prev) => ({ ...prev, [date]: true }));
+        try {
+          await optimizeMutation.mutateAsync(scenario);
+        } catch (err) {
+          console.error('Error optimizing', date, err);
+        } finally {
+          setOptimizeLoading((prev) => ({ ...prev, [date]: false }));
+          setOptimizeProgress((prev) => prev + 1 / arr.length);
+        }
+      });
+
+    setOptimizeProgress(0);
+    await Promise.allSettled(tasks);
+  };
 
 
-
-    const handleWeekChange = (newWeek: number, newYear = year) => {
-        navigate({ search: { week: newWeek, year: newYear } })
-    }
-
-    const weekRangeText = `${weekDates[0].format('MMM D')} – ${weekDates[6].format('D, YYYY')}`
-
-    return (
-        <div className="p-4 space-y-4 max-w-xl mx-auto">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between">
-                {/* Prev / Next */}
-                <div className="flex gap-2">
-                    <button
-                        className="text-blue-600 hover:underline"
-                        onClick={() => handleWeekChange(week - 1)}
-                    >
-                        &larr; Prev
-                    </button>
-                    <button
-                        className="text-blue-600 hover:underline"
-                        onClick={() => handleWeekChange(week + 1)}
-                    >
-                        Next &rarr;
-                    </button>
-                </div>
-
-                {/* Week Range Display */}
-                <div className="text-lg font-semibold text-center">
-                    {weekRangeText}
-                </div>
-
-                {/* Week/Year Dropdowns */}
-                <div className="flex gap-2">
-                    <select
-                        className="border rounded px-2 py-1"
-                        value={week}
-                        onChange={(e) => handleWeekChange(parseInt(e.target.value))}
-                    >
-                        {Array.from({ length: 53 }, (_, i) => (
-                            <option key={i + 1} value={i + 1}>
-                                Week {i + 1}
-                            </option>
-                        ))}
-                    </select>
-                    <select
-                        className="border rounded px-2 py-1"
-                        value={year}
-                        onChange={(e) => handleWeekChange(week, parseInt(e.target.value))}
-                    >
-                        {Array.from({ length: 5 }, (_, i) => {
-                            const y = dayjs().year() - 2 + i
-                            return <option key={y} value={y}>{y}</option>
-                        })}
-                    </select>
-                </div>
-            </div>
-
-            <div className='flex justify-end items-center gap-3'>
-                <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={handleEnrichAppointments}
-                >
-                    Check Appointments
-                </button>
-
-                <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={handleOptimization}
-                >
-                    Start Optimization
-                </button>
-            </div>
-
-            {/* Vertical Days List */}
-            <div className="flex flex-col gap-3">
-                {weekDates.map((date, idx) => {
-                    const dateKey = date.toDate().toDateString();
-                    const sc = scenariosByDate.get(dateKey);
-                    const appointment = enrichedAppointmentsByDate[dateKey];
-                    console.log('appointment', appointment);
-
-                    return (
-                        <div
-                            key={date.toISOString()}
-                            className="border rounded p-3 shadow-sm"
-                        >
-                            <div className="text-lg font-semibold">{date.format('dddd')}</div>
-                            <div className="text-sm text-gray-600">{date.format('MMM D, YYYY')}</div>
-                            {sc && <div>
-                                Jobs: {sc.jobs.length}
-                                <br />
-                                Enriched: {enrichedAppointmentsByDate[sc.date] ? JSON.stringify(enrichedAppointmentsByDate[sc.date].all_valid) : 'Not enriched'}
-                                <br />
-                                Solution: {solutionByDate[sc.date] ? 'Success' : 'No solution yet'}
-                            </div>}
-                            <div>
-
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+  return (
+    <div className="p-4 space-y-4 max-w-xl mx-auto">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <button
+            className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
+            onClick={() => handleWeekChange(week - 1)}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
+            onClick={() => handleWeekChange(week + 1)}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
-    )
+
+        <div className="text-lg font-semibold text-center">{weekRangeText}</div>
+
+        <div className="flex gap-2">
+          <select
+            className="border rounded px-2 py-1"
+            value={week}
+            onChange={(e) => handleWeekChange(parseInt(e.target.value))}
+          >
+            {Array.from({ length: 53 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                Week {i + 1}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border rounded px-2 py-1"
+            value={year}
+            onChange={(e) => handleWeekChange(week, parseInt(e.target.value))}
+          >
+            {Array.from({ length: 5 }, (_, i) => {
+              const y = dayjs().year() - 2 + i;
+              return (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end items-center gap-3">
+        <Button onClick={handleEnrichAppointments}>Verify Appointments</Button>
+        <Button onClick={handleOptimization}>Start Optimization</Button>
+      </div>
+
+      <div>
+        {/* Progress bars */}
+        {enrichProgress > 0 && enrichProgress < 1 && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+            <div
+              className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${enrichProgress * 100}%` }}
+            ></div>
+          </div>
+        )}
+
+        {optimizeProgress > 0 && optimizeProgress < 1 && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+            <div
+              className="bg-green-500 h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${optimizeProgress * 100}%` }}
+            ></div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Week Days List */}
+      <div className="flex flex-col gap-3">
+        {weekDates.map((date) => {
+          const dateKey = date.toDate().toDateString();
+          const sc = scenariosByDate[dateKey];
+          const dateString = sc ? `"${sc.date}"` : '';
+
+          return (
+            <div key={date.toISOString()} className="border rounded p-3 shadow-sm">
+              <div className='flex justify-between items-top mb-2'>
+                <div>
+                  <div className="text-lg font-semibold">
+                    {date.format('dddd')}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {date.format('MMM D, YYYY')}
+                  </div>
+                </div>
+
+                <div
+                  className="cursor-pointer p-0.5 text-gray-800"
+                  onClick={() =>
+                    navigate({
+                      to: '/map-view',
+                      search: { date: sc.date.toString() },
+                    })
+                  }
+                >
+                  <Map className="h-4.5 w-4.5" />
+                </div>
+              </div>
+              {sc && (
+                <div className="flex justify-between items-center">
+                  <div
+                    className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    {sc.jobs.length} jobs
+                  </div>
+
+                  <div>
+                    <div className='flex items-center gap-2'>
+                      <span>Enriched:</span>
+                      {enrichLoading[dateString]
+                        ? (<Loader2 className="h-4 w-4 animate-spin" />)
+                        : enrichedByDate[dateString]
+                          ? (<CircleCheck className="h-4 w-4 text-green-600" />) : 'Not enriched'}
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <span>Solution:</span>
+                      {optimizeLoading[dateString]
+                        ? (<Loader2 className="h-4 w-4 animate-spin" />)
+                        : solutionByDate[dateString]
+                          ? (<CircleCheck className="h-4 w-4 text-green-600" />)
+                          : 'No solution yet'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

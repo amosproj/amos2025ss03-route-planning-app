@@ -7,11 +7,11 @@ import { ChevronLeft, ChevronRight, Map, MapPin, Table } from 'lucide-react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
 import { ScenarioByDate } from '@/types/Scenario';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 
 dayjs.extend(weekday);
@@ -22,242 +22,242 @@ const months = dayjs.months();
 const years = Array.from({ length: 10 }, (_, i) => dayjs().year() - 5 + i);
 
 export function ScenarioCalendar({
-    scenariosByDate,
-    setSelected,
+  scenariosByDate,
+  setSelected,
 }: {
-    scenariosByDate: Map<string, ScenarioByDate>;
-    setSelected: React.Dispatch<React.SetStateAction<ScenarioByDate | null>>;
+  scenariosByDate: Map<string, ScenarioByDate>;
+  setSelected: React.Dispatch<React.SetStateAction<ScenarioByDate | null>>;
 }) {
-    const search = useSearch({ from: '/scenarios/' });
-    const navigate = useNavigate({ from: '/scenarios' });
+  const search = useSearch({ from: '/scenarios/' });
+  const navigate = useNavigate({ from: '/scenarios' });
 
-    const currentDate = useMemo(() => {
-        const year = search.year ?? dayjs().year();
-        const month = search.month ?? dayjs().month();
-        return dayjs().year(year).month(month);
-    }, [search.year, search.month]);
+  const currentDate = useMemo(() => {
+    const year = search.year ?? dayjs().year();
+    const month = search.month ?? dayjs().month();
+    return dayjs().year(year).month(month);
+  }, [search.year, search.month]);
 
-    useEffect(() => {
-        const now = dayjs();
-        const shouldUpdate =
-            typeof search.year === 'undefined' || typeof search.month === 'undefined';
+  useEffect(() => {
+    const now = dayjs();
+    const shouldUpdate =
+      typeof search.year === 'undefined' || typeof search.month === 'undefined';
 
-        if (shouldUpdate) {
-            navigate({
-                search: {
-                    year: search.year ?? now.year(),
-                    month: search.month ?? now.month(),
-                },
-                replace: true,
-            });
-        }
-    }, [search.year, search.month, navigate]);
-
-    const today = dayjs();
-    const startOfMonth = currentDate.startOf('month');
-    const endOfMonth = currentDate.endOf('month');
-
-    const startDate = startOfMonth.weekday(0); // Monday
-    const endDate = endOfMonth.weekday(6); // Sunday
-
-    const days = [];
-    let date = startDate;
-
-    while (date.isBefore(endDate) || date.isSame(endDate)) {
-        days.push(date);
-        date = date.add(1, 'day');
+    if (shouldUpdate) {
+      navigate({
+        search: {
+          year: search.year ?? now.year(),
+          month: search.month ?? now.month(),
+        },
+        replace: true,
+      });
     }
+  }, [search.year, search.month, navigate]);
 
-    const setQuery = (date: dayjs.Dayjs) => {
-        navigate({ search: { year: date.year(), month: date.month() } });
-    };
+  const today = dayjs();
+  const startOfMonth = currentDate.startOf('month');
+  const endOfMonth = currentDate.endOf('month');
 
-    const handlePrevMonth = () => setQuery(currentDate.subtract(1, 'month'));
-    const handleNextMonth = () => setQuery(currentDate.add(1, 'month'));
-    const handleToday = () => setQuery(dayjs());
+  const startDate = startOfMonth.weekday(0); // Monday
+  const endDate = endOfMonth.weekday(6); // Sunday
 
-    const getCalendarWeekNumber = (date: dayjs.Dayjs) => {
+  const days = [];
+  let date = startDate;
 
-        console.log(date.year())
-        const jan1 = dayjs(`${date.year()}-01-01`)
-        const startOfWeek = jan1.startOf('week') // Sunday before Jan 1
-        const thisWeekStart = date.startOf('week')
+  while (date.isBefore(endDate) || date.isSame(endDate)) {
+    days.push(date);
+    date = date.add(1, 'day');
+  }
 
-        // Ensure Jan 1 is in Week 1, even if week starts in December
-        const weekNumber = thisWeekStart.diff(startOfWeek, 'week') + 1
+  const setQuery = (date: dayjs.Dayjs) => {
+    navigate({ search: { year: date.year(), month: date.month() } });
+  };
 
-        return weekNumber
-    }
+  const handlePrevMonth = () => setQuery(currentDate.subtract(1, 'month'));
+  const handleNextMonth = () => setQuery(currentDate.add(1, 'month'));
+  const handleToday = () => setQuery(dayjs());
 
-    return (
-        <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
-                <div className="flex items-center gap-2 ">
-                    <button
-                        onClick={handlePrevMonth}
-                        className="px-3 py-1.5 rounded-md border hover:bg-gray-100  text-black"
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={handleToday}
-                        className="px-3 py-1.5 rounded-md border  hover:bg-gray-100  text-black text-sm"
-                    >
-                        Today
-                    </button>
-                    <button
-                        onClick={handleNextMonth}
-                        className="px-3 py-1.5 rounded-md border  hover:bg-gray-100 text-black"
-                    >
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-                </div>
+  const getCalendarWeekNumber = (date: dayjs.Dayjs) => {
 
-                <h2 className="text-xl font-bold text-black">
-                    {currentDate.format('MMMM YYYY')}
-                </h2>
+    console.log(date.year())
+    const jan1 = dayjs(`${date.year()}-01-01`)
+    const startOfWeek = jan1.startOf('week') // Sunday before Jan 1
+    const thisWeekStart = date.startOf('week')
 
-                <div className="flex items-center gap-2">
-                    {/* Month Select */}
-                    <Select
-                        value={currentDate.month().toString()}
-                        onValueChange={(val) => setQuery(currentDate.month(parseInt(val)))}
-                    >
-                        <SelectTrigger className="w-[120px] cursor-pointer">
-                            <SelectValue
-                                placeholder="Select month"
-                                defaultValue={months[currentDate.month()]}
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {months.map((month, i) => (
-                                <SelectItem key={month} value={i.toString()}>
-                                    {month}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+    // Ensure Jan 1 is in Week 1, even if week starts in December
+    const weekNumber = thisWeekStart.diff(startOfWeek, 'week') + 1
 
-                    {/* Year Select */}
-                    <Select
-                        value={currentDate.year().toString()}
-                        onValueChange={(val) => setQuery(currentDate.year(parseInt(val)))}
-                    >
-                        <SelectTrigger className="w-[100px] cursor-pointer">
-                            <SelectValue placeholder="Select year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {years.map((year) => (
-                                <SelectItem key={year} value={year.toString()}>
-                                    {year}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
+    return weekNumber
+  }
 
-            {/* Weekdays */}
-            <div className="grid grid-cols-[40px_repeat(7,_1fr)] text-center font-semibold text-gray-900 mb-2 text-xl">
-                <div></div> {/* week number column header */}
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                    <div key={day}>{day}</div>
-                ))}
-            </div>
-
-            {/* Days Grid with week numbers */}
-            <div className="grid grid-cols-[40px_repeat(7,_1fr)] gap-1">
-                {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
-                    const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7)
-                    // const weekNumber = weekDays[0].isoWeek() // get ISO week number
-                    const weekNumber = getCalendarWeekNumber(weekDays[0])
-
-
-                    return (
-                        <Fragment key={weekIndex}>
-                            {/* Week number column */}
-                            <div className="flex justify-center font-semibold text-gray-500 mt-3">
-                                <span className='hover:underline cursor-pointer'
-                                    onClick={() => navigate({
-                                        to: '/week-view',
-                                        search: {
-                                            year: weekDays[0].year(),
-                                            week: weekNumber,
-                                        },
-                                    })}>
-                                    {weekNumber}
-                                </span>
-                            </div>
-
-                            {/* 7 day cells */}
-                            {weekDays.map((day) => {
-                                const isCurrentMonth = day.month() === currentDate.month()
-                                const isToday = day.isSame(today, 'day')
-                                const dateKey = day.toDate().toDateString()
-                                const sc = scenariosByDate.get(dateKey)
-
-                                return (
-                                    <div
-                                        key={day.format('YYYY-MM-DD')}
-                                        className={`
-                aspect-square w-full rounded transition-all border
-                ${isToday ? 'bg-gray-200 text-gray-900' : ''}
-                ${!isCurrentMonth ? 'bg-white text-gray-400' : ''}
-                ${isCurrentMonth && !isToday ? 'bg-gray-50 text-gray-900' : ''}
-              `}
-                                    >
-                                        {isCurrentMonth && (
-                                            <div className="p-2 flex flex-col justify-between h-full">
-                                                <div className="text-lg font-semibold">{day.date()}</div>
-
-                                                {sc && (
-                                                    <>
-                                                        <div
-                                                            className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium cursor-pointer hover:bg-black"
-                                                            onClick={() => setSelected(sc)}
-                                                        >
-                                                            <MapPin className="h-4 w-4" />
-                                                            {sc.jobs.length} jobs
-                                                        </div>
-                                                        <div className="flex justify-end items-center gap-2">
-                                                            {sc?.solution && (
-                                                                <div
-                                                                    className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
-                                                                    onClick={() =>
-                                                                        navigate({
-                                                                            to: '/daily-plan',
-                                                                            search: { date: sc.date.toString() },
-                                                                        })
-                                                                    }
-                                                                >
-                                                                    <Table className="h-4.5 w-4.5" />
-                                                                </div>
-                                                            )}
-                                                            <div
-                                                                className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
-                                                                onClick={() =>
-                                                                    navigate({
-                                                                        to: '/map-view',
-                                                                        search: { date: sc.date.toString() },
-                                                                    })
-                                                                }
-                                                            >
-                                                                <Map className="h-4.5 w-4.5" />
-                                                            </div>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </Fragment>
-                    )
-                })}
-            </div>
-
+  return (
+    <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
+        <div className="flex items-center gap-2 ">
+          <button
+            onClick={handlePrevMonth}
+            className="px-3 py-1.5 rounded-md border hover:bg-gray-100  text-black"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleToday}
+            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100  text-black text-sm"
+          >
+            Today
+          </button>
+          <button
+            onClick={handleNextMonth}
+            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100 text-black"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
-    );
+
+        <h2 className="text-xl font-bold text-black">
+          {currentDate.format('MMMM YYYY')}
+        </h2>
+
+        <div className="flex items-center gap-2">
+          {/* Month Select */}
+          <Select
+            value={currentDate.month().toString()}
+            onValueChange={(val) => setQuery(currentDate.month(parseInt(val)))}
+          >
+            <SelectTrigger className="w-[120px] cursor-pointer">
+              <SelectValue
+                placeholder="Select month"
+                defaultValue={months[currentDate.month()]}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month, i) => (
+                <SelectItem key={month} value={i.toString()}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Year Select */}
+          <Select
+            value={currentDate.year().toString()}
+            onValueChange={(val) => setQuery(currentDate.year(parseInt(val)))}
+          >
+            <SelectTrigger className="w-[100px] cursor-pointer">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Weekdays */}
+      <div className="grid grid-cols-[30px_repeat(7,_1fr)] text-center font-semibold text-gray-900 mb-2 text-xl">
+        <div></div> {/* week number column header */}
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <div key={day}>{day}</div>
+        ))}
+      </div>
+
+      {/* Days Grid with week numbers */}
+      <div className="grid grid-cols-[30px_repeat(7,_1fr)] gap-1">
+        {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
+          const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7)
+          // const weekNumber = weekDays[0].isoWeek() // get ISO week number
+          const weekNumber = getCalendarWeekNumber(weekDays[0])
+
+
+          return (
+            <Fragment key={weekIndex}>
+              {/* Week number column */}
+              <div className="flex justify-center font-semibold text-gray-500 mt-3">
+                <span className='hover:underline cursor-pointer'
+                  onClick={() => navigate({
+                    to: '/week-view',
+                    search: {
+                      year: weekDays[0].year(),
+                      week: weekNumber,
+                    },
+                  })}>
+                  {weekNumber}
+                </span>
+              </div>
+
+              {/* 7 day cells */}
+              {weekDays.map((day) => {
+                const isCurrentMonth = day.month() === currentDate.month()
+                const isToday = day.isSame(today, 'day')
+                const dateKey = day.toDate().toDateString()
+                const sc = scenariosByDate.get(dateKey)
+
+                return (
+                  <div
+                    key={day.format('YYYY-MM-DD')}
+                    className={`
+                        aspect-square w-full rounded transition-all border
+                        ${isToday ? 'bg-gray-200 text-gray-900' : ''}
+                        ${!isCurrentMonth ? 'bg-white text-gray-400' : ''}
+                        ${isCurrentMonth && !isToday ? 'bg-gray-50 text-gray-900' : ''}
+                    `}
+                  >
+                    {isCurrentMonth && (
+                      <div className="p-2 flex flex-col justify-between h-full">
+                        <div className="text-lg font-semibold">{day.date()}</div>
+
+                        {sc && (
+                          <>
+                            <div
+                              className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium cursor-pointer hover:bg-black"
+                              onClick={() => setSelected(sc)}
+                            >
+                              <MapPin className="h-4 w-4" />
+                              {sc.jobs.length} jobs
+                            </div>
+                            <div className="flex justify-end items-center gap-2">
+                              {sc?.solution && (
+                                <div
+                                  className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
+                                  onClick={() =>
+                                    navigate({
+                                      to: '/daily-plan',
+                                      search: { date: sc.date.toString() },
+                                    })
+                                  }
+                                >
+                                  <Table className="h-4.5 w-4.5" />
+                                </div>
+                              )}
+                              <div
+                                className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
+                                onClick={() =>
+                                  navigate({
+                                    to: '/map-view',
+                                    search: { date: sc.date.toString() },
+                                  })
+                                }
+                              >
+                                <Map className="h-4.5 w-4.5" />
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </Fragment>
+          )
+        })}
+      </div>
+
+    </div>
+  );
 }
