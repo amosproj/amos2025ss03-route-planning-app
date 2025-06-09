@@ -218,8 +218,6 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
         address_responses = address_responses
     )
 
-
-
 def save_company_information_to_cache(company_info: CompanyInfo):
     #TODO implement
     print("Caching not yet implemented")
@@ -240,8 +238,6 @@ def validate_and_save_appointment_information(appointments: List[Appointment]):
         )
 
     return address_responses
-
-
 
 def validate_and_save_company_information(company_info: CompanyInfo):
     validation_result = validate_company_info(company_info)
