@@ -37,7 +37,7 @@ def solve_appointment_routing(
     request: EnhancedOptimizationRequest,
     slack_max: int = 1440,
     max_time_per_vehicle: int = 1440,
-    optimization_time_limit: int = 15
+    optimization_time_limit: int = 4 #TODO change back to 15
 ) -> Solution:
 
     optimization_problem_information: List[ProblemMetric] = collect_problem_metrics(request)
@@ -62,8 +62,12 @@ def solve_appointment_routing(
     num_vehicles = len(company_info.vehicles)
     depot_index = 0
 
+    vehicle_start_end_indices = list(range(num_locations - 2 * num_vehicles, num_locations))
+    start_indices = vehicle_start_end_indices[::2]
+    end_indices = vehicle_start_end_indices[1::2]
+
     # Routing setup
-    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, depot_index)
+    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, start_indices,end_indices)
     routing = pywrapcp.RoutingModel(manager)
 
     # Time callback (travel time + service time)
@@ -181,12 +185,18 @@ def solve_appointment_routing(
 
         previous_index = index
 
+        print(f"index: {index}")
+        print(f"num_locations: {num_locations}")
+        print(f"num_vehicles: {num_vehicles}")
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
 
             # Add appointment if it's not the depot
-            if node_index > 0:
-                vehicle_route.append(appointments[node_index - 1])
+            try:
+                if node_index > 0:
+                    vehicle_route.append(appointments[node_index - 1])
+            except IndexError:
+                print(f"Invalid node_index={node_index} for appointments (len={len(appointments)})")
 
             next_index = solution.Value(routing.NextVar(index))
             from_node = manager.IndexToNode(index)
