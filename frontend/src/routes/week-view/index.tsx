@@ -1,5 +1,5 @@
 import { createFileRoute, useSearch, useNavigate } from '@tanstack/react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../utils/apiClient';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,7 +9,7 @@ import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, CircleCheck, Loader2, Map, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CircleCheck, CircleDot, CircleX, Loader2, Map, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Scenario } from '@/types/Scenario';
 
@@ -91,6 +91,13 @@ function WeekViewPage() {
   const [enrichProgress, setEnrichProgress] = useState(0);
   const [optimizeProgress, setOptimizeProgress] = useState(0);
 
+  // Error handling
+  const [enrichError, setEnrichError] = useState<Record<string, boolean>>({});
+  const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>({});
+
+
+  const queryClient = useQueryClient();
+
 
   const enrichMutation = useMutation({
     mutationFn: async (scenario: Scenario) => {
@@ -109,6 +116,8 @@ function WeekViewPage() {
 
     },
     onSuccess: ({ date, data }) => {
+      queryClient.setQueryData(['enrichedAppointments', date], data.address_responses);
+
       dispatch(setEnrichedAppointments({ date, address_responses: data.address_responses }));
     },
   });
@@ -149,29 +158,41 @@ function WeekViewPage() {
       return { date, solution: res.data };
     },
     onSuccess: ({ date, solution }) => {
+      queryClient.setQueryData(['solution', date], solution);
       dispatch(addSolution({ date, solution }));
     },
   });
 
   const handleEnrichAppointments = async () => {
-    const tasks = filteredScenarios
-      .filter((scenario) => !enrichedByDate[`"${scenario.date}"`])
-      .map(async (scenario, idx, arr) => {
-        const date = `"${scenario.date}"`;
-        setEnrichLoading((prev) => ({ ...prev, [date]: true }));
+    const tasksToRun = filteredScenarios.filter((scenario) => {
+      const date = `"${scenario.date}"`;
+      return !queryClient.getQueryData(['enrichedAppointments', date]);
+    });
 
-        try {
-          await enrichMutation.mutateAsync(scenario);
-        } catch (err) {
-          console.error('Error enriching', date, err);
-        } finally {
-          setEnrichLoading((prev) => ({ ...prev, [date]: false }));
-          setEnrichProgress((prev) => prev + 1 / arr.length);
-        }
-      });
+    if (tasksToRun.length === 0) {
+      setEnrichProgress(1);
+      return;
+    }
 
     setEnrichProgress(0);
+    const tasks = tasksToRun.map(async (scenario) => {
+      const date = `"${scenario.date}"`;
+      setEnrichLoading((prev) => ({ ...prev, [date]: true }));
+
+      try {
+        await enrichMutation.mutateAsync(scenario);
+        setEnrichError((prev) => ({ ...prev, [date]: false }));
+      } catch (e) {
+        console.error(`Failed enriching ${date}`, e);
+        setEnrichError((prev) => ({ ...prev, [date]: true }));
+      } finally {
+        setEnrichLoading((prev) => ({ ...prev, [date]: false }));
+        setEnrichProgress((prev) => prev + 1 / tasksToRun.length);
+      }
+    });
+
     await Promise.allSettled(tasks);
+    setEnrichProgress(1); // Snap to 100%
   };
 
 
@@ -179,32 +200,78 @@ function WeekViewPage() {
     locations.every((loc) => loc.could_be_fully_found);
 
   const handleOptimization = async () => {
-    const tasks = filteredScenarios
-      .filter((scenario) => {
-        const date = `"${scenario.date}"`;
+    const tasksToRun = filteredScenarios.filter((scenario) => {
+      const date = `"${scenario.date}"`;
+      const enriched = enrichedByDate[date];
+      const alreadySolved = queryClient.getQueryData(['solution', date]);
+      return !alreadySolved && allLocationsFullyFound(enriched);
+    });
 
-        return (
-          !solutionByDate[date] &&
-          allLocationsFullyFound(enrichedByDate[date])
-        );
-      })
-      .map(async (scenario, idx, arr) => {
-        const date = `"${scenario.date}"`;
-
-        setOptimizeLoading((prev) => ({ ...prev, [date]: true }));
-        try {
-          await optimizeMutation.mutateAsync(scenario);
-        } catch (err) {
-          console.error('Error optimizing', date, err);
-        } finally {
-          setOptimizeLoading((prev) => ({ ...prev, [date]: false }));
-          setOptimizeProgress((prev) => prev + 1 / arr.length);
-        }
-      });
+    if (tasksToRun.length === 0) {
+      setOptimizeProgress(1);
+      return;
+    }
 
     setOptimizeProgress(0);
+    const tasks = tasksToRun.map(async (scenario) => {
+      const date = `"${scenario.date}"`;
+      setOptimizeLoading((prev) => ({ ...prev, [date]: true }));
+      console.log(`Optimizing-- ${date}`, scenario);
+      try {
+        await optimizeMutation.mutateAsync(scenario);
+        setOptimizeError((prev) => ({ ...prev, [date]: false }));
+      } catch (e) {
+        console.error(`Failed optimizing ${date}`, e);
+        setOptimizeError((prev) => ({ ...prev, [date]: true }));
+      } finally {
+        setOptimizeLoading((prev) => ({ ...prev, [date]: false }));
+        setOptimizeProgress((prev) => prev + 1 / tasksToRun.length);
+      }
+    });
+
     await Promise.allSettled(tasks);
+    setOptimizeProgress(1); // Snap to 100%
   };
+
+  // show status 
+  const renderEnrichedStatus = (date: string) => {
+    if (enrichLoading[date]) {
+      return <Loader2 className="h-4 w-4 animate-spin" />;
+    }
+
+    if (enrichError[date]) {
+      return <CircleX className="h-4 w-4 text-red-500" />;
+    }
+
+    const enriched = enrichedByDate[date];
+    if (enriched) {
+      if (allLocationsFullyFound(enriched)) {
+        return <CircleCheck className="h-4 w-4 text-green-600" />;
+      } else {
+        return <CircleX className="h-4 w-4 text-red-500" />;
+      }
+    }
+
+    return <CircleDot className="h-4 w-4 text-yellow-600" />;
+  };
+
+  const renderSolutionStatus = (date: string) => {
+    if (optimizeLoading[date]) {
+      return <Loader2 className="h-4 w-4 animate-spin" />;
+    }
+
+    if (optimizeError[date]) {
+      return <CircleX className="h-4 w-4 text-red-500" />;
+    }
+
+    const data = solutionByDate[date];
+    if (data) {
+      return <CircleCheck className="h-4 w-4 text-green-600" />;
+    }
+
+    return <CircleDot className="h-4 w-4 text-yellow-600" />;
+  };
+
 
 
   return (
@@ -290,7 +357,6 @@ function WeekViewPage() {
         {weekDates.map((date) => {
           const dateKey = date.toDate().toDateString();
           const sc = scenariosByDate[dateKey];
-          const dateString = sc ? `"${sc.date}"` : '';
 
           return (
             <div key={date.toISOString()} className="border rounded p-3 shadow-sm">
@@ -326,21 +392,11 @@ function WeekViewPage() {
                   </div>
 
                   <div>
-                    <div className='flex items-center gap-2'>
-                      <span>Enriched:</span>
-                      {enrichLoading[dateString]
-                        ? (<Loader2 className="h-4 w-4 animate-spin" />)
-                        : enrichedByDate[dateString]
-                          ? (<CircleCheck className="h-4 w-4 text-green-600" />) : 'Not enriched'}
+                    <div className="flex items-center gap-2">
+                      <span className='w-18'>Verified:</span> {renderEnrichedStatus(`"${sc.date}"`)}
                     </div>
-
-                    <div className='flex items-center gap-2'>
-                      <span>Solution:</span>
-                      {optimizeLoading[dateString]
-                        ? (<Loader2 className="h-4 w-4 animate-spin" />)
-                        : solutionByDate[dateString]
-                          ? (<CircleCheck className="h-4 w-4 text-green-600" />)
-                          : 'No solution yet'}
+                    <div className="flex items-center gap-2">
+                      <span className='w-18'>Solution:</span> {renderSolutionStatus(`"${sc.date}"`)}
                     </div>
                   </div>
                 </div>
