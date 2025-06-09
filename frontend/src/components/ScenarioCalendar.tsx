@@ -60,7 +60,7 @@ export function ScenarioCalendar({
   const startDate = startOfMonth.weekday(0); // Monday
   const endDate = endOfMonth.weekday(6); // Sunday
 
-  const days = [];
+  const days: dayjs.Dayjs[] = [];
   let date = startDate;
 
   while (date.isBefore(endDate) || date.isSame(endDate)) {
@@ -76,18 +76,9 @@ export function ScenarioCalendar({
   const handleNextMonth = () => setQuery(currentDate.add(1, 'month'));
   const handleToday = () => setQuery(dayjs());
 
-  const getCalendarWeekNumber = (date: dayjs.Dayjs) => {
-
-    console.log(date.year())
-    const jan1 = dayjs(`${date.year()}-01-01`)
-    const startOfWeek = jan1.startOf('week') // Sunday before Jan 1
-    const thisWeekStart = date.startOf('week')
-
-    // Ensure Jan 1 is in Week 1, even if week starts in December
-    const weekNumber = thisWeekStart.diff(startOfWeek, 'week') + 1
-
-    return weekNumber
-  }
+  const getCalendarWeekNumber = (sunday: dayjs.Dayjs) => {
+    return sunday.add(1, 'day').isoWeek();
+  };
 
   return (
     <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
@@ -170,9 +161,8 @@ export function ScenarioCalendar({
       <div className="grid grid-cols-[30px_repeat(7,_1fr)] gap-1">
         {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
           const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7)
-          // const weekNumber = weekDays[0].isoWeek() // get ISO week number
-          const weekNumber = getCalendarWeekNumber(weekDays[0])
-
+          const sunday = weekDays[0];
+          const weekNumber = getCalendarWeekNumber(sunday);
 
           return (
             <Fragment key={weekIndex}>

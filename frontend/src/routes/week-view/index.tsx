@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, CircleCheck, CircleDot, CircleX, Loader2, Map, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Scenario } from '@/types/Scenario';
+import { ScenarioDateString } from '@/types/Scenario';
 
 export const Route = createFileRoute('/week-view/')({
   component: WeekViewPage,
@@ -40,7 +40,8 @@ function getStartOfWeek(year: number, week: number) {
 
 function WeekViewPage() {
   const { year, week } = useSearch({ from: '/week-view/' });
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/week-view' });
+
   const dispatch = useDispatch<AppDispatch>();
 
   const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week]);
@@ -100,7 +101,7 @@ function WeekViewPage() {
 
 
   const enrichMutation = useMutation({
-    mutationFn: async (scenario: Scenario) => {
+    mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
 
       const payload = scenario.jobs.map((job) => ({
@@ -123,7 +124,7 @@ function WeekViewPage() {
   });
 
   const optimizeMutation = useMutation({
-    mutationFn: async (scenario: Scenario) => {
+    mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
 
       const appointments = scenario.jobs.map((job) => ({
@@ -271,8 +272,6 @@ function WeekViewPage() {
 
     return <CircleDot className="h-4 w-4 text-yellow-600" />;
   };
-
-
 
   return (
     <div className="p-4 space-y-4 max-w-xl mx-auto">
