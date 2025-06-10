@@ -316,38 +316,32 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
         )
     # Build per-vehicle depot start and finish address responses
     num_vehicles = len(company_info.number_of_workers)
-    depot_start_responses = []
-    custom_finish_responses = []
+    vehicle_depot_addresses = []
+    vehicle_start_indices = []
+    vehicle_finish_indices = []  # will be used to map vehicle idx to finish address index
     custom_finish_map = {}  # vehicle idx -> custom finish index
-    default_finish_vehicles = []
-    # Company start and finish official responses
-    comp_start_resp = company_info_validation_response.address_responses[0]
-    comp_finish_resp = company_info_validation_response.address_responses[1]
+
+    
+    index_shift = 2  # first two indices are company start and finish, so appointments start at index 2
     for idx, vehicle in enumerate(company_info.number_of_workers):
-        # start
         if vehicle.depot:
             ds = vehicle.depot.start
-            start_resp = validate_single_address_with_google_maps(ds.street, ds.zip_code, ds.city)
-            depot_start_responses.append(start_resp)
-        else:
-            depot_start_responses.append(comp_start_resp)
-        # finish
-        if vehicle.depot and not (vehicle.depot.finish.street == comp_finish_resp.street and vehicle.depot.finish.zip_code == comp_finish_resp.zipcode and vehicle.depot.finish.city == comp_finish_resp.city):
             df = vehicle.depot.finish
-            finish_resp = validate_single_address_with_google_maps(df.street, df.zip_code, df.city)
-            custom_finish_map[idx] = len(custom_finish_responses)
-            custom_finish_responses.append(finish_resp)
+            start_resp = validate_single_address_with_google_maps(ds.street, ds.zip_code, ds.city)
+            vehicle_start_indices.append(len(vehicle_depot_addresses) + index_shift)
+            vehicle_depot_addresses.append(start_resp)
+            if not (ds.street == df.street and ds.zip_code == df.zip_code and ds.city == df.city):
+                vehicle_finish_indices.append(1)
+            else:
+                vehicle_finish_indices.append(len(vehicle_depot_addresses) - 1 + index_shift)
         else:
-            default_finish_vehicles.append(idx)
+            vehicle_start_indices.append(0)
+            vehicle_finish_indices.append(1)  # default finish is company finish
+       
     # appointment responses
     appt_responses = appointment_validation_response.address_responses
-    # assemble matrix responses: starts, appointments, custom finishes, then one company finish if needed
-    matrix_responses = depot_start_responses + appt_responses
-    matrix_responses += custom_finish_responses
-    comp_finish_index = None
-    if default_finish_vehicles:
-        comp_finish_index = len(matrix_responses)
-        matrix_responses.append(comp_finish_resp)
+    matrix_responses = appt_responses[:2] + vehicle_depot_addresses + appt_responses[2:]
+
     # convert to Location objects
     matrix_locations = convert_to_locations(matrix_responses)
     # build enhanced appointments (appointments start at offset num_vehicles)
