@@ -150,7 +150,7 @@ export function ScenarioCalendar({
       </div>
 
       {/* Weekdays */}
-      <div className="grid grid-cols-[30px_repeat(7,_1fr)] text-center font-semibold text-gray-900 mb-2 text-xl">
+      <div className="grid grid-cols-[35px_repeat(7,_1fr)] text-center font-semibold text-gray-900 mb-2 text-xl">
         <div></div> {/* week number column header */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div key={day}>{day}</div>
@@ -158,7 +158,7 @@ export function ScenarioCalendar({
       </div>
 
       {/* Days Grid with week numbers */}
-      <div className="grid grid-cols-[30px_repeat(7,_1fr)] gap-1">
+      <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-1">
         {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
           const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7)
           const sunday = weekDays[0];
@@ -167,8 +167,8 @@ export function ScenarioCalendar({
           return (
             <Fragment key={weekIndex}>
               {/* Week number column */}
-              <div className="flex justify-center font-semibold text-gray-500 mt-3">
-                <span className='hover:underline cursor-pointer'
+              <div className="flex justify-center mt-2">
+                <div className='w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold border-black text-black hover:text-white hover:bg-black'
                   onClick={() => navigate({
                     to: '/week-view',
                     search: {
@@ -177,7 +177,7 @@ export function ScenarioCalendar({
                     },
                   })}>
                   {weekNumber}
-                </span>
+                </div>
               </div>
 
               {/* 7 day cells */}
