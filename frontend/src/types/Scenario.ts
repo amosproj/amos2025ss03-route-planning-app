@@ -8,6 +8,13 @@ export interface Scenario {
 
 }
 
+export interface ScenarioDateString {
+    jobs: Appointment[];
+    date: string;
+    vehicles: Vehicle[];
+
+}
+
 export interface ScenarioByDate {
     date: number // timestamp
     jobs: Appointment[]
