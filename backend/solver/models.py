@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Optional, Union
+from pydantic import BaseModel, Field
+from typing import List, Optional, Union, Set
 from dataclasses import dataclass
 
 class Address(BaseModel):
@@ -12,12 +12,17 @@ class Location(BaseModel):
     lat: float
     lng: float
 
+class OperationHours(BaseModel):
+    start_minutes: int
+    end_minutes: int
+
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
     address:Address
     service_time: int
     number_of_workers: int
+    skills_needed: Set[str] = Field(default_factory=set)
 
 class EnhancedAppointment(BaseModel):
     appointment_start: str
@@ -25,35 +30,40 @@ class EnhancedAppointment(BaseModel):
     address:Address
     service_time: int
     location:Location
-    number_of_workers: int    
+    number_of_workers: int
+    skills_needed: Set[str] = Field(default_factory=set)
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
-class OperationHours(BaseModel):
-    start_minutes: int
-    end_minutes: int
 
-class DepotAddress(BaseModel):
-    start: Address
-    finish: Address
 class FilledVehicle(BaseModel):
     vehicle_id:int
-    skills:Optional[str]
+    skills: Set[str] = Field(default_factory=set)
     worker_amount:int
-    operation_hours: OperationHours
-    depot: Optional[DepotAddress] = None
+    operation_hours:OperationHours
+    start_address: Address
+    finish_address: Address
 
+class EnhancedFilledVehicle(BaseModel):
+    vehicle_id:int
+    skills: Set[str] = Field(default_factory=set)
+    worker_amount:int
+    operation_hours:OperationHours
+    start_address: Address
+    start_location: Location
+    finish_address: Address
+    finish_location: Location
 
 class CompanyInfo(BaseModel):
     start_address: Address
     finish_address: Address
-    number_of_workers: List[FilledVehicle]
+    vehicles: List[FilledVehicle]
 
 class EnhancedCompanyInfo(BaseModel):
     start_address: Address
     start_location: Location
     finish_address: Address
     finish_location: Location
-    number_of_workers: List[FilledVehicle]
+    vehicles: List[EnhancedFilledVehicle]
 
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
@@ -95,8 +105,6 @@ class EnhancedOptimizationRequest(BaseModel):
     location_ids : List[str]
     time_matrix: List[List[int]]
     distance_matrix: List[List[int]]
-    starts: List[int]
-    ends: List[int]
 
 class DistanceAndDurationMatrices(BaseModel):
     location_ids: List[str]  # Liste der IDs
@@ -148,4 +156,4 @@ class Solution(BaseModel):
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
+    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 

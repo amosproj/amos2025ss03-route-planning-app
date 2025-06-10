@@ -113,6 +113,9 @@ function MapView() {
   const companyInfo = useSelector(
     (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
   );
+  const solution = useSelector(
+    (s: RootState) => s.solutions.byDate[date],
+  );
 
   // console.log('MapView companyInfo', companyInfo);
   const [startLoc, setStartLoc] = useState<{ lat: number; lng: number } | null>(
@@ -167,30 +170,28 @@ function MapView() {
           };
         }) || [];
 
+    // Create the request with properly formatted skills for the backend
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
-      number_of_workers: companyInfo.vehicles.map((v) => ({
+      vehicles: companyInfo.vehicles.map((v) => ({
         vehicle_id: v.vehicle_id,
-        skills: v.skills,
+        skills: [],
         worker_amount: v.worker_amount,
         operation_hours: v.operation_hours,
-        ...(v.depot && {
-          depot: {
-            start: v.depot.start,
-            finish: v.depot.finish,
-          },
-        }),
+        start_address: v.depot?.start || companyInfo.start_address,
+        finish_address: v.depot?.finish || companyInfo.finish_address,
       })),
     };
 
+    // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
-      //@ts-expect-error - the API expects a specific format
+      //@ts-expect-error // The backend expects a specific format for company info
       company_info: alteredCompanyInfo,
       appointments: enhancedAppointments,
-    };
+    } ;
 
-    console.log('Optimization request:', request);
+    // console.log(JSON.stringify(request, null, 2));
     optimizationMutation.mutate(request);
   };
 
@@ -375,6 +376,26 @@ function MapView() {
                   ) : null,
                 )}
                 {/* Start and finish markers - or depot marker if same location */}
+                {solution &&
+                solution.routes.map((route) => {
+                  if (route.appointments[0].address.street !== companyInfo?.start_address.street) {
+                    return (
+                      <Marker
+                        key={route.vehicle_id}
+                        position={{
+                          lat: route.appointments[0].location.lat,
+                          lng: route.appointments[0].location.lng,
+                        }}
+                        icon={{
+                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                        }}
+                        title="Depot (Start)"
+                      />
+                    );
+                  }
+                  
+                })
+                }
                 {isSameLocation && startLoc ? (
                   <Marker
                     position={startLoc}
