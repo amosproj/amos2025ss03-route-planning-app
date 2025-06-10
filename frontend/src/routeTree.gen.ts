@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
+import { Route as WeekViewIndexImport } from './routes/week-view/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
 import { Route as DailyPlanIndexImport } from './routes/daily-plan/index'
@@ -29,6 +30,12 @@ const IndexRoute = IndexImport.update({
 const WorkerViewIndexRoute = WorkerViewIndexImport.update({
   id: '/worker-view/',
   path: '/worker-view/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const WeekViewIndexRoute = WeekViewIndexImport.update({
+  id: '/week-view/',
+  path: '/week-view/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScenariosIndexImport
       parentRoute: typeof rootRoute
     }
+    '/week-view/': {
+      id: '/week-view/'
+      path: '/week-view'
+      fullPath: '/week-view'
+      preLoaderRoute: typeof WeekViewIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/worker-view/': {
       id: '/worker-view/'
       path: '/worker-view'
@@ -113,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
 
@@ -122,6 +137,7 @@ export interface FileRoutesByTo {
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
 
@@ -132,6 +148,7 @@ export interface FileRoutesById {
   '/daily-plan/': typeof DailyPlanIndexRoute
   '/map-view/': typeof MapViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
+  '/week-view/': typeof WeekViewIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
 }
 
@@ -143,6 +160,7 @@ export interface FileRouteTypes {
     | '/daily-plan'
     | '/map-view'
     | '/scenarios'
+    | '/week-view'
     | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,6 +169,7 @@ export interface FileRouteTypes {
     | '/daily-plan'
     | '/map-view'
     | '/scenarios'
+    | '/week-view'
     | '/worker-view'
   id:
     | '__root__'
@@ -159,6 +178,7 @@ export interface FileRouteTypes {
     | '/daily-plan/'
     | '/map-view/'
     | '/scenarios/'
+    | '/week-view/'
     | '/worker-view/'
   fileRoutesById: FileRoutesById
 }
@@ -169,6 +189,7 @@ export interface RootRouteChildren {
   DailyPlanIndexRoute: typeof DailyPlanIndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
+  WeekViewIndexRoute: typeof WeekViewIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
 }
 
@@ -178,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyPlanIndexRoute: DailyPlanIndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
+  WeekViewIndexRoute: WeekViewIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
 }
 
@@ -196,6 +218,7 @@ export const routeTree = rootRoute
         "/daily-plan/",
         "/map-view/",
         "/scenarios/",
+        "/week-view/",
         "/worker-view/"
       ]
     },
@@ -213,6 +236,9 @@ export const routeTree = rootRoute
     },
     "/scenarios/": {
       "filePath": "scenarios/index.tsx"
+    },
+    "/week-view/": {
+      "filePath": "week-view/index.tsx"
     },
     "/worker-view/": {
       "filePath": "worker-view/index.tsx"
