@@ -39,10 +39,12 @@ def solve_appointment_routing(
 
     num_locations = len(addresses)
     num_vehicles = len(company_info.number_of_workers)
-    depot_index = 0
+    # Use multi-depot starts/ends from request
+    starts = request.starts
+    ends = request.ends
 
-    # Routing setup
-    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, depot_index)
+    # Routing setup with per-vehicle start and end locations
+    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, starts, ends)
     routing = pywrapcp.RoutingModel(manager)
 
     # Time callback (travel time + service time)
@@ -84,8 +86,11 @@ def solve_appointment_routing(
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
     penalty = 10000
-    for idx in range(1, num_locations):
-        routing.AddDisjunction([manager.NodeToIndex(idx)], penalty)
+    # Only allow skipping of appointment nodes (not depot or finish nodes)
+    for appt_idx in range(len(appointments)):
+        # appointment nodes start at index equal to number of vehicles
+        node = num_vehicles + appt_idx
+        routing.AddDisjunction([manager.NodeToIndex(node)], penalty)
 
     # Search parameters
     search_params = pywrapcp.DefaultRoutingSearchParameters()
@@ -138,8 +143,8 @@ def solve_appointment_routing(
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
 
-            # Add appointment if it's not the depot
-            if node_index > 0:
+            # Add appointment only for appointment nodes (skip depots and custom finish nodes)
+            if 1 <= node_index <= len(appointments):
                 vehicle_route.append(appointments[node_index - 1])
 
             next_index = solution.Value(routing.NextVar(index))

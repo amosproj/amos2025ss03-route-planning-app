@@ -314,29 +314,69 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
                 "errors": errors
             }
         )
-    #now all addresses are valid, therefore we have lat, long
-    depot_location = convert_to_locations(company_info_validation_response.address_responses)
-    locations = convert_to_locations(address_responses)
-
+    # Build per-vehicle depot start and finish address responses
+    num_vehicles = len(company_info.number_of_workers)
+    depot_start_responses = []
+    custom_finish_responses = []
+    custom_finish_map = {}  # vehicle idx -> custom finish index
+    default_finish_vehicles = []
+    # Company start and finish official responses
+    comp_start_resp = company_info_validation_response.address_responses[0]
+    comp_finish_resp = company_info_validation_response.address_responses[1]
+    for idx, vehicle in enumerate(company_info.number_of_workers):
+        # start
+        if vehicle.depot:
+            ds = vehicle.depot.start
+            start_resp = validate_single_address_with_google_maps(ds.street, ds.zip_code, ds.city)
+            depot_start_responses.append(start_resp)
+        else:
+            depot_start_responses.append(comp_start_resp)
+        # finish
+        if vehicle.depot and not (vehicle.depot.finish.street == comp_finish_resp.street and vehicle.depot.finish.zip_code == comp_finish_resp.zipcode and vehicle.depot.finish.city == comp_finish_resp.city):
+            df = vehicle.depot.finish
+            finish_resp = validate_single_address_with_google_maps(df.street, df.zip_code, df.city)
+            custom_finish_map[idx] = len(custom_finish_responses)
+            custom_finish_responses.append(finish_resp)
+        else:
+            default_finish_vehicles.append(idx)
+    # appointment responses
+    appt_responses = appointment_validation_response.address_responses
+    # assemble matrix responses: starts, appointments, custom finishes, then one company finish if needed
+    matrix_responses = depot_start_responses + appt_responses
+    matrix_responses += custom_finish_responses
+    comp_finish_index = None
+    if default_finish_vehicles:
+        comp_finish_index = len(matrix_responses)
+        matrix_responses.append(comp_finish_resp)
+    # convert to Location objects
+    matrix_locations = convert_to_locations(matrix_responses)
+    # build enhanced appointments (appointments start at offset num_vehicles)
     enhanced_appointments = [
-        convert_to_enhanced_appointment(appointments[i], locations[i])
+        convert_to_enhanced_appointment(appointments[i], matrix_locations[num_vehicles + i])
         for i in range(len(appointments))
     ]
-
-    locations = [depot_location[0]] + locations
-
-
-    distance_matrix_response = get_distance_matrix_2d(locations)
+    # compute matrices
+    distance_matrix_response = get_distance_matrix_2d(matrix_locations)
     location_ids = distance_matrix_response.location_ids
-    duration_matrix = distance_matrix_response.duration_matrix
+    time_matrix = distance_matrix_response.duration_matrix
     distance_matrix = distance_matrix_response.distance_matrix
-
+    # define per-vehicle start and end indices
+    starts = list(range(num_vehicles))
+    ends = []
+    # ends: for each vehicle, custom finish index or company finish index
+    for idx in range(num_vehicles):
+        if idx in custom_finish_map:
+            ends.append(num_vehicles + len(appointments) + custom_finish_map[idx])
+        else:
+            ends.append(comp_finish_index)
     enhanced_opti_request = EnhancedOptimizationRequest(
-        company_info = enhanced_company_info,
-        appointments = enhanced_appointments,
-        location_ids = location_ids,
-        time_matrix = duration_matrix,
-        distance_matrix = distance_matrix
+        company_info=enhanced_company_info,
+        appointments=enhanced_appointments,
+        location_ids=location_ids,
+        time_matrix=time_matrix,
+        distance_matrix=distance_matrix,
+        starts=starts,
+        ends=ends,
     )
 
     return enhanced_opti_request

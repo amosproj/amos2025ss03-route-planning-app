@@ -10,5 +10,8 @@ export interface Vehicle {
     skills: string | null;        
     worker_amount: number;
     operation_hours: OperationHours;
-    depot?: Address
+    depot?: {
+        start: Address;
+        finish: Address;
+    }
 }

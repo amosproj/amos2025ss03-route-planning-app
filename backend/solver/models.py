@@ -31,12 +31,17 @@ class EnhancedAppointment(BaseModel):
 class OperationHours(BaseModel):
     start_minutes: int
     end_minutes: int
+
+class DepotAddress(BaseModel):
+    start: Address
+    finish: Address
 class FilledVehicle(BaseModel):
     vehicle_id:int
     skills:Optional[str]
     worker_amount:int
     operation_hours: OperationHours
-    depot: Optional[Address] = None
+    depot: Optional[DepotAddress] = None
+
 
 class CompanyInfo(BaseModel):
     start_address: Address
@@ -90,6 +95,8 @@ class EnhancedOptimizationRequest(BaseModel):
     location_ids : List[str]
     time_matrix: List[List[int]]
     distance_matrix: List[List[int]]
+    starts: List[int]
+    ends: List[int]
 
 class DistanceAndDurationMatrices(BaseModel):
     location_ids: List[str]  # Liste der IDs
@@ -141,4 +148,4 @@ class Solution(BaseModel):
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
+    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min

@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Card,
   CardContent,
@@ -91,9 +92,16 @@ const formSchema = z.object({
           }, 'Operation periods cannot overlap and end time must be after start time'),
         depot: z
           .object({
-            street: z.string(),
-            zip_code: z.string(),
-            city: z.string(),
+            start: z.object({
+              street: z.string(),
+              zip_code: z.string(),
+              city: z.string(),
+            }),
+            finish: z.object({
+              street: z.string(),
+              zip_code: z.string(),
+              city: z.string(),
+            }),
           })
           .optional(),
       }),
@@ -158,7 +166,8 @@ export function CompanyConfigForm() {
   const [depotAddress, setDepotAddress] = useState('');
   const [depotAuto, setDepotAuto] =
     useState<google.maps.places.Autocomplete | null>(null);
-  const [depotAddrObj, setDepotAddrObj] = useState<Address>(defaultAddr);
+  const [depotStartObj, setDepotStartObj] = useState<Address>(defaultAddr);
+  const [useCompanyFinish, setUseCompanyFinish] = useState(false);
 
   // function to parse Google Places API response into Address object
   const parseAddress = (place: google.maps.places.PlaceResult): Address => {
@@ -249,12 +258,13 @@ export function CompanyConfigForm() {
       setDepotDialogOpen(false);
       setCurrentVehicleIndex(null);
       setDepotAddress('');
-      setDepotAddrObj(defaultAddr);
+      setDepotStartObj(defaultAddr);
       setDepotAuto(null);
     };
   }, []);
 
   const onSubmit = (values: FormSchemaType) => {
+    console.log('Form submitted with values:', values);
     const companyInfo: CompanyInfo = {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
@@ -289,19 +299,19 @@ export function CompanyConfigForm() {
   const openDepotDialog = (vehicleIndex: number) => {
     // Clear any existing autocomplete instance first
     setDepotAuto(null);
-    
+
     setCurrentVehicleIndex(vehicleIndex);
     const currentVehicle = form.getValues(`vehicles.${vehicleIndex}`);
     const currentDepot = currentVehicle.depot;
 
     if (currentDepot) {
       const depotDisplay =
-        `${currentDepot.street}${currentDepot.street ? ', ' : ''}${currentDepot.zip_code} ${currentDepot.city}`.trim();
+        `${currentDepot.start.street}${currentDepot.start.street ? ', ' : ''}${currentDepot.start.zip_code} ${currentDepot.start.city}`.trim();
       setDepotAddress(depotDisplay);
-      setDepotAddrObj(currentDepot);
+      setDepotStartObj(currentDepot.start);
     } else {
       setDepotAddress('');
-      setDepotAddrObj(defaultAddr);
+      setDepotStartObj(defaultAddr);
     }
 
     // Use setTimeout to ensure state is properly set before opening
@@ -311,8 +321,14 @@ export function CompanyConfigForm() {
   };
 
   const saveDepot = () => {
-    if (currentVehicleIndex !== null && depotAddrObj.street) {
-      form.setValue(`vehicles.${currentVehicleIndex}.depot`, depotAddrObj);
+    if (currentVehicleIndex !== null && depotStartObj.street) {
+      form.setValue(`vehicles.${currentVehicleIndex}.depot`, {
+        start: depotStartObj,
+        finish:
+          useCompanyFinish && existingCompany?.finish_address
+            ? existingCompany.finish_address
+            : depotStartObj,
+      });
       toast('Depot address saved successfully!');
     }
     closeDepotDialog();
@@ -330,17 +346,14 @@ export function CompanyConfigForm() {
     setDepotDialogOpen(false);
     setCurrentVehicleIndex(null);
     setDepotAddress('');
-    setDepotAddrObj(defaultAddr);
+    setDepotStartObj(defaultAddr);
     // Clear the autocomplete instance to prevent interference
     setDepotAuto(null);
   };
 
   const hasDepot = (vehicleIndex: number) => {
     const vehicle = form.getValues(`vehicles.${vehicleIndex}`);
-    return (
-      vehicle.depot &&
-      (vehicle.depot.street || vehicle.depot.zip_code || vehicle.depot.city)
-    );
+    return vehicle.depot;
   };
 
   if (loadError) return <div>Error loading Google Maps</div>;
@@ -348,7 +361,13 @@ export function CompanyConfigForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          console.error('Form validation errors:', errors);
+        })}
+        noValidate
+        className="space-y-8"
+      >
         <Toaster />
         <Tabs defaultValue="addresses" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -735,7 +754,7 @@ export function CompanyConfigForm() {
         </Tabs>
 
         <div className="flex justify-end space-x-4">
-          <Button type="submit" size="lg">
+          <Button type='submit' size="lg">
             Save Company Configuration
           </Button>
         </div>
@@ -751,8 +770,8 @@ export function CompanyConfigForm() {
             }
           }}
         >
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
               <DialogTitle>Configure Depot Address</DialogTitle>
               <DialogDescription>
                 Set the depot address for Vehicle{' '}
@@ -771,7 +790,7 @@ export function CompanyConfigForm() {
                     if (depotAuto) {
                       const place = depotAuto.getPlace();
                       const addr = parseAddress(place);
-                      setDepotAddrObj(addr);
+                      setDepotStartObj(addr);
                       setDepotAddress(
                         place.formatted_address ||
                           `${addr.street}, ${addr.zip_code} ${addr.city}`,
@@ -785,6 +804,19 @@ export function CompanyConfigForm() {
                     onChange={(e) => setDepotAddress(e.target.value)}
                   />
                 </Autocomplete>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center">
+                  <Switch
+                    checked={useCompanyFinish}
+                    onCheckedChange={setUseCompanyFinish}
+                    className="mr-2"
+                  />
+                  <label className="text-sm font-medium">
+                    Use company finish address
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-between gap-2">
@@ -811,7 +843,7 @@ export function CompanyConfigForm() {
                   <Button
                     size="sm"
                     onClick={() => saveDepot()}
-                    disabled={!depotAddrObj.street}
+                    disabled={!depotStartObj.street}
                   >
                     Save Depot
                   </Button>

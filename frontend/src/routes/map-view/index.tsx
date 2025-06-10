@@ -27,9 +27,6 @@ import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
 import { createDepotMarkerIcon } from '@/utils/helper';
 
-
-
-
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
@@ -169,7 +166,7 @@ function MapView() {
             service_time: 15,
           };
         }) || [];
-     
+
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
@@ -178,8 +175,14 @@ function MapView() {
         skills: v.skills,
         worker_amount: v.worker_amount,
         operation_hours: v.operation_hours,
+        ...(v.depot && {
+          depot: {
+            start: v.depot.start,
+            finish: v.depot.finish,
+          },
+        }),
       })),
-    }    
+    };
 
     const request: OptimizationRequest = {
       //@ts-expect-error - the API expects a specific format
@@ -290,25 +293,31 @@ function MapView() {
           selectedIdx={selectedIdx}
           onSelect={(idx) => {
             const loc = locations[idx];
-            if (loc?.latitude != null &&
+            if (
+              loc?.latitude != null &&
               loc?.longitude != null &&
-              mapRef.current) {
+              mapRef.current
+            ) {
               mapRef.current.panTo({ lat: loc.latitude, lng: loc.longitude });
               mapRef.current.setZoom(14);
               setMapCenter({ lat: loc.latitude, lng: loc.longitude });
               setSelectedIdx(idx);
             }
-          } }
-          onToggleExclude={(idx) => dispatch(toggleExcludedAppointment({ date, idx }))}
+          }}
+          onToggleExclude={(idx) =>
+            dispatch(toggleExcludedAppointment({ date, idx }))
+          }
           onToggleAll={(selectAll) => {
             const allIdx = scenario.jobs.map((_, i) => i);
             dispatch(
               setExcludedAppointments({
                 date,
                 idxList: selectAll ? [] : allIdx,
-              })
+              }),
             );
-          } } optimizationErrors={[]}        />
+          }}
+          optimizationErrors={[]}
+        />
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
