@@ -85,55 +85,50 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
         longitude=result["geometry"]["location"]["lng"]
     )
 
-def check_and_enhance_single_address(address_responses, errors, address, error_information):
-    if not address.street.strip() or not address.zip_code.strip() or not address.city.strip():
-        errors.append(exceptionStrings.START_ADDRESS_EMPTY)
-        address_responses.append(
-            EnhancedAddressResponse(
-                could_be_fully_found=False,
-                error_information= error_information,
-                street=address.street,
-                zipcode=address.zip_code,
-                city=address.city,
-                latitude=None,
-                longitude=None
-            )
-        )
-    else:
-        start_address_response = validate_single_address_with_google_maps(address.street, address.zip_code, address.city)
-        address_responses.append(start_address_response)
-
 
 def validate_company_info(company_info: CompanyInfo)-> AppointmentValidationResponse:
     errors = []
     address_responses = []
 
-    if not company_info.vehicles:
-        errors.append(exceptionStrings.NUMBER_OF_VEHICLES_INVALID)
+    if not company_info.number_of_workers:
+        errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
 
     start = company_info.start_address
-    check_and_enhance_single_address(address_responses, errors, start,exceptionStrings.START_ADDRESS_EMPTY)
+    if not start.street.strip() or not start.zip_code.strip() or not start.city.strip():
+        errors.append(exceptionStrings.START_ADDRESS_EMPTY)
+        address_responses.append(
+            EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information = exceptionStrings.START_ADDRESS_EMPTY,
+                street=start.street,
+                zipcode=start.zip_code,
+                city=start.city,
+                latitude=None,
+                longitude=None
+            )
+        )
+    else:
+        start_address_response = validate_single_address_with_google_maps(start.street, start.zip_code, start.city)
+        address_responses.append(start_address_response)
 
+    # Google Maps Validierung für die Zieladresse
     finish = company_info.finish_address
-    check_and_enhance_single_address(address_responses, errors, finish, exceptionStrings.FINISH_ADDRESS_EMPTY)
-
-    for vehicle in company_info.vehicles:
-        vehicle_start = vehicle.start_address
-        check_and_enhance_single_address(
-            address_responses,
-            errors,
-            vehicle_start,
-            f"Startaddress invalid for vehicle {vehicle.vehicle_id} "
+    if not finish.street.strip() or not finish.zip_code.strip() or not finish.city.strip():
+        errors.append(exceptionStrings.FINISH_ADDRESS_EMPTY)
+        address_responses.append(
+            EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information=exceptionStrings.FINISH_ADDRESS_EMPTY,
+                street=finish.street,
+                zipcode=finish.zip_code,
+                city=finish.city,
+                latitude=None,
+                longitude=None
+            )
         )
-
-        vehicle_finish = vehicle.finish_address
-        check_and_enhance_single_address(
-            address_responses,
-            errors,
-            vehicle_finish,
-            f"Endaddress invalid for vehicle {vehicle.vehicle_id} "
-        )
-
+    else:
+        finish_address_response = validate_single_address_with_google_maps(finish.street, finish.zip_code, finish.city)
+        address_responses.append( finish_address_response)
 
     all_valid = len(errors) == 0
 
@@ -185,7 +180,7 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
             all_valid = False
 
         if appointment.number_of_workers < 1:
-            errors.append(exceptionStrings.NUMBER_OF_VEHICLES_INVALID)
+            errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
             all_valid = False
 
 
@@ -218,6 +213,8 @@ def validate_appointments(appointments: List[Appointment]) -> AppointmentValidat
         address_responses = address_responses
     )
 
+
+
 def save_company_information_to_cache(company_info: CompanyInfo):
     #TODO implement
     print("Caching not yet implemented")
@@ -238,6 +235,8 @@ def validate_and_save_appointment_information(appointments: List[Appointment]):
         )
 
     return address_responses
+
+
 
 def validate_and_save_company_information(company_info: CompanyInfo):
     validation_result = validate_company_info(company_info)
@@ -261,13 +260,6 @@ def convert_to_locations(address_responses: list[EnhancedAddressResponse]) -> li
 
     return locations
 
-def convert_to_location(address_response: EnhancedAddressResponse) -> Location:
-    if address_response.latitude is None or address_response.longitude is None:
-        raise ValueError("Address is missing coordinates")
-
-    location_id = f"{address_response.street}-{address_response.zipcode}-{address_response.city}"
-    return Location(id=location_id, lat=address_response.latitude, lng=address_response.longitude)
-
 
 def convert_to_enhanced_appointment(appointment: Appointment,location:Location) -> EnhancedAppointment:
 
@@ -276,43 +268,11 @@ def convert_to_enhanced_appointment(appointment: Appointment,location:Location) 
         appointment_end=appointment.appointment_end,
         address=appointment.address,
         service_time = appointment.service_time,
-        skills_needed= appointment.skills_needed,
         location=location,
         number_of_workers=appointment.number_of_workers
     )
 
     return enhanced_appointment
-
-def enhance_vehicles(
-    vehicles: List[FilledVehicle],
-    vehicle_address_responses: List[EnhancedAddressResponse]
-) -> List[EnhancedFilledVehicle]:
-    # vehicle_address_responses: [start1, finish1, start2, finish2, ...]
-    if len(vehicle_address_responses) != 2 * len(vehicles):
-        raise ValueError("Mismatch between number of vehicles and vehicle address responses")
-
-    enhanced_vehicles = []
-    for i, vehicle in enumerate(vehicles):
-        start_index = 2 * i
-        finish_index = start_index + 1
-
-        start_location = convert_to_location(vehicle_address_responses[start_index])
-        finish_location = convert_to_location(vehicle_address_responses[finish_index])
-
-        enhanced_vehicle = EnhancedFilledVehicle(
-            vehicle_id=vehicle.vehicle_id,
-            skills=vehicle.skills,
-            worker_amount=vehicle.worker_amount,
-            operation_hours=vehicle.operation_hours,
-            start_address=vehicle.start_address,
-            start_location=start_location,
-            finish_address=vehicle.finish_address,
-            finish_location=finish_location
-        )
-        enhanced_vehicles.append(enhanced_vehicle)
-
-    return enhanced_vehicles
-
 
 def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> EnhancedOptimizationRequest:
 
@@ -322,20 +282,17 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     appointment_validation_response = validate_appointments(appointments)
     company_info_validation_response = validate_company_info(company_info)
 
-    company_and_vehicle_locations = convert_to_locations(company_info_validation_response.address_responses)
+    company_locations = convert_to_locations(company_info_validation_response.address_responses)
 
-    start_location = company_and_vehicle_locations[0]
-    end_location = company_and_vehicle_locations[1]
-
-    vehicle_address_responses = company_info_validation_response.address_responses[2:]
-    enhanced_vehicles = enhance_vehicles(company_info.vehicles, vehicle_address_responses)
+    start_location = company_locations[0]
+    end_location = company_locations[-1]
 
     enhanced_company_info = EnhancedCompanyInfo(
         start_address=company_info.start_address,
         start_location=start_location,
         finish_address=company_info.finish_address,
         finish_location=end_location,
-        vehicles = enhanced_vehicles
+        number_of_workers=company_info.number_of_workers
     )
 
     if not company_info_validation_response.all_valid:
@@ -348,7 +305,7 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
 
     all_valid = appointment_validation_response.all_valid
     errors = appointment_validation_response.errors
-    appointment_address_responses = appointment_validation_response.address_responses
+    address_responses = appointment_validation_response.address_responses
 
     if not all_valid:
         raise HTTPException(
@@ -359,22 +316,17 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
         )
     #now all addresses are valid, therefore we have lat, long
     depot_location = convert_to_locations(company_info_validation_response.address_responses)
-    appointment_locations = convert_to_locations(appointment_address_responses)
+    locations = convert_to_locations(address_responses)
 
     enhanced_appointments = [
-        convert_to_enhanced_appointment(appointments[i], appointment_locations[i])
+        convert_to_enhanced_appointment(appointments[i], locations[i])
         for i in range(len(appointments))
     ]
 
-    num_vehicle_locations = len(company_info.vehicles) * 2
-    vehicle_locations = company_and_vehicle_locations[2:num_vehicle_locations+2]
-    all_locations = [depot_location[0]] + appointment_locations + vehicle_locations
+    locations = [depot_location[0]] + locations
 
-    """
-    distance matrix will be off size (1+ appointments + 2*vehicles)^2
-    """
 
-    distance_matrix_response = get_distance_matrix_2d(all_locations)
+    distance_matrix_response = get_distance_matrix_2d(locations)
     location_ids = distance_matrix_response.location_ids
     duration_matrix = distance_matrix_response.duration_matrix
     distance_matrix = distance_matrix_response.distance_matrix

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Union, Set
+from pydantic import BaseModel
+from typing import List, Optional, Union
 from dataclasses import dataclass
 
 class Address(BaseModel):
@@ -12,17 +12,12 @@ class Location(BaseModel):
     lat: float
     lng: float
 
-class OperationHours(BaseModel):
-    start_minutes: int
-    end_minutes: int
-
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
     address:Address
     service_time: int
     number_of_workers: int
-    skills_needed: Set[str] = Field(default_factory=set)
 
 class EnhancedAppointment(BaseModel):
     appointment_start: str
@@ -30,40 +25,26 @@ class EnhancedAppointment(BaseModel):
     address:Address
     service_time: int
     location:Location
-    number_of_workers: int
-    skills_needed: Set[str] = Field(default_factory=set)
+    number_of_workers: int    
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
 
 class FilledVehicle(BaseModel):
     vehicle_id:int
-    skills: Set[str] = Field(default_factory=set)
+    skills:Optional[str]
     worker_amount:int
-    operation_hours:OperationHours
-    start_address: Address
-    finish_address: Address
-
-class EnhancedFilledVehicle(BaseModel):
-    vehicle_id:int
-    skills: Set[str] = Field(default_factory=set)
-    worker_amount:int
-    operation_hours:OperationHours
-    start_address: Address
-    start_location: Location
-    finish_address: Address
-    finish_location: Location
 
 class CompanyInfo(BaseModel):
     start_address: Address
     finish_address: Address
-    vehicles: List[FilledVehicle]
+    number_of_workers: List[FilledVehicle]
 
 class EnhancedCompanyInfo(BaseModel):
     start_address: Address
     start_location: Location
     finish_address: Address
     finish_location: Location
-    vehicles: List[EnhancedFilledVehicle]
+    number_of_workers: List[FilledVehicle]
 
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
