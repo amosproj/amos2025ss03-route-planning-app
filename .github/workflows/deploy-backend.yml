@@ -56,4 +56,4 @@ jobs:
       - name: Deploy backend with Docker Compose
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} \
-            "cd /opt/backend-deploy && docker-compose -f backend/docker-compose.backend.yml up -d --build"
+            "cd /opt/backend-deploy && docker-compose -f backend/docker-compose.prod.yml up -d --build"
