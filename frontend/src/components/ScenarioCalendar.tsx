@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo } from 'react';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -60,7 +60,7 @@ export function ScenarioCalendar({
   const startDate = startOfMonth.weekday(0); // Monday
   const endDate = endOfMonth.weekday(6); // Sunday
 
-  const days = [];
+  const days: dayjs.Dayjs[] = [];
   let date = startDate;
 
   while (date.isBefore(endDate) || date.isSame(endDate)) {
@@ -75,6 +75,10 @@ export function ScenarioCalendar({
   const handlePrevMonth = () => setQuery(currentDate.subtract(1, 'month'));
   const handleNextMonth = () => setQuery(currentDate.add(1, 'month'));
   const handleToday = () => setQuery(dayjs());
+
+  const getCalendarWeekNumber = (sunday: dayjs.Dayjs) => {
+    return sunday.add(1, 'day').isoWeek();
+  };
 
   return (
     <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
@@ -146,74 +150,115 @@ export function ScenarioCalendar({
       </div>
 
       {/* Weekdays */}
-      <div className="grid grid-cols-7 text-center font-semibold text-gray-900 mb-2 text-xl">
+      <div className="grid grid-cols-[35px_repeat(7,_1fr)] text-center font-semibold text-gray-900 mb-2 text-xl">
+        <div></div> {/* week number column header */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div key={day}>{day}</div>
         ))}
       </div>
 
-      {/* Days Grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day) => {
-          const isCurrentMonth = day.month() === currentDate.month();
-          const isToday = day.isSame(today, 'day');
-          const dateKey = day.toDate().toDateString();
-          const sc = scenariosByDate.get(dateKey);
-          return (
-            <div
-              key={day.format('YYYY-MM-DD')}
-              className={`
-                aspect-square w-full rounded transition-all border
-                ${isToday ? 'bg-gray-200 text-gray-900' : ''}
-                ${!isCurrentMonth ? 'bg-white text-gray-400' : ''}
-                ${isCurrentMonth && !isToday ? 'bg-gray-50 text-gray-900' : ''}
-              `}
-            >
-              {isCurrentMonth && (
-                <div className="p-2 flex flex-col justify-between h-full">
-                  <div className="text-lg font-semibold">{day.date()}</div>
+      {/* Days Grid with week numbers */}
+      <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-1">
+        {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
+          const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7);
+          const sunday = weekDays[0];
+          const weekNumber = getCalendarWeekNumber(sunday);
 
-                  {sc && (
-                    <>
-                      <div
-                        className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium cursor-pointer hover:bg-black"
-                        onClick={() => setSelected(sc)}
-                      >
-                        {' '}
-                        <MapPin className="h-4 w-4" />
-                        {sc.jobs.length} jobs
-                      </div>
-                      <div className="flex justify-end items-center gap-2">
-                        {sc?.solution && (
-                          <div
-                            className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
-                            onClick={() =>
-                              navigate({
-                                to: '/daily-plan',
-                                search: { date: sc.date.toString() },
-                              })
-                            }
-                          >
-                            <Table className="h-4.5 w-4.5" />
-                          </div>
-                        )}
-                        <div
-                          className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
-                          onClick={() =>
-                            navigate({
-                              to: '/map-view',
-                              search: { date: sc.date.toString() },
-                            })
-                          }
-                        >
-                          <Map className="h-4.5 w-4.5" />
-                        </div>
-                      </div>
-                    </>
-                  )}
+          return (
+            <Fragment key={weekIndex}>
+              {/* Week number column */}
+              <div className="flex justify-center mt-1">
+                <div
+                  className="w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold  text-black   hover:bg-gray-100"
+                  onClick={() =>
+                    navigate({
+                      to: '/week-view',
+                      search: {
+                        year: weekDays[0].year(),
+                        week: weekNumber,
+                      },
+                    })
+                  }
+                >
+                  {weekNumber}
                 </div>
-              )}
-            </div>
+              </div>
+
+              {/* 7 day cells */}
+              {weekDays.map((day) => {
+                const isCurrentMonth = day.month() === currentDate.month();
+                const isToday = day.isSame(today, 'day');
+                const dateKey = day.toDate().toDateString();
+                const sc = scenariosByDate.get(dateKey);
+
+                return (
+                  <div
+                    key={day.format('YYYY-MM-DD')}
+                    className={`
+                        aspect-square w-full rounded transition-all border
+                        ${isToday ? 'bg-gray-200 text-gray-900' : ''}
+                        ${!isCurrentMonth ? 'bg-white text-gray-400' : ''}
+                        ${isCurrentMonth && !isToday ? 'bg-gray-50 text-gray-900' : ''}
+                    `}
+                  >
+                    {isCurrentMonth && (
+                      <div className="p-2 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-center gap-2 mb-2 relative">
+                          <div className="text-lg font-semibold">
+                            {day.date()}
+                          </div>
+
+                          {sc?.solution && (
+                            <span className="absolute -right-1 -top-3 flex size-3">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75"></span>
+                              <span className="relative inline-flex size-3 rounded-full bg-teal-600"></span>
+                            </span>
+                          )}
+                        </div>
+
+                        {sc && (
+                          <>
+                            <div
+                              className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-blue-900 text-white text-xs font-medium cursor-pointer hover:bg-indigo-900"
+                              onClick={() => setSelected(sc)}
+                            >
+                              <MapPin className="h-4 w-4" />
+                              {sc.jobs.length} jobs
+                            </div>
+                            <div className="flex justify-end items-center gap-2">
+                              {sc?.solution && (
+                                <div
+                                  className="cursor-pointer p-1 border rounded bg-amber-50 text-gray-800 hover:border-amber-500 "
+                                  onClick={() =>
+                                    navigate({
+                                      to: '/daily-plan',
+                                      search: { date: sc.date.toString() },
+                                    })
+                                  }
+                                >
+                                  <Table className="h-5 w-5 text-amber-600" />
+                                </div>
+                              )}
+                              <div
+                                className="cursor-pointer p-1 border rounded bg-cyan-50 text-gray-800 hover:border-cyan-700"
+                                onClick={() =>
+                                  navigate({
+                                    to: '/map-view',
+                                    search: { date: sc.date.toString() },
+                                  })
+                                }
+                              >
+                                <Map className="h-5 w-5 text-cyan-800" />
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </Fragment>
           );
         })}
       </div>
