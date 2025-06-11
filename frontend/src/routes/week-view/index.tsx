@@ -179,10 +179,13 @@ function WeekViewPage() {
       const companyPayload = {
         start_address: companyInfo.start_address,
         finish_address: companyInfo.finish_address,
-        number_of_workers: companyInfo.vehicles.map((v) => ({
+        vehicles: companyInfo.vehicles.map((v) => ({
           vehicle_id: v.vehicle_id,
-          skills: v.skills,
+          skills: [v.skills] || [],
           worker_amount: v.worker_amount,
+          operation_hours: v.operation_hours,
+          start_address: v.depot?.start || companyInfo.start_address,
+          finish_address: v.depot?.finish || companyInfo.finish_address,
         })),
       };
 
