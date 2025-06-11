@@ -1,27 +1,13 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./frontend/.env
-    restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: Dockerfile
     container_name: fastapi-backend
     ports:
       - "8080:8080"
     env_file:
-      - ./backend/.env
+      - .env
     command: gunicorn app:app -k uvicorn.workers.UvicornWorker --workers 1 --bind 0.0.0.0:8080
     restart: unless-stopped
     depends_on:
@@ -34,9 +20,12 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis-server
+    container_name: redis-cache
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - redis-data:/data  # Persist Redis data
     restart: unless-stopped
+
+volumes:
+  redis-data:

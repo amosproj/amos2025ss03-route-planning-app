@@ -6,41 +6,6 @@ from datetime import datetime, timedelta
 from typing import Tuple
 import numpy as np
 
-def calculate_max_parallel_worker_demand(appointments: List[EnhancedAppointment]) -> int:
-    """
-    Calculates the maximum number of workers required in parallel across all appointments.
-    """
-    events = []
-    for appt in appointments:
-        start = datetime.strptime(appt.appointment_start, "%Y-%m-%d %H:%M:%S.%f")
-        end = datetime.strptime(appt.appointment_end, "%Y-%m-%d %H:%M:%S.%f")
-        events.append((start, +appt.number_of_workers))
-        events.append((end, -appt.number_of_workers))
-
-    events.sort()
-
-    current_workers = 0
-    max_workers = 0
-    for time, delta in events:
-        current_workers += delta
-        max_workers = max(max_workers, current_workers)
-
-    return max_workers
-
-def validate_appointment_overlap(
-        request: EnhancedOptimizationRequest,
-        slack_max: int = 120,
-        max_time_per_vehicle: int = 1440
-) -> bool:
-    """
-    Returns False if the overlapping appointment worker demand ever exceeds available capacity.
-    """
-    vehicle_amount = len(request.company_info.number_of_workers)
-    max_workers = calculate_max_parallel_worker_demand(request.appointments)
-
-    return max_workers <= vehicle_amount
-
-
 def sum_appointment_durations(request: EnhancedOptimizationRequest) -> int:
 
     appointments = request.appointments
@@ -97,28 +62,6 @@ def calculate_travel_time_quantile(time_matrix: List[List[int]], quantile: float
 
     return float(np.quantile(all_times, quantile))
 
-
-
-def calculate_max_overlap_with_shifted_end_times(
-    appointments: List[EnhancedAppointment],
-    average_distance_minutes: float
-) -> int:
-    """
-    Calculates the maximum number of workers required simultaneously,
-    with each appointment being artificially extended by `average_distance_minutes`.
-    """
-    shift = timedelta(minutes=average_distance_minutes)
-    shifted_appointments = []
-
-    for appt in appointments:
-        appt_copy = deepcopy(appt)
-        original_end = datetime.strptime(appt_copy.appointment_end, "%Y-%m-%d %H:%M:%S.%f")
-        new_end = original_end + shift
-        appt_copy.appointment_end = new_end.strftime("%Y-%m-%d %H:%M:%S.%f")
-        shifted_appointments.append(appt_copy)
-
-    return calculate_max_parallel_worker_demand(shifted_appointments)
-
 def collect_problem_metrics(request: EnhancedOptimizationRequest) -> List[ProblemMetric]:
     metrics = []
 
@@ -143,30 +86,6 @@ def collect_problem_metrics(request: EnhancedOptimizationRequest) -> List[Proble
         name="max_appointment_distance(time)",
         value=round(max_time)
     ))
-
-    metrics.append(ProblemMetric(
-        name="max_overlap",
-        value=calculate_max_overlap_with_shifted_end_times(request.appointments, 0)
-    ))
-
-    metrics.append(ProblemMetric(
-        name="max_overlap_with_endtime_shifted_by_avg_traveltime",
-        value=calculate_max_overlap_with_shifted_end_times(request.appointments, avg_time)
-    ))
-
-    quantiles = [
-        ("median travel time", 0.5),
-        ("bottom25 quantile travel time", 0.25),
-        ("bottom10 quantile travel time", 0.10),
-    ]
-
-    for label, q in quantiles:
-        travel_time = calculate_travel_time_quantile(request.time_matrix, q)
-        max_overlap = calculate_max_overlap_with_shifted_end_times(request.appointments, travel_time)
-        metrics.append(ProblemMetric(
-            name=f"Max overlap with endtime shifted by {label}: {max_overlap}",
-            value=max_overlap
-        ))
 
     return metrics
 
