@@ -39,28 +39,34 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     skills: '',
     worker_amount: 1,
   } as Vehicle;
-  return Object.entries(groups)
-    .map(
-      ([date, jobs]) =>
-        ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
-    )
-  
+  return Object.entries(groups).map(
+    ([date, jobs]) =>
+      ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
+  );
 }
 export function parseScenariofromJson(jsonData: string): Scenario {
   try {
     const data = JSON.parse(jsonData);
     const scenario: Scenario = {
-      jobs: data.appointments.map((appt: { appointment_start: string; appointment_end: string; address: { street: string; zip_code: string; city: string; }; number_of_workers: number; skills?: string }) => ({
-        appointment_start: new Date(appt.appointment_start).getTime(),
-        appointment_end: new Date(appt.appointment_end).getTime(),
-        address: {
-          street: appt.address.street,
-          zip_code: appt.address.zip_code,
-          city: appt.address.city,
-        } as Address,
-        number_of_workers: appt.number_of_workers,
-        skills: appt.skills || null,
-      })),
+      jobs: data.appointments.map(
+        (appt: {
+          appointment_start: string;
+          appointment_end: string;
+          address: { street: string; zip_code: string; city: string };
+          number_of_workers: number;
+          skills?: string;
+        }) => ({
+          appointment_start: new Date(appt.appointment_start).getTime(),
+          appointment_end: new Date(appt.appointment_end).getTime(),
+          address: {
+            street: appt.address.street,
+            zip_code: appt.address.zip_code,
+            city: appt.address.city,
+          } as Address,
+          number_of_workers: appt.number_of_workers,
+          skills: appt.skills || null,
+        }),
+      ),
       date: new Date('2025-05-01').getTime(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vehicles: data.number_of_workers.map((veh: any) => ({
@@ -112,12 +118,10 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
           vehicle_id: i,
           skills: 'electrician',
           worker_amount: 1,
-          operation_hours: [
-            {
-              start_minutes: 480, // 08:00
-              end_minutes: 960, // 16:00
-            },
-          ],
+          operation_hours: {
+            start_minutes: 480, // 08:00
+            end_minutes: 960, // 16:00
+          },
         });
       }
     }
@@ -147,12 +151,12 @@ export const createDepotMarkerIcon = () => {
   const warehouseIcon = createElement(Warehouse, {
     size: 16,
     color: 'white',
-    strokeWidth: 2
+    strokeWidth: 2,
   });
-  
+
   // Convert the React element to an SVG string
   const warehouseIconSvg = renderToString(warehouseIcon);
-  
+
   const svg = `
     <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="18" fill="#2C3E50" stroke="#34495E" stroke-width="2"/>
