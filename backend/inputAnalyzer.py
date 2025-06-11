@@ -90,7 +90,7 @@ def validate_company_info(company_info: CompanyInfo)-> AppointmentValidationResp
     errors = []
     address_responses = []
 
-    if not company_info.number_of_workers:
+    if not company_info.vehicles:
         errors.append(exceptionStrings.NUMBER_OF_WORKERS_INVALID)
 
     start = company_info.start_address
@@ -268,6 +268,7 @@ def convert_to_enhanced_appointment(appointment: Appointment,location:Location) 
         appointment_end=appointment.appointment_end,
         address=appointment.address,
         service_time = appointment.service_time,
+        skills_needed= appointment.skills_needed,
         location=location,
         number_of_workers=appointment.number_of_workers
     )
@@ -292,7 +293,7 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
         start_location=start_location,
         finish_address=company_info.finish_address,
         finish_location=end_location,
-        number_of_workers=company_info.number_of_workers
+        vehicles =company_info.vehicles
     )
 
     if not company_info_validation_response.all_valid:

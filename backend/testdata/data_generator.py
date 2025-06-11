@@ -1,9 +1,12 @@
+import math
 import os
 import random
 import json
 import csv
 from datetime import datetime, timedelta
-from solver.models import *
+from typing import Any
+
+from backend.solver.models import *
 
 # === HELPERS ===
 
@@ -60,7 +63,6 @@ def generate_random_addresses(n:int) -> Address:
         Address(street="Köpenicker Straße 76, Brückenstraße 1", zip_code="10179", city="Berlin"),
         Address(street="Singerstraße 109", zip_code="10179", city="Berlin"),
         Address(street="Holteistraße 6-9", zip_code="10245", city="Berlin"),
-        Address(street="Wönnichstraße 69-71", zip_code="10317", city="Berlin"),
         Address(street="Sewanstraße 41", zip_code="10319", city="Berlin"),
         Address(street="Königsheideweg 9b", zip_code="12437", city="Berlin"),
         Address(street="Johannisthaler Ch 46", zip_code="12437", city="Berlin"),
@@ -80,15 +82,18 @@ def get_random_service_time() -> int:
     weights = [0.4, 0.3, 0.15, 0.15]
     return random.choices(choices, weights=weights, k=1)[0]
 
-def generate_filled_vehicles(amount: int) -> List[FilledVehicle]:
-    skills_pool = ["electrician", "plumber"]
+skills_pool = ["electrician", "plumber","carpenter"]
+
+def generate_filled_vehicles(amount: int) -> list[FilledVehicle]:
     return [
         FilledVehicle(
             vehicle_id=i + 1,
-            skills=random.choice(skills_pool),
-            worker_amount=random.randint(1, 3)
+            skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),
+            worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0],
+            operation_hours = OperationHours(start_minutes = 0,end_minutes = 1440)#TODO change to real logic
         ) for i in range(amount)
     ]
+
 def round_to_nearest_quarter(dt: datetime, direction: str = "down") -> datetime:
     minute = (dt.minute // 15) * 15
     if direction == "up" and dt.minute % 15 != 0:
@@ -118,12 +123,17 @@ def generate_random_appointments(n: int, appointment_duration_factor: float = 3.
         appointment_start = round_to_nearest_quarter(raw_start, direction="up")
         appointment_end = round_to_nearest_quarter(appointment_start + timedelta(minutes=duration_minutes), direction="up")
 
+        num_skills = math.ceil(len(skills_pool) / 2)
+
+        selected_skills = set(random.sample(skills_pool, num_skills))
+
         appointment = Appointment(
             appointment_start=appointment_start.strftime("%Y-%m-%d %H:%M:%S.000"),
             appointment_end=appointment_end.strftime("%Y-%m-%d %H:%M:%S.000"),
             address=addresses[i],
             service_time=str(service_time),
-            number_of_workers=random.randint(1, 2)
+            skills_needed=selected_skills,
+            number_of_workers=random.choices([1, 2, 3], weights=[0.7, 0.25, 0.05])[0]
         )
 
         appointments.append(appointment)
@@ -141,7 +151,7 @@ def create_testdata_optimization_request(num_vehicles: int, num_appointments: in
     company_info = CompanyInfo(
         start_address=start_address,
         finish_address=finish_address,
-        number_of_workers=generate_filled_vehicles(num_vehicles)
+        vehicles =generate_filled_vehicles(num_vehicles)
     )
 
     appointments = generate_random_appointments(num_appointments,appointment_duration_factor)
@@ -154,11 +164,16 @@ def create_testdata_optimization_request(num_vehicles: int, num_appointments: in
 # === JSON DUMP ===
 
 def save_optimization_request_to_json(opt_req: OptimizationRequest, filename: str):
+    def convert_sets(obj: Any):
+        if isinstance(obj, set):
+            return list(obj)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
     current_folder = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_folder, filename)
 
     with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(opt_req.model_dump(), f, indent=2, ensure_ascii=False)
+        json.dump(opt_req.model_dump(), f, indent=2, ensure_ascii=False, default=convert_sets)
 
     print(f"JSON File successfully saved here: {file_path}")
 
@@ -170,10 +185,15 @@ def export_appointments_to_csv(request: OptimizationRequest, filename: str):
     with open(file_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
 
-        writer.writerow(
-            ["appointment_start", "appointment_end", "street", "zip_code", "city", "service_time", "number_of_workers"])
+        writer.writerow([
+            "appointment_start", "appointment_end",
+            "street", "zip_code", "city",
+            "service_time", "number_of_workers",
+            "skills_needed"
+        ])
 
         for appt in request.appointments:
+            skills_str = ", ".join(sorted(appt.skills_needed)) if appt.skills_needed else ""
             writer.writerow([
                 appt.appointment_start,
                 appt.appointment_end,
@@ -181,7 +201,8 @@ def export_appointments_to_csv(request: OptimizationRequest, filename: str):
                 appt.address.zip_code,
                 appt.address.city,
                 appt.service_time,
-                appt.number_of_workers
+                appt.number_of_workers,
+                skills_str
             ])
 
     print(f"CSV File successfully saved here: {file_path}")
