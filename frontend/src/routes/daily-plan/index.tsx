@@ -67,11 +67,33 @@ function DailyPlan() {
     document.body.removeChild(a);
   };
 
+  const handleBackButtonClick = () => {
+    const sanitizedDate = date.replace(/"/g, '').trim();
+    const dateObj = new Date(Number(sanitizedDate));
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth();
+    navigate({
+      to: '/scenarios',
+      search: {
+        year: year,
+        month: month,
+      },
+    });
+  };
+
   return (
     <div className="container my-8">
       <div className="flex flex-wrap gap-3 my-5 w-full justify-between items-center">
         <h2 className="text-xl text-center text-blue-900 font-semibold my-5">
-          Daily Plan for {formatDateString(date)}
+          <span className="flex items-center ">
+            <button
+              onClick={handleBackButtonClick}
+              className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
+            >
+              ←
+            </button>
+            Daily Plan for {formatDateString(date)}
+          </span>{' '}
         </h2>
         <Button
           onClick={downloadSolution}

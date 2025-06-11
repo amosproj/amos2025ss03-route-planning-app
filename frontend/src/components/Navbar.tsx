@@ -14,13 +14,21 @@ const Navbar = () => {
     <div className=" sticky top-0 z-50 border-b bg-white shadow-sm">
       <div className="mx-auto container flex items-center justify-between p-4">
         {/* Logo and Title */}
-        <div className="flex items-center gap-3">
-          <img src="/team-logo.svg" alt="Team Logo" width={52} height={52} />
-          <h1 className="text-xl font-semibold text-primary">
-            AMOS - Smart Route Planning
-          </h1>
-        </div>
+        <Link to="/">
+          <div className="flex items-center gap-3">
+            <img
+              src="/team-logo.svg"
+              alt="Team Logo"
+              width={52}
+              height={52}
+              className="cursor-pointer"
+            />
 
+            <h1 className="text-xl font-semibold text-primary">
+              AMOS - Smart Route Planning
+            </h1>
+          </div>
+        </Link>
         {/* Desktop Navigation */}
         <div className="hidden sm:flex gap-4">
           {menuItems.map((item) => (
