@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
-import { Download } from 'lucide-react';
+import { Download, NotepadText } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 interface SolutionListProps {
   solution: Solution;
@@ -19,6 +20,7 @@ interface SolutionListProps {
 }
 
 export default function SolutionList({ solution, date }: SolutionListProps) {
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const visibilityMap = useSelector(
     (state: RootState) => state.routeVisibility.byDate[date] || {},
@@ -54,18 +56,14 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
     routeIds.length > 0 && routeIds.every((id) => visibilityMap[id] ?? true);
   const toggleAll = (checked: boolean) => {
     routeIds.forEach((routeId) =>
-      dispatch(
-        setRouteVisibility({ date, routeId, isVisible: checked })
-      )
+      dispatch(setRouteVisibility({ date, routeId, isVisible: checked })),
     );
   };
   return (
     <Accordion type="single" collapsible className="space-y-2">
       {/* Master toggle to show/hide all routes */}
       <div className="flex justify-between items-center px-4 pt-2 border-b-2">
-        <span className="text-xl font-semibold mr-2">
-          Routes
-        </span>
+        <span className="text-xl font-semibold mr-2">Routes</span>
         <Switch
           checked={masterChecked}
           onClick={(e) => e.stopPropagation()}
@@ -187,8 +185,26 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
           </AccordionItem>
         );
       })}
-      <Button size="lg" className="w-full" onClick={downloadSolution}>
-        <Download />
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-indigo-200 hover:text-blue-900 hover:border-blue-300"
+        onClick={downloadSolution}
+      >
+        <Download /> Download Solution
+      </Button>
+
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full  bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200 hover:text-orange-900 hover:border-orange-300"
+        onClick={() =>
+          navigate({
+            to: `/daily-plan?date=${date}`,
+          })
+        }
+      >
+        <NotepadText /> Show Daily Plan
       </Button>
     </Accordion>
   );
