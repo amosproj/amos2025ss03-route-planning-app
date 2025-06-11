@@ -8,7 +8,7 @@ import {
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
@@ -113,6 +113,9 @@ function MapView() {
   const companyInfo = useSelector(
     (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
   );
+  const solution = useSelector(
+    (s: RootState) => s.solutions.byDate[date],
+  );
 
   // console.log('MapView companyInfo', companyInfo);
   const [startLoc, setStartLoc] = useState<{ lat: number; lng: number } | null>(
@@ -122,34 +125,6 @@ function MapView() {
     lat: number;
     lng: number;
   } | null>(null);
-
-  // Error when optimizing
-  const [optimizationErrors, setOptimizationErrors] = useState<string[]>([]);
-
-  // extract and group errors from the response detail
-  const extractAndGroupErrors = (detail: string): string[] => {
-    try {
-      const match = detail.match(/{.*}/);
-      if (!match) return [];
-
-      const jsonStr = match[0].replace(/'/g, '"');
-      const parsed = JSON.parse(jsonStr) as { errors?: string[] };
-
-      const errors = parsed.errors || [];
-
-      const counts: Record<string, number> = {};
-      errors.forEach((err) => {
-        counts[err] = (counts[err] || 0) + 1;
-      });
-
-      return Object.entries(counts).map(([msg, count]) =>
-        count > 1 ? `${msg} (x${count})` : msg,
-      );
-    } catch (e) {
-      console.error('Failed to extract and group errors:', e);
-      return [];
-    }
-  };
 
   // Optimization mutation
   const optimizationMutation = useMutation<
@@ -165,14 +140,7 @@ function MapView() {
       dispatch(addSolution({ date, solution: data }));
       console.log('Received solution:', data);
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      console.error('Failed to get solution:', error);
-
-      const detail = error?.response?.data?.detail;
-      const groupedErrors = extractAndGroupErrors(detail || '');
-      setOptimizationErrors(groupedErrors);
-    },
+    onError: (error) => console.error('Failed to get solution:', error),
   });
 
   const handleOptimize = () => {
@@ -202,23 +170,28 @@ function MapView() {
           };
         }) || [];
 
+    // Create the request with properly formatted skills for the backend
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
-      number_of_workers: companyInfo.vehicles.map((v) => ({
+      vehicles: companyInfo.vehicles.map((v) => ({
         vehicle_id: v.vehicle_id,
-        skills: v.skills,
+        skills: v.skills || [],
         worker_amount: v.worker_amount,
+        operation_hours: v.operation_hours,
+        start_address: v.depot?.start || companyInfo.start_address,
+        finish_address: v.depot?.finish || companyInfo.finish_address,
       })),
     };
 
+    // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
-      //@ts-expect-error TODO: Wrong type because of old backend data structure
+      //@ts-expect-error // The backend expects a specific format for company info
       company_info: alteredCompanyInfo,
       appointments: enhancedAppointments,
-    };
+    } ;
 
-    console.log('Optimization request:', request);
+    // console.log(JSON.stringify(request, null, 2));
     optimizationMutation.mutate(request);
   };
 
@@ -344,7 +317,7 @@ function MapView() {
               }),
             );
           }}
-          optimizationErrors={optimizationErrors}
+          optimizationErrors={[]}
         />
         {!isLoading ? (
           <div className="flex-1 flex flex-col">
@@ -403,6 +376,26 @@ function MapView() {
                   ) : null,
                 )}
                 {/* Start and finish markers - or depot marker if same location */}
+                {solution &&
+                solution.routes.map((route) => {
+                  if (route.appointments[0].address.street !== companyInfo?.start_address.street) {
+                    return (
+                      <Marker
+                        key={route.vehicle_id}
+                        position={{
+                          lat: route.appointments[0].location.lat,
+                          lng: route.appointments[0].location.lng,
+                        }}
+                        icon={{
+                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                        }}
+                        title="Depot (Start)"
+                      />
+                    );
+                  }
+                  
+                })
+                }
                 {isSameLocation && startLoc ? (
                   <Marker
                     position={startLoc}
@@ -490,7 +483,6 @@ function MapView() {
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
               </h2>
-              <span>Date{scenario.date}</span>
             </div>
           </Skeleton>
         )}
