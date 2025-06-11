@@ -6,7 +6,7 @@ import csv
 from datetime import datetime, timedelta
 from typing import Any
 
-from backend.solver.models import *
+from solver.models import *
 
 # === HELPERS ===
 
