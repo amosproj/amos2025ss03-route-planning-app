@@ -203,8 +203,17 @@ export function ScenarioCalendar({
                   >
                     {isCurrentMonth && (
                       <div className="p-2 flex flex-col justify-between h-full">
-                        <div className="text-lg font-semibold">
-                          {day.date()}
+                        <div className="flex justify-between items-center gap-2 mb-2 relative">
+                          <div className="text-lg font-semibold">
+                            {day.date()}
+                          </div>
+
+                          {sc?.solution && (
+                            <span className="absolute -right-1 -top-3 flex size-3">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75"></span>
+                              <span className="relative inline-flex size-3 rounded-full bg-teal-600"></span>
+                            </span>
+                          )}
                         </div>
 
                         {sc && (
