@@ -181,7 +181,7 @@ function WeekViewPage() {
         finish_address: companyInfo.finish_address,
         vehicles: companyInfo.vehicles.map((v) => ({
           vehicle_id: v.vehicle_id,
-          skills: [v.skills] || [],
+          skills: v.skills ? [...v.skills] : [],
           worker_amount: v.worker_amount,
           operation_hours: v.operation_hours,
           start_address: v.depot?.start || companyInfo.start_address,
