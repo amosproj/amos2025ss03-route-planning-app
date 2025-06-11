@@ -75,7 +75,7 @@ function DailyPlan() {
         </h2>
         <Button
           onClick={downloadSolution}
-          className="bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm"
+          className="bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-indigo-200"
         >
           <Download /> Download Day Plan
         </Button>
@@ -89,11 +89,11 @@ function DailyPlan() {
         />
       ))}
 
-      <div className="flex justify-end">
-        <Button className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm">
+      {/* <div className="flex justify-end">
+        <Button className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200">
           View Metrics & Errors
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

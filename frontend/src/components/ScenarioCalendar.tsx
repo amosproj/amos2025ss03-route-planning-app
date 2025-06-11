@@ -160,32 +160,36 @@ export function ScenarioCalendar({
       {/* Days Grid with week numbers */}
       <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-1">
         {Array.from({ length: days.length / 7 }).map((_, weekIndex) => {
-          const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7)
+          const weekDays = days.slice(weekIndex * 7, weekIndex * 7 + 7);
           const sunday = weekDays[0];
           const weekNumber = getCalendarWeekNumber(sunday);
 
           return (
             <Fragment key={weekIndex}>
               {/* Week number column */}
-              <div className="flex justify-center mt-2">
-                <div className='w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold border-black text-black hover:text-white hover:bg-black'
-                  onClick={() => navigate({
-                    to: '/week-view',
-                    search: {
-                      year: weekDays[0].year(),
-                      week: weekNumber,
-                    },
-                  })}>
+              <div className="flex justify-center mt-1">
+                <div
+                  className="w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold  text-black   hover:bg-gray-100"
+                  onClick={() =>
+                    navigate({
+                      to: '/week-view',
+                      search: {
+                        year: weekDays[0].year(),
+                        week: weekNumber,
+                      },
+                    })
+                  }
+                >
                   {weekNumber}
                 </div>
               </div>
 
               {/* 7 day cells */}
               {weekDays.map((day) => {
-                const isCurrentMonth = day.month() === currentDate.month()
-                const isToday = day.isSame(today, 'day')
-                const dateKey = day.toDate().toDateString()
-                const sc = scenariosByDate.get(dateKey)
+                const isCurrentMonth = day.month() === currentDate.month();
+                const isToday = day.isSame(today, 'day');
+                const dateKey = day.toDate().toDateString();
+                const sc = scenariosByDate.get(dateKey);
 
                 return (
                   <div
@@ -199,12 +203,23 @@ export function ScenarioCalendar({
                   >
                     {isCurrentMonth && (
                       <div className="p-2 flex flex-col justify-between h-full">
-                        <div className="text-lg font-semibold">{day.date()}</div>
+                        <div className="flex justify-between items-center gap-2 mb-2 relative">
+                          <div className="text-lg font-semibold">
+                            {day.date()}
+                          </div>
+
+                          {sc?.solution && (
+                            <span className="absolute -right-1 -top-3 flex size-3">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75"></span>
+                              <span className="relative inline-flex size-3 rounded-full bg-teal-600"></span>
+                            </span>
+                          )}
+                        </div>
 
                         {sc && (
                           <>
                             <div
-                              className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium cursor-pointer hover:bg-black"
+                              className="flex items-center gap-1 px-2 py-1 mt-2 rounded bg-blue-900 text-white text-xs font-medium cursor-pointer hover:bg-indigo-900"
                               onClick={() => setSelected(sc)}
                             >
                               <MapPin className="h-4 w-4" />
@@ -213,7 +228,7 @@ export function ScenarioCalendar({
                             <div className="flex justify-end items-center gap-2">
                               {sc?.solution && (
                                 <div
-                                  className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
+                                  className="cursor-pointer p-1 border rounded bg-amber-50 text-gray-800 hover:border-amber-500 "
                                   onClick={() =>
                                     navigate({
                                       to: '/daily-plan',
@@ -221,11 +236,11 @@ export function ScenarioCalendar({
                                     })
                                   }
                                 >
-                                  <Table className="h-4.5 w-4.5" />
+                                  <Table className="h-5 w-5 text-amber-600" />
                                 </div>
                               )}
                               <div
-                                className="cursor-pointer p-0.5 border rounded bg-white text-gray-800"
+                                className="cursor-pointer p-1 border rounded bg-cyan-50 text-gray-800 hover:border-cyan-700"
                                 onClick={() =>
                                   navigate({
                                     to: '/map-view',
@@ -233,7 +248,7 @@ export function ScenarioCalendar({
                                   })
                                 }
                               >
-                                <Map className="h-4.5 w-4.5" />
+                                <Map className="h-5 w-5 text-cyan-800" />
                               </div>
                             </div>
                           </>
@@ -241,13 +256,12 @@ export function ScenarioCalendar({
                       </div>
                     )}
                   </div>
-                )
+                );
               })}
             </Fragment>
-          )
+          );
         })}
       </div>
-
     </div>
   );
 }
