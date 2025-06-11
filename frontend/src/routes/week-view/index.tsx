@@ -361,13 +361,13 @@ function WeekViewPage() {
       {/* Actions */}
       <div className="flex justify-end items-center gap-3">
         <Button
-          className="bg-green-100 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-200"
+          className="bg-green-50 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-100"
           onClick={handleEnrichAppointments}
         >
           Verify Appointments
         </Button>
         <Button
-          className="bg-blue-100 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-200"
+          className="bg-blue-50 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-100"
           onClick={handleOptimization}
         >
           Start Optimization
@@ -430,7 +430,7 @@ function WeekViewPage() {
               </div>
               {sc && (
                 <div className="flex justify-between items-center">
-                  <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-[#067bc2] text-white text-xs font-medium">
+                  <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-sky-600 text-white text-xs font-medium">
                     <MapPin className="h-4 w-4" />
                     {sc.jobs.length} jobs
                   </div>
