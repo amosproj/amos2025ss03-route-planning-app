@@ -1,4 +1,8 @@
-import { createFileRoute, useSearch, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useSearch,
+  useNavigate,
+} from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../utils/apiClient';
 
@@ -9,7 +13,16 @@ import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, CircleCheck, CircleDot, CircleX, Loader2, Map, MapPin } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
+  CircleDot,
+  CircleX,
+  Loader2,
+  Map,
+  MapPin,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScenarioDateString } from '@/types/Scenario';
 
@@ -17,7 +30,8 @@ export const Route = createFileRoute('/week-view/')({
   component: WeekViewPage,
   validateSearch: (search) => {
     const year = parseInt(search.year as string) || dayjs().year();
-    const week = parseInt(search.week as string) || getWeekStartingSunday(dayjs()).week;
+    const week =
+      parseInt(search.week as string) || getWeekStartingSunday(dayjs()).week;
     return { year, week };
   },
 });
@@ -45,7 +59,9 @@ function WeekViewPage() {
   const dispatch = useDispatch<AppDispatch>();
 
   const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week]);
-  const weekDates = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'));
+  const weekDates = Array.from({ length: 7 }, (_, i) =>
+    startOfWeek.add(i, 'day'),
+  );
   const weekRangeText = `${weekDates[0].format('MMM D')} – ${weekDates[6].format('D, YYYY')}`;
 
   const handleWeekChange = (newWeek: number, newYear = year) => {
@@ -54,9 +70,15 @@ function WeekViewPage() {
 
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
-  const enrichedByDate = useSelector((state: RootState) => state.enrichedAppointments);
-  const solutionByDate = useSelector((state: RootState) => state.solutions.byDate);
-  const companyInfo = useSelector((s: RootState) => Object.values(s.companyInfo)[0]);
+  const enrichedByDate = useSelector(
+    (state: RootState) => state.enrichedAppointments,
+  );
+  const solutionByDate = useSelector(
+    (state: RootState) => state.solutions.byDate,
+  );
+  const companyInfo = useSelector(
+    (s: RootState) => Object.values(s.companyInfo)[0],
+  );
 
   const sortedScenarios = useMemo(() => {
     return [...scenarios]
@@ -72,7 +94,7 @@ function WeekViewPage() {
       sortedScenarios.map((sc) => [
         new Date(sc.date).toDateString(),
         { ...sc, date: sc.date.toString() },
-      ])
+      ]),
     );
   }, [sortedScenarios]);
 
@@ -85,8 +107,12 @@ function WeekViewPage() {
       .filter((sc) => sc !== null);
   }, [weekDates, scenariosByDate]);
 
-  const [enrichLoading, setEnrichLoading] = useState<Record<string, boolean>>({});
-  const [optimizeLoading, setOptimizeLoading] = useState<Record<string, boolean>>({});
+  const [enrichLoading, setEnrichLoading] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [optimizeLoading, setOptimizeLoading] = useState<
+    Record<string, boolean>
+  >({});
 
   // progress states
   const [enrichProgress, setEnrichProgress] = useState(0);
@@ -94,11 +120,11 @@ function WeekViewPage() {
 
   // Error handling
   const [enrichError, setEnrichError] = useState<Record<string, boolean>>({});
-  const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>({});
-
+  const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const queryClient = useQueryClient();
-
 
   const enrichMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
@@ -114,12 +140,19 @@ function WeekViewPage() {
 
       const res = await apiClient.post('/api/appointments', payload);
       return { date, data: res.data };
-
     },
     onSuccess: ({ date, data }) => {
-      queryClient.setQueryData(['enrichedAppointments', date], data.address_responses);
+      queryClient.setQueryData(
+        ['enrichedAppointments', date],
+        data.address_responses,
+      );
 
-      dispatch(setEnrichedAppointments({ date, address_responses: data.address_responses }));
+      dispatch(
+        setEnrichedAppointments({
+          date,
+          address_responses: data.address_responses,
+        }),
+      );
     },
   });
 
@@ -131,14 +164,16 @@ function WeekViewPage() {
         address: job.address,
         number_of_workers: job.number_of_workers,
         service_time: 15,
-        appointment_start: new Date(job.appointment_start).
-          toISOString().
-          replace('T', ' ')
-          .split('.')[0] + '.000',
-        appointment_end: new Date(job.appointment_end)
-          .toISOString()
-          .replace('T', ' ')
-          .split('.')[0] + '.000',
+        appointment_start:
+          new Date(job.appointment_start)
+            .toISOString()
+            .replace('T', ' ')
+            .split('.')[0] + '.000',
+        appointment_end:
+          new Date(job.appointment_end)
+            .toISOString()
+            .replace('T', ' ')
+            .split('.')[0] + '.000',
       }));
 
       const companyPayload = {
@@ -196,9 +231,9 @@ function WeekViewPage() {
     setEnrichProgress(1); // Snap to 100%
   };
 
-
-  const allLocationsFullyFound = (locations: { could_be_fully_found: boolean }[] = []) =>
-    locations.every((loc) => loc.could_be_fully_found);
+  const allLocationsFullyFound = (
+    locations: { could_be_fully_found: boolean }[] = [],
+  ) => locations.every((loc) => loc.could_be_fully_found);
 
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
@@ -234,7 +269,7 @@ function WeekViewPage() {
     setOptimizeProgress(1); // Snap to 100%
   };
 
-  // show status 
+  // show status
   const renderEnrichedStatus = (date: string) => {
     if (enrichLoading[date]) {
       return <Loader2 className="h-4 w-4 animate-spin" />;
@@ -325,8 +360,18 @@ function WeekViewPage() {
 
       {/* Actions */}
       <div className="flex justify-end items-center gap-3">
-        <Button onClick={handleEnrichAppointments}>Verify Appointments</Button>
-        <Button onClick={handleOptimization}>Start Optimization</Button>
+        <Button
+          className="bg-green-100 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-200"
+          onClick={handleEnrichAppointments}
+        >
+          Verify Appointments
+        </Button>
+        <Button
+          className="bg-blue-100 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-200"
+          onClick={handleOptimization}
+        >
+          Start Optimization
+        </Button>
       </div>
 
       <div>
@@ -348,7 +393,6 @@ function WeekViewPage() {
             ></div>
           </div>
         )}
-
       </div>
 
       {/* Week Days List */}
@@ -358,8 +402,11 @@ function WeekViewPage() {
           const sc = scenariosByDate[dateKey];
 
           return (
-            <div key={date.toISOString()} className="border rounded p-3 shadow-sm">
-              <div className='flex justify-between items-top mb-2'>
+            <div
+              key={date.toISOString()}
+              className="border rounded p-3 shadow-sm"
+            >
+              <div className="flex justify-between items-top mb-2">
                 <div>
                   <div className="text-lg font-semibold">
                     {date.format('dddd')}
@@ -383,19 +430,19 @@ function WeekViewPage() {
               </div>
               {sc && (
                 <div className="flex justify-between items-center">
-                  <div
-                    className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-gray-800 text-white text-xs font-medium"
-                  >
+                  <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-[#067bc2] text-white text-xs font-medium">
                     <MapPin className="h-4 w-4" />
                     {sc.jobs.length} jobs
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className='w-18'>Verified:</span> {renderEnrichedStatus(`"${sc.date}"`)}
+                      <span className="w-18">Verified:</span>{' '}
+                      {renderEnrichedStatus(`"${sc.date}"`)}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className='w-18'>Solution:</span> {renderSolutionStatus(`"${sc.date}"`)}
+                      <span className="w-18">Solution:</span>{' '}
+                      {renderSolutionStatus(`"${sc.date}"`)}
                     </div>
                   </div>
                 </div>
