@@ -4,13 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-export interface Address {
-  street: string;
-  zip_code: string;
-  city: string;
-}
-
+import { type Address } from '../types/Address';
 interface DepotDialogProps {
   open: boolean;
   vehicleIndex: number | null;

@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { z } from 'zod';
-import { Address } from '@/types/Adress';
+import { formSchema, FormSchemaType } from '../schemas/formSchema';
+import { Address } from '@/types/Address';
 import { CompanyInfo } from '@/types/CompanyInfo';
 import { setCompanyInfo } from '@/store/companyInfoSlice';
 import { Button } from '@/components/ui/button';
@@ -24,61 +24,6 @@ import VehicleCostDialog from './VehicleCostDialog';
 
 import { MapPin, Truck } from 'lucide-react';
 
-// validation schema for the form
-// extend schema to include optional costs
-const formSchema = z.object({
-  startAddress: z.string().min(1, 'Start Address is required'),
-  finishAddress: z.string().min(1, 'Finish Address is required'),
-  vehicles: z
-    .array(
-      z.object({
-        vehicle_id: z.number(),
-        skills: z.string().nullable(),
-        worker_amount: z
-          .number()
-          .min(1, 'Worker amount must be at least 1')
-          .max(4, 'Worker amount cannot exceed 4'),
-        operation_hours: z
-          .object({
-            start_minutes: z
-              .number()
-              .min(0, 'Start time must be at least 0 minutes')
-              .max(1440, 'Start time cannot exceed 1440 minutes'),
-            end_minutes: z
-              .number()
-              .min(0, 'End time must be at least 0 minutes')
-              .max(1440, 'End time cannot exceed 1440 minutes'),
-          })
-          .refine((period) => {
-            // Check for overlapping periods and ensure end > start
-            if (period.end_minutes <= period.start_minutes) {
-              return false;
-            }
-
-            return true;
-          }, 'Operation periods cannot overlap and end time must be after start time'),
-        cost_per_km: z.number().min(0, 'Cost per km cannot be negative').optional(),
-        cost_per_hour: z.number().min(0, 'Cost per hour cannot be negative').optional(),
-        depot: z
-          .object({
-            start: z.object({
-              street: z.string(),
-              zip_code: z.string(),
-              city: z.string(),
-            }),
-            finish: z.object({
-              street: z.string(),
-              zip_code: z.string(),
-              city: z.string(),
-            }),
-          })
-          .optional(),
-      }),
-    )
-    .min(1, 'At least one vehicle is required'),
-});
-
-export type FormSchemaType = z.infer<typeof formSchema>;
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
@@ -220,7 +165,6 @@ export function CompanyConfigForm() {
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
     });
   };
-
 
 
   return (
