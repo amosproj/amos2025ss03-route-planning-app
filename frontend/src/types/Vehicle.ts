@@ -13,5 +13,7 @@ export interface Vehicle {
     depot?: {
         start: Address;
         finish: Address;
-    }
+    };
+    cost_per_km?: number;
+    cost_per_hour?: number;
 }
