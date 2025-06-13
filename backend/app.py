@@ -6,6 +6,7 @@ from inputAnalyzer import *
 from solver.solver import solve_appointment_routing
 from solver.models import *
 from testdata.data_generator import create_testdata_optimization_request
+from redis_client import RedisClient
 
 load_dotenv()
 
@@ -23,10 +24,27 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+@app.on_event("startup")
+async def startup_event():
+    RedisClient.get_client()
+
+# API Endpoints
 @app.get("/api/test")
 def handle_test():
     print("--- /api/test endpoint hit ---")
     return {"message": "CORS test successful!"}
+
+@app.get("/api/redis-health")
+def redis_health_check():
+    client = RedisClient.get_client()
+    if client:
+        try:
+            client.ping()
+            return {"status": "healthy", "message": "Redis is connected"}
+        except Exception as e:
+            return {"status": "unhealthy", "message": str(e)}
+    else:
+        return {"status": "unhealthy", "message": "Redis client not initialized"}
 
 @app.post("/api/company-info")
 def receive_company_info(company_info: CompanyInfo):

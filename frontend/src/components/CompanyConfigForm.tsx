@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Card,
   CardContent,
@@ -29,8 +30,33 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, MapPin, Truck, Minus, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Plus,
+  Trash2,
+  MapPin,
+  Truck,
+  Minus,
+  X,
+  Building2,
+  MoreVertical,
+} from 'lucide-react';
 import { getRouteColor } from '@/utils/routeColors';
+import { Toaster } from './ui/sonner';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from '@radix-ui/react-dropdown-menu';
 
 // validation schema for the form
 const formSchema = z.object({
@@ -46,38 +72,38 @@ const formSchema = z.object({
           .min(1, 'Worker amount must be at least 1')
           .max(4, 'Worker amount cannot exceed 4'),
         operation_hours: z
-          .array(
-            z.object({
-              start_minutes: z
-                .number()
-                .min(0, 'Start time must be at least 0 minutes')
-                .max(1440, 'Start time cannot exceed 1440 minutes'),
-              end_minutes: z
-                .number()
-                .min(0, 'End time must be at least 0 minutes')
-                .max(1440, 'End time cannot exceed 1440 minutes'),
-            }),
-          )
-          .min(1, 'At least one operation period is required')
-          .refine((periods) => {
+          .object({
+            start_minutes: z
+              .number()
+              .min(0, 'Start time must be at least 0 minutes')
+              .max(1440, 'Start time cannot exceed 1440 minutes'),
+            end_minutes: z
+              .number()
+              .min(0, 'End time must be at least 0 minutes')
+              .max(1440, 'End time cannot exceed 1440 minutes'),
+          })
+          .refine((period) => {
             // Check for overlapping periods and ensure end > start
-            for (let i = 0; i < periods.length; i++) {
-              if (periods[i].end_minutes <= periods[i].start_minutes) {
-                return false;
-              }
-              for (let j = i + 1; j < periods.length; j++) {
-                const a = periods[i];
-                const b = periods[j];
-                if (
-                  a.start_minutes < b.end_minutes &&
-                  a.end_minutes > b.start_minutes
-                ) {
-                  return false;
-                }
-              }
+            if (period.end_minutes <= period.start_minutes) {
+              return false;
             }
+
             return true;
           }, 'Operation periods cannot overlap and end time must be after start time'),
+        depot: z
+          .object({
+            start: z.object({
+              street: z.string(),
+              zip_code: z.string(),
+              city: z.string(),
+            }),
+            finish: z.object({
+              street: z.string(),
+              zip_code: z.string(),
+              city: z.string(),
+            }),
+          })
+          .optional(),
       }),
     )
     .min(1, 'At least one vehicle is required'),
@@ -132,6 +158,17 @@ export function CompanyConfigForm() {
   const [finishAuto, setFinishAuto] =
     useState<google.maps.places.Autocomplete | null>(null);
 
+  // Depot dialog state
+  const [depotDialogOpen, setDepotDialogOpen] = useState(false);
+  const [currentVehicleIndex, setCurrentVehicleIndex] = useState<number | null>(
+    null,
+  );
+  const [depotAddress, setDepotAddress] = useState('');
+  const [depotAuto, setDepotAuto] =
+    useState<google.maps.places.Autocomplete | null>(null);
+  const [depotStartObj, setDepotStartObj] = useState<Address>(defaultAddr);
+  const [useCompanyFinish, setUseCompanyFinish] = useState(false);
+
   // function to parse Google Places API response into Address object
   const parseAddress = (place: google.maps.places.PlaceResult): Address => {
     let streetNum = '',
@@ -158,7 +195,7 @@ export function CompanyConfigForm() {
           vehicle_id: 0,
           skills: null,
           worker_amount: 1,
-          operation_hours: [{ start_minutes: 480, end_minutes: 960 }], // 8:00 AM to 4:00 PM
+          operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
         },
       ],
     },
@@ -194,16 +231,17 @@ export function CompanyConfigForm() {
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
                 ...vehicle,
-                operation_hours: vehicle.operation_hours || [
-                  { start_minutes: 480, end_minutes: 960 },
-                ],
+                operation_hours: vehicle.operation_hours || {
+                  start_minutes: 480,
+                  end_minutes: 960,
+                },
               }))
             : [
                 {
                   vehicle_id: 0,
                   skills: null,
                   worker_amount: 1,
-                  operation_hours: [{ start_minutes: 480, end_minutes: 960 }], // 8:00 AM to 4:00 PM
+                  operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
                 },
               ],
       });
@@ -213,7 +251,20 @@ export function CompanyConfigForm() {
     }
   }, [existingCompany, form]);
 
+  // Cleanup effect to ensure dialog is properly closed on unmount
+  useEffect(() => {
+    return () => {
+      // Force close dialog if component unmounts while dialog is open
+      setDepotDialogOpen(false);
+      setCurrentVehicleIndex(null);
+      setDepotAddress('');
+      setDepotStartObj(defaultAddr);
+      setDepotAuto(null);
+    };
+  }, []);
+
   const onSubmit = (values: FormSchemaType) => {
+    console.log('Form submitted with values:', values);
     const companyInfo: CompanyInfo = {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
@@ -230,7 +281,7 @@ export function CompanyConfigForm() {
       );
     });
 
-    // alert('Company information saved successfully!');
+    toast('Company configuration saved successfully!');
   };
 
   const addVehicle = () => {
@@ -240,8 +291,69 @@ export function CompanyConfigForm() {
       vehicle_id: newId,
       skills: null,
       worker_amount: 1,
-      operation_hours: [{ start_minutes: 480, end_minutes: 960 }], // 8:00 AM to 4:00 PM
+      operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
     });
+  };
+
+  // Depot management functions
+  const openDepotDialog = (vehicleIndex: number) => {
+    // Clear any existing autocomplete instance first
+    setDepotAuto(null);
+
+    setCurrentVehicleIndex(vehicleIndex);
+    const currentVehicle = form.getValues(`vehicles.${vehicleIndex}`);
+    const currentDepot = currentVehicle.depot;
+
+    if (currentDepot) {
+      const depotDisplay =
+        `${currentDepot.start.street}${currentDepot.start.street ? ', ' : ''}${currentDepot.start.zip_code} ${currentDepot.start.city}`.trim();
+      setDepotAddress(depotDisplay);
+      setDepotStartObj(currentDepot.start);
+    } else {
+      setDepotAddress('');
+      setDepotStartObj(defaultAddr);
+    }
+
+    // Use setTimeout to ensure state is properly set before opening
+    setTimeout(() => {
+      setDepotDialogOpen(true);
+    }, 0);
+  };
+
+  const saveDepot = () => {
+    if (currentVehicleIndex !== null && depotStartObj.street) {
+      form.setValue(`vehicles.${currentVehicleIndex}.depot`, {
+        start: depotStartObj,
+        finish:
+          useCompanyFinish && existingCompany?.finish_address
+            ? existingCompany.finish_address
+            : depotStartObj,
+      });
+      toast('Depot address saved successfully!');
+    }
+    closeDepotDialog();
+  };
+
+  const removeDepot = () => {
+    if (currentVehicleIndex !== null) {
+      form.setValue(`vehicles.${currentVehicleIndex}.depot`, undefined);
+      toast('Depot address removed successfully!');
+    }
+    closeDepotDialog();
+  };
+
+  const closeDepotDialog = () => {
+    setDepotDialogOpen(false);
+    setCurrentVehicleIndex(null);
+    setDepotAddress('');
+    setDepotStartObj(defaultAddr);
+    // Clear the autocomplete instance to prevent interference
+    setDepotAuto(null);
+  };
+
+  const hasDepot = (vehicleIndex: number) => {
+    const vehicle = form.getValues(`vehicles.${vehicleIndex}`);
+    return vehicle.depot;
   };
 
   if (loadError) return <div>Error loading Google Maps</div>;
@@ -249,7 +361,14 @@ export function CompanyConfigForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          console.error('Form validation errors:', errors);
+        })}
+        noValidate
+        className="space-y-8"
+      >
+        <Toaster />
         <Tabs defaultValue="addresses" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="addresses" className="flex items-center gap-2">
@@ -369,7 +488,9 @@ export function CompanyConfigForm() {
                           name={`vehicles.${index}.worker_amount`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm text-center">Workers</FormLabel>
+                              <FormLabel className="text-sm text-center">
+                                Workers
+                              </FormLabel>
                               <FormControl>
                                 <div className="flex items-center border rounded-md w-32">
                                   <Button
@@ -409,92 +530,49 @@ export function CompanyConfigForm() {
                             </FormItem>
                           )}
                         />
-                        <div className='h-0.5 bg-gray-300/60 w-full rounded-2xl'></div>
-                        {/* <hr className="my-1 border-gray-400 " /> */}
+                        <div className="h-0.5 bg-gray-300/60 w-full rounded-2xl"></div>
                         <FormField
                           control={form.control}
                           name={`vehicles.${index}.operation_hours`}
                           render={({ field }) => (
-                            <FormItem className="">
+                            <FormItem>
                               <FormControl>
-                                <div className="space-y-2">
-                                  {/* Time periods */}
-                                  {field.value.map((period, periodIndex) => (
-                                    <div
-                                      key={periodIndex}
-                                      className="flex items-center gap-2 p-1 border rounded-md bg-muted/20"
-                                    >
-                                      <Input
-                                        type="time"
-                                        value={minutesToTime(
-                                          period.start_minutes,
-                                        )}
-                                        onChange={(e) => {
-                                          const newPeriods = [...field.value];
-                                          newPeriods[
-                                            periodIndex
-                                          ].start_minutes = timeToMinutes(
-                                            e.target.value,
-                                          );
-                                          field.onChange(newPeriods);
-                                        }}
-                                        className="h-7 text-xs"
-                                      />
-                                      <span className="text-xs text-muted-foreground">
-                                        to
-                                      </span>
-                                      <Input
-                                        type="time"
-                                        value={minutesToTime(
-                                          period.end_minutes,
-                                        )}
-                                        onChange={(e) => {
-                                          const newPeriods = [...field.value];
-                                          newPeriods[periodIndex].end_minutes =
-                                            timeToMinutes(e.target.value);
-                                          field.onChange(newPeriods);
-                                        }}
-                                        className="h-7 text-xs"
-                                      />
-                                      {field.value.length > 1 && (
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-7 w-7 p-0"
-                                          onClick={() => {
-                                            const newPeriods =
-                                              field.value.filter(
-                                                (_, i) => i !== periodIndex,
-                                              );
-                                            field.onChange(newPeriods);
-                                          }}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      )}
-                                    </div>
-                                  ))}
-                                  {/* Add period button */}
-                                  {/* <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    onClick={() => {
-                                      const newPeriod = {
-                                        start_minutes: 480,
-                                        end_minutes: 960,
-                                      }; // 8:00 AM to 4:00 PM
-                                      field.onChange([
+                                <div className="flex items-center gap-2 p-1 border rounded-md bg-muted/20">
+                                  <Input
+                                    type="time"
+                                    value={minutesToTime(
+                                      field.value.start_minutes,
+                                    )}
+                                    onChange={(e) => {
+                                      const newHours = {
                                         ...field.value,
-                                        newPeriod,
-                                      ]);
+                                        start_minutes: timeToMinutes(
+                                          e.target.value,
+                                        ),
+                                      };
+                                      field.onChange(newHours);
                                     }}
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Period
-                                  </Button> */}
+                                    className="h-7 text-xs"
+                                  />
+                                  <span className="text-xs text-muted-foreground">
+                                    to
+                                  </span>
+                                  <Input
+                                    type="time"
+                                    value={minutesToTime(
+                                      field.value.end_minutes,
+                                    )}
+                                    onChange={(e) => {
+                                      const newHours = {
+                                        ...field.value,
+                                        end_minutes: timeToMinutes(
+                                          e.target.value,
+                                        ),
+                                      };
+                                      field.onChange(newHours);
+                                    }}
+                                    className="h-7 text-xs"
+                                  />
                                 </div>
                               </FormControl>
                               <FormMessage />
@@ -588,18 +666,49 @@ export function CompanyConfigForm() {
                           );
                         }}
                       />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="relative"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                            {/* little green dot if depot exists */}
+                            {hasDepot(index) && (
+                              <span className="absolute top-[-1.5px] right-[-1.5px] h-2 w-2 rounded-full bg-emerald-500" />
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
 
-                      {fields.length > 1 && (
-                        <Button
-                          className="mr-4"
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => remove(index)}
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-48 bg-gray-100/80 backdrop-blur-md p-4 rounded-lg shadow-lg "
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                          {/* <DropdownMenuLabel>
+                            Vehicle {index + 1}
+                          </DropdownMenuLabel> */}
+
+                          <DropdownMenuItem
+                            onClick={() => openDepotDialog(index)}
+                            className="flex justify-start items-center p-1 cursor-pointer"
+                          >
+                            <Building2 className="mr-2 h-4 w-4" />
+                            {hasDepot(index) ? 'Edit depot' : 'Set depot'}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+
+                          {fields.length > 1 && (
+                            <DropdownMenuItem
+                              className="flex justify-start items-center p-1 text-destructive focus:text-destructive"
+                              onClick={() => remove(index)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete vehicle
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </Card>
                 ))}
@@ -645,10 +754,104 @@ export function CompanyConfigForm() {
         </Tabs>
 
         <div className="flex justify-end space-x-4">
-          <Button type="submit" size="lg">
+          <Button type='submit' size="lg">
             Save Company Configuration
           </Button>
         </div>
+
+        {/* Depot Dialog */}
+        <Dialog
+          key={`depot-dialog-${currentVehicleIndex}`}
+          open={depotDialogOpen}
+          modal={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeDepotDialog();
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Configure Depot Address</DialogTitle>
+              <DialogDescription>
+                Set the depot address for Vehicle{' '}
+                {currentVehicleIndex !== null ? currentVehicleIndex + 1 : ''}.
+                {currentVehicleIndex !== null &&
+                  hasDepot(currentVehicleIndex) &&
+                  ' This vehicle already has a depot address set.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div>
+                <label className="text-sm font-medium">Depot Address</label>
+                <Autocomplete
+                  onLoad={setDepotAuto}
+                  onPlaceChanged={() => {
+                    if (depotAuto) {
+                      const place = depotAuto.getPlace();
+                      const addr = parseAddress(place);
+                      setDepotStartObj(addr);
+                      setDepotAddress(
+                        place.formatted_address ||
+                          `${addr.street}, ${addr.zip_code} ${addr.city}`,
+                      );
+                    }
+                  }}
+                >
+                  <Input
+                    placeholder="Enter depot address"
+                    value={depotAddress}
+                    onChange={(e) => setDepotAddress(e.target.value)}
+                  />
+                </Autocomplete>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center">
+                  <Switch
+                    checked={useCompanyFinish}
+                    onCheckedChange={setUseCompanyFinish}
+                    className="mr-2"
+                  />
+                  <label className="text-sm font-medium">
+                    Use company finish address
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-between gap-2">
+                <div>
+                  {currentVehicleIndex !== null &&
+                    hasDepot(currentVehicleIndex) && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeDepot()}
+                      >
+                        Remove Depot
+                      </Button>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={closeDepotDialog}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => saveDepot()}
+                    disabled={!depotStartObj.street}
+                  >
+                    Save Depot
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </form>
     </Form>
   );

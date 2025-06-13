@@ -12,7 +12,7 @@ from solver.validation import validate_solution_and_report
 from solver.postprocessing import extract_enriched_metrics
 from typing import List
 
-from backend.solver.models import FilledVehicle
+from solver.models import FilledVehicle
 
 
 def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> List[List[bool]]:
