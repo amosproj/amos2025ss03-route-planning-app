@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { formSchema, FormSchemaType } from '../schemas/formSchema';
+import { formSchema, FormSchemaType } from '@/schemas/formSchema';
 import { Address } from '@/types/Address';
 import { CompanyInfo } from '@/types/CompanyInfo';
 import { setCompanyInfo } from '@/store/companyInfoSlice';

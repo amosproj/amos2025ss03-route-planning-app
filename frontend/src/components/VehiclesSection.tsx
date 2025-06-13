@@ -1,6 +1,6 @@
 import React from 'react';
 import type { FieldArrayWithId, Control } from 'react-hook-form';
-import type { FormSchemaType } from './CompanyConfigForm';
+import type { FormSchemaType } from '@/schemas/formSchema';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, Trash2, Warehouse, Euro, X } from 'lucide-react';
