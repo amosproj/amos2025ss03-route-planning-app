@@ -58,7 +58,7 @@ export const AddressSection: React.FC<AddressSectionProps> = ({
         <CardContent className="space-y-6">
           <FormField
             name="startAddress"
-            render={({}) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Start Address</FormLabel>
                 <FormControl>
@@ -87,7 +87,7 @@ export const AddressSection: React.FC<AddressSectionProps> = ({
 
           <FormField
             name="finishAddress"
-            render={({}) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Finish Address</FormLabel>
                 <FormControl>
