@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScenarioDateString } from '@/types/Scenario';
+import { Progress } from '@/components/ui/progress';
+
 
 export const Route = createFileRoute('/week-view/')({
   component: WeekViewPage,
@@ -115,8 +117,8 @@ function WeekViewPage() {
   >({});
 
   // progress states
-  const [enrichProgress, setEnrichProgress] = useState(0);
-  const [optimizeProgress, setOptimizeProgress] = useState(0);
+  const [enrichProgress, setEnrichProgress] = useState(-1); // -1 | 0 | 1
+  const [optimizeProgress, setOptimizeProgress] = useState(-1);
 
   // Error handling
   const [enrichError, setEnrichError] = useState<Record<string, boolean>>({});
@@ -205,11 +207,13 @@ function WeekViewPage() {
   const handleEnrichAppointments = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      return !queryClient.getQueryData(['enrichedAppointments', date]);
+      return !enrichedByDate[date];
     });
 
+    console.log('Tasks to run for enrichment:', tasksToRun);
+
     if (tasksToRun.length === 0) {
-      setEnrichProgress(1);
+      setEnrichProgress(-1);
       return;
     }
 
@@ -231,7 +235,8 @@ function WeekViewPage() {
     });
 
     await Promise.allSettled(tasks);
-    setEnrichProgress(1); // Snap to 100%
+    // setEnrichProgress(1); // Snap to 100%
+    setTimeout(() => setEnrichProgress(-1), 100);
   };
 
   const allLocationsFullyFound = (
@@ -242,12 +247,14 @@ function WeekViewPage() {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
       const enriched = enrichedByDate[date];
-      const alreadySolved = queryClient.getQueryData(['solution', date]);
+      const alreadySolved = solutionByDate[date];
       return !alreadySolved && allLocationsFullyFound(enriched);
     });
 
+    console.log('Tasks to run for optimization:', tasksToRun);
+    // return;
     if (tasksToRun.length === 0) {
-      setOptimizeProgress(1);
+      setOptimizeProgress(-1);
       return;
     }
 
@@ -269,7 +276,8 @@ function WeekViewPage() {
     });
 
     await Promise.allSettled(tasks);
-    setOptimizeProgress(1); // Snap to 100%
+    // setOptimizeProgress(1); // Snap to 100%
+    setTimeout(() => setOptimizeProgress(-1), 1000);
   };
 
   // show status
@@ -377,23 +385,29 @@ function WeekViewPage() {
         </Button>
       </div>
 
-      <div>
+      <div className='h-2'>
         {/* Progress bars */}
-        {enrichProgress > 0 && enrichProgress < 1 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-            <div
-              className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${enrichProgress * 100}%` }}
-            ></div>
+        {enrichProgress !== -1 && (
+          // <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+          //   <div
+          //     className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+          //     style={{ width: `${enrichProgress * 100}%` }}
+          //   ></div>
+          // </div>
+          <div className="flex items-center justify-center">
+            <Progress value={enrichProgress * 100} className="bg-gray-200 [&>div]:bg-blue-500 [&>div]:rounded-full h-1.5" />
           </div>
         )}
 
-        {optimizeProgress > 0 && optimizeProgress < 1 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-            <div
-              className="bg-green-500 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${optimizeProgress * 100}%` }}
-            ></div>
+        {optimizeProgress !== -1 && (
+          // <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+          //   <div
+          //     className="bg-green-500 h-2.5 rounded-full transition-all duration-300"
+          //     style={{ width: `${optimizeProgress * 100}%` }}
+          //   ></div>
+          // </div>
+          <div className="flex items-center justify-center">
+            <Progress value={optimizeProgress * 100} className="bg-gray-200 [&>div]:bg-green-500 [&>div]:rounded-full h-1.5" />
           </div>
         )}
       </div>
