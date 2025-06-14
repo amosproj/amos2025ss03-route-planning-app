@@ -36,7 +36,7 @@ def solve_appointment_routing(
     optimization_request: EnhancedOptimizationRequest,
     slack_max: int = 1440,
     max_time_per_vehicle: int = 1440,
-    optimization_time_limit: int = 4 #TODO change back to 15
+    optimization_time_limit: int = 15
 ) -> Solution:
 
     optimization_problem_information: List[ProblemMetric] = collect_problem_metrics(optimization_request)
