@@ -1,11 +1,10 @@
 import os
-from typing import List
+from typing import List, Optional
 import numpy as np
 import requests
 from solver.models import Location, DistanceAndDurationMatrices
 from redis_client import RedisClient
 import hashlib
-import json
 
 # Function to create a unique key for origin-destination pairs
 def make_pair_key(origin: Location, destination: Location, precision=5) -> str:
@@ -18,8 +17,8 @@ def make_pair_key(origin: Location, destination: Location, precision=5) -> str:
     hashed_key = hashlib.md5(raw_key.encode()).hexdigest()
     return f"cache:distance_matrix:{hashed_key}"
 
-# Function to get cached distance and duration for a pair of locations
-def get_cached_pair(origin: Location, destination: Location):
+# Function to get cached distance and duration from Redis Hash
+def get_cached_pair(origin: Location, destination: Location) -> Optional[dict]:
     redis_client = RedisClient.get_client()
     if not redis_client:
         print("⚠️ Redis client not initialized.")
@@ -27,31 +26,38 @@ def get_cached_pair(origin: Location, destination: Location):
 
     key = make_pair_key(origin, destination)
     try:
-        data = redis_client.get(key)
+        data = redis_client.hgetall(key)
         if data:
             print(f"✅ Cache HIT for {origin.id} → {destination.id}")
-            return json.loads(data)
+            return {
+                "distance": int(data["distance"]),
+                "duration": int(data["duration"])
+            }
         else:
             print(f"🔍 Cache MISS for {origin.id} → {destination.id}")
             return None
     except Exception as e:
-        print(f"❌ Redis GET failed for key {key}: {e}")
+        print(f"❌ Redis HGETALL failed for key {key}: {e}")
         return None
 
-# Function to set cached distance and duration for a pair of locations
-def set_cached_pair(origin: Location, destination: Location, distance, duration, ttl=7 * 24 * 3600):
+
+# Function to cache distance and duration using Redis Hash with TTL
+def set_cached_pair(origin: Location, destination: Location, distance: int, duration: int, ttl: int = 30 * 24 * 3600):
     redis_client = RedisClient.get_client()
     if not redis_client:
         print("⚠️ Redis client not initialized.")
         return
 
     key = make_pair_key(origin, destination)
-    value = {"distance": distance, "duration": duration}
     try:
-        redis_client.setex(key, ttl, json.dumps(value))
+        redis_client.hset(key, mapping={
+            "distance": distance,
+            "duration": duration
+        })
+        redis_client.expire(key, ttl)
         print(f"📦 Cached {origin.id} → {destination.id} with distance={distance}, duration={duration}")
     except Exception as e:
-        print(f"❌ Redis SET failed for key {key}: {e}")
+        print(f"❌ Redis HSET/EXPIRE failed for key {key}: {e}")
 
 
 # Function to get the distance and duration matrix for a list of locations
