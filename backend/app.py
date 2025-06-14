@@ -8,6 +8,13 @@ from solver.models import *
 from testdata.data_generator import create_testdata_optimization_request
 from distance_matrix import get_distance_matrix_with_cache
 from redis_client import RedisClient
+import logging
+
+# Setup logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 load_dotenv()
 
