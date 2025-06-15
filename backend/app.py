@@ -32,10 +32,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-@app.on_event("startup")
-async def startup_event():
-    RedisClient.get_client()
-
 # API Endpoints
 @app.get("/api/test")
 def handle_test():
