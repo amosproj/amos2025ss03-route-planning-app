@@ -22,6 +22,9 @@ import {
   Loader2,
   Map,
   MapPin,
+  CalendarClock,
+  User,
+  Waypoints,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScenarioDateString } from '@/types/Scenario';
@@ -193,6 +196,8 @@ function WeekViewPage() {
         company_info: companyPayload,
         appointments,
       });
+
+      console.log('Optimization result:', date, res.data);
 
       return { date, solution: res.data };
     },
@@ -409,7 +414,7 @@ function WeekViewPage() {
               key={date.toISOString()}
               className="border rounded p-3 shadow-sm"
             >
-              <div className="flex justify-between items-top mb-2">
+              {/* <div className="flex justify-between items-top mb-2">
                 <div>
                   <div className="text-lg font-semibold">
                     {date.format('dddd')}
@@ -430,14 +435,90 @@ function WeekViewPage() {
                 >
                   <Map className="h-4.5 w-4.5" />
                 </div>
-              </div>
+              </div> */}
               {sc && (
-                <div className="flex justify-between items-center">
-                  <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-sky-600 text-white text-xs font-medium">
-                    <MapPin className="h-4 w-4" />
-                    {sc.jobs.length} jobs
+                <div className="">
+                  <div className=" w-full flex justify-between  ">
+                    {' '}
+                    <div>
+                      <div className="mb-4">
+                        <div className="text-lg font-semibold">
+                          {date.format('dddd')}
+                        </div>
+                        <div className="text-base text-gray-600">
+                          {date.format('MMM D, YYYY')}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="cursor-pointer p-0.5 text-gray-800"
+                      onClick={() =>
+                        navigate({
+                          to: '/map-view',
+                          search: { date: sc.date.toString() },
+                        })
+                      }
+                    >
+                      <Map className="h-4.5 w-4.5" />
+                    </div>
                   </div>
 
+                  <div className="grid grid-cols-2 divide-x divide-gray-200">
+                    <div className="pr-4">
+                      <ul className="text-sm text-gray-700">
+                        <li className="flex items-center gap-1">
+                          <CalendarClock className="h-4 w-4" />
+                          <span className="font-semibold">
+                            Appointments:
+                          </span>{' '}
+                          {sc.jobs.length}
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="font-semibold">
+                            Start Time:
+                          </span>{' '}
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="font-semibold">End Time:</span>{' '}
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          <span className="font-semibold">Workers:</span>{' '}
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <Waypoints className="h-4 w-4" />
+                          <span className="font-semibold">
+                            Total Distance:
+                          </span>{' '}
+                          km
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="pl-4 text-gray-700">
+                      <p className=" text-sm flex items-center gap-2">
+                        <span className="font-semibold">
+                          Appointments verification:
+                        </span>{' '}
+                        {renderEnrichedStatus(`"${sc.date}"`)}
+                      </p>
+                      <p className=" text-sm flex items-center gap-2">
+                        <span className="font-semibold">
+                          Solution Optimization:
+                        </span>{' '}
+                        {renderSolutionStatus(`"${sc.date}"`)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-sky-600 text-white text-xs font-medium">
+                    <MapPin className="h-4 w-4" />
+                    {sc.jobs.length} jobs
+                  </div> */}
+
+                  {/* 
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="w-18">Verified:</span>{' '}
@@ -447,7 +528,7 @@ function WeekViewPage() {
                       <span className="w-18">Solution:</span>{' '}
                       {renderSolutionStatus(`"${sc.date}"`)}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>
