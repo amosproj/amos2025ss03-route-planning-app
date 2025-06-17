@@ -2,8 +2,9 @@ import {
   createFileRoute,
   useSearch,
   useNavigate,
+  useRouter,
 } from '@tanstack/react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import apiClient from '../../utils/apiClient';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,11 +27,10 @@ import {
   User,
   Waypoints,
   Clock,
-  Clock1,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScenarioDateString } from '@/types/Scenario';
-import { Progress } from '@/components/ui/progress';
 import { ProgressAnimation } from '@/components/ui/progressAnimation';
 
 
@@ -64,7 +64,7 @@ function getStartOfWeek(year: number, week: number) {
 function WeekViewPage() {
   const { year, week } = useSearch({ from: '/week-view/' });
   const navigate = useNavigate({ from: '/week-view' });
-
+  const { history } = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
   const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week]);
@@ -133,8 +133,6 @@ function WeekViewPage() {
     {},
   );
 
-  const queryClient = useQueryClient();
-
   const enrichMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
@@ -151,11 +149,6 @@ function WeekViewPage() {
       return { date, data: res.data };
     },
     onSuccess: ({ date, data }) => {
-      queryClient.setQueryData(
-        ['enrichedAppointments', date],
-        data.address_responses,
-      );
-
       dispatch(
         setEnrichedAppointments({
           date,
@@ -203,12 +196,9 @@ function WeekViewPage() {
         appointments,
       });
 
-      console.log('Optimization result:', date, res.data);
-
       return { date, solution: res.data };
     },
     onSuccess: ({ date, solution }) => {
-      queryClient.setQueryData(['solution', date], solution);
       dispatch(addSolution({ date, solution }));
     },
   });
@@ -218,8 +208,6 @@ function WeekViewPage() {
       const date = `"${scenario.date}"`;
       return !enrichedByDate[date];
     });
-
-    console.log('Tasks to run for enrichment:', tasksToRun);
 
     if (tasksToRun.length === 0) {
       setEnrichProgress(-1);
@@ -257,10 +245,9 @@ function WeekViewPage() {
       const date = `"${scenario.date}"`;
       const enriched = enrichedByDate[date];
       const alreadySolved = solutionByDate[date];
-      return !alreadySolved && allLocationsFullyFound(enriched);
+      return !alreadySolved && enriched && allLocationsFullyFound(enriched);
     });
 
-    console.log('Tasks to run for optimization:', tasksToRun);
     // return;
     if (tasksToRun.length === 0) {
       setOptimizeProgress(-1);
@@ -271,7 +258,6 @@ function WeekViewPage() {
     const tasks = tasksToRun.map(async (scenario) => {
       const date = `"${scenario.date}"`;
       setOptimizeLoading((prev) => ({ ...prev, [date]: true }));
-      console.log(`Optimizing-- ${date}`, scenario);
       try {
         await optimizeMutation.mutateAsync(scenario);
         setOptimizeError((prev) => ({ ...prev, [date]: false }));
@@ -390,20 +376,28 @@ function WeekViewPage() {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end items-center gap-3">
-          <Button
-            className="bg-green-50 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-100"
-            onClick={handleEnrichAppointments}
+        <div className="flex justify-between items-center pt-4">
+          <Button className='bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100'
+            onClick={() => history.go(-1)}
           >
-            Verify Appointments
+            <ArrowLeft />
+            <span className="ml-2">Back</span>
           </Button>
-          <Button
-            className="bg-blue-50 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-100"
-            onClick={handleOptimization}
-          >
-            Start Optimization
-          </Button>
+          {/* Actions */}
+          <div className="flex justify-end items-center gap-3">
+            <Button
+              className="bg-green-50 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-100"
+              onClick={handleEnrichAppointments}
+            >
+              Verify Appointments
+            </Button>
+            <Button
+              className="bg-blue-50 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-100"
+              onClick={handleOptimization}
+            >
+              Start Optimization
+            </Button>
+          </div>
         </div>
 
         {/* Week Days List */}
@@ -413,35 +407,11 @@ function WeekViewPage() {
             const sc = scenariosByDate[dateKey];
             const so = solutionByDate[`"${sc?.date}"`];
 
-            console.log('Rendering date:', dateKey, so);
-
             return (
               <div
                 key={date.toISOString()}
                 className="border rounded p-3 shadow-sm"
               >
-                {/* <div className="flex justify-between items-top mb-2">
-                <div>
-                  <div className="text-lg font-semibold">
-                    {date.format('dddd')}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {date.format('MMM D, YYYY')}
-                  </div>
-                </div>
-
-                <div
-                  className="cursor-pointer p-0.5 text-gray-800"
-                  onClick={() =>
-                    navigate({
-                      to: '/map-view',
-                      search: { date: sc.date.toString() },
-                    })
-                  }
-                >
-                  <Map className="h-4.5 w-4.5" />
-                </div>
-              </div> */}
                 <div className=" w-full flex justify-between  ">
                   {' '}
                   <div>
@@ -546,23 +516,6 @@ function WeekViewPage() {
                         </p>
                       </div>
                     </div>
-
-                    {/* <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-sky-600 text-white text-xs font-medium">
-                    <MapPin className="h-4 w-4" />
-                    {sc.jobs.length} jobs
-                  </div> */}
-
-                    {/* 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-18">Verified:</span>{' '}
-                      {renderEnrichedStatus(`"${sc.date}"`)}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-18">Solution:</span>{' '}
-                      {renderSolutionStatus(`"${sc.date}"`)}
-                    </div>
-                  </div> */}
                   </div>
                 )}
               </div>
