@@ -167,7 +167,7 @@ export function ScenarioCalendar({
           return (
             <Fragment key={weekIndex}>
               {/* Week number column */}
-              <div className="flex justify-center mt-1">
+              <div className="flex justify-center mt-1.5">
                 <div
                   className="w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold  text-black   hover:bg-gray-100"
                   onClick={() =>
