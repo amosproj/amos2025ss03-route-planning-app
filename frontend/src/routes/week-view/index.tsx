@@ -2,8 +2,9 @@ import {
   createFileRoute,
   useSearch,
   useNavigate,
+  useRouter,
 } from '@tanstack/react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import apiClient from '../../utils/apiClient';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,9 +26,13 @@ import {
   CalendarClock,
   User,
   Waypoints,
+  Clock,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScenarioDateString } from '@/types/Scenario';
+import { ProgressAnimation } from '@/components/ui/progressAnimation';
+
 
 export const Route = createFileRoute('/week-view/')({
   component: WeekViewPage,
@@ -38,6 +43,7 @@ export const Route = createFileRoute('/week-view/')({
     return { year, week };
   },
 });
+
 
 function getWeekStartingSunday(date: dayjs.Dayjs) {
   const yearStart = dayjs(`${date.year()}-01-01`);
@@ -58,7 +64,7 @@ function getStartOfWeek(year: number, week: number) {
 function WeekViewPage() {
   const { year, week } = useSearch({ from: '/week-view/' });
   const navigate = useNavigate({ from: '/week-view' });
-
+  const { history } = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
   const startOfWeek = useMemo(() => getStartOfWeek(year, week), [year, week]);
@@ -118,16 +124,14 @@ function WeekViewPage() {
   >({});
 
   // progress states
-  const [enrichProgress, setEnrichProgress] = useState(0);
-  const [optimizeProgress, setOptimizeProgress] = useState(0);
+  const [enrichProgress, setEnrichProgress] = useState(-1); // -1 | 0 | 1
+  const [optimizeProgress, setOptimizeProgress] = useState(-1);
 
   // Error handling
   const [enrichError, setEnrichError] = useState<Record<string, boolean>>({});
   const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>(
     {},
   );
-
-  const queryClient = useQueryClient();
 
   const enrichMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
@@ -145,11 +149,6 @@ function WeekViewPage() {
       return { date, data: res.data };
     },
     onSuccess: ({ date, data }) => {
-      queryClient.setQueryData(
-        ['enrichedAppointments', date],
-        data.address_responses,
-      );
-
       dispatch(
         setEnrichedAppointments({
           date,
@@ -197,12 +196,9 @@ function WeekViewPage() {
         appointments,
       });
 
-      console.log('Optimization result:', date, res.data);
-
       return { date, solution: res.data };
     },
     onSuccess: ({ date, solution }) => {
-      queryClient.setQueryData(['solution', date], solution);
       dispatch(addSolution({ date, solution }));
     },
   });
@@ -210,11 +206,11 @@ function WeekViewPage() {
   const handleEnrichAppointments = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      return !queryClient.getQueryData(['enrichedAppointments', date]);
+      return !enrichedByDate[date];
     });
 
     if (tasksToRun.length === 0) {
-      setEnrichProgress(1);
+      setEnrichProgress(-1);
       return;
     }
 
@@ -236,7 +232,8 @@ function WeekViewPage() {
     });
 
     await Promise.allSettled(tasks);
-    setEnrichProgress(1); // Snap to 100%
+    // setEnrichProgress(1); // Snap to 100%
+    setTimeout(() => setEnrichProgress(-1), 100);
   };
 
   const allLocationsFullyFound = (
@@ -247,12 +244,13 @@ function WeekViewPage() {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
       const enriched = enrichedByDate[date];
-      const alreadySolved = queryClient.getQueryData(['solution', date]);
-      return !alreadySolved && allLocationsFullyFound(enriched);
+      const alreadySolved = solutionByDate[date];
+      return !alreadySolved && enriched && allLocationsFullyFound(enriched);
     });
 
+    // return;
     if (tasksToRun.length === 0) {
-      setOptimizeProgress(1);
+      setOptimizeProgress(-1);
       return;
     }
 
@@ -260,7 +258,6 @@ function WeekViewPage() {
     const tasks = tasksToRun.map(async (scenario) => {
       const date = `"${scenario.date}"`;
       setOptimizeLoading((prev) => ({ ...prev, [date]: true }));
-      console.log(`Optimizing-- ${date}`, scenario);
       try {
         await optimizeMutation.mutateAsync(scenario);
         setOptimizeError((prev) => ({ ...prev, [date]: false }));
@@ -274,7 +271,8 @@ function WeekViewPage() {
     });
 
     await Promise.allSettled(tasks);
-    setOptimizeProgress(1); // Snap to 100%
+    // setOptimizeProgress(1); // Snap to 100%
+    setTimeout(() => setOptimizeProgress(-1), 1000);
   };
 
   // show status
@@ -317,223 +315,213 @@ function WeekViewPage() {
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-xl mx-auto">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <button
-            className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
-            onClick={() => handleWeekChange(week - 1)}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
-            onClick={() => handleWeekChange(week + 1)}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="text-lg font-semibold text-center">{weekRangeText}</div>
-
-        <div className="flex gap-2">
-          <select
-            className="border rounded px-2 py-1"
-            value={week}
-            onChange={(e) => handleWeekChange(parseInt(e.target.value))}
-          >
-            {Array.from({ length: 53 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Week {i + 1}
-              </option>
-            ))}
-          </select>
-          <select
-            className="border rounded px-2 py-1"
-            value={year}
-            onChange={(e) => handleWeekChange(week, parseInt(e.target.value))}
-          >
-            {Array.from({ length: 5 }, (_, i) => {
-              const y = dayjs().year() - 2 + i;
-              return (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex justify-end items-center gap-3">
-        <Button
-          className="bg-green-50 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-100"
-          onClick={handleEnrichAppointments}
-        >
-          Verify Appointments
-        </Button>
-        <Button
-          className="bg-blue-50 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-100"
-          onClick={handleOptimization}
-        >
-          Start Optimization
-        </Button>
-      </div>
-
-      <div>
-        {/* Progress bars */}
-        {enrichProgress > 0 && enrichProgress < 1 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-            <div
-              className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${enrichProgress * 100}%` }}
-            ></div>
-          </div>
+    <div className="my-6 max-w-xl mx-auto bg-white rounded-lg border shadow relative">
+      {/* Progress bars */}
+      <div className='absolute top-0 left-0 w-full'>
+        {enrichProgress !== -1 && (
+          <ProgressAnimation value={enrichProgress * 100} className="bg-gray-200 [&>div]:bg-green-800 h-1.5" />
         )}
 
-        {optimizeProgress > 0 && optimizeProgress < 1 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-            <div
-              className="bg-green-500 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${optimizeProgress * 100}%` }}
-            ></div>
-          </div>
+        {optimizeProgress !== -1 && (
+          <ProgressAnimation value={optimizeProgress * 100} className="bg-gray-200 [&>div]:bg-sky-800 h-1.5" />
         )}
       </div>
 
-      {/* Week Days List */}
-      <div className="flex flex-col gap-3">
-        {weekDates.map((date) => {
-          const dateKey = date.toDate().toDateString();
-          const sc = scenariosByDate[dateKey];
-
-          return (
-            <div
-              key={date.toISOString()}
-              className="border rounded p-3 shadow-sm"
+      <div className="p-4 space-y-4">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
+              onClick={() => handleWeekChange(week - 1)}
             >
-              {/* <div className="flex justify-between items-top mb-2">
-                <div>
-                  <div className="text-lg font-semibold">
-                    {date.format('dddd')}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {date.format('MMM D, YYYY')}
-                  </div>
-                </div>
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              className="px-3 py-1.5 rounded-md border hover:bg-gray-100 text-black"
+              onClick={() => handleWeekChange(week + 1)}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
 
-                <div
-                  className="cursor-pointer p-0.5 text-gray-800"
-                  onClick={() =>
-                    navigate({
-                      to: '/map-view',
-                      search: { date: sc.date.toString() },
-                    })
-                  }
-                >
-                  <Map className="h-4.5 w-4.5" />
-                </div>
-              </div> */}
-              {sc && (
-                <div className="">
-                  <div className=" w-full flex justify-between  ">
-                    {' '}
-                    <div>
-                      <div className="mb-4">
-                        <div className="text-lg font-semibold">
-                          {date.format('dddd')}
-                        </div>
-                        <div className="text-base text-gray-600">
-                          {date.format('MMM D, YYYY')}
-                        </div>
+          <div className="text-lg font-semibold text-center">{weekRangeText}</div>
+
+          <div className="flex gap-2">
+            <select
+              className="border rounded px-2 py-1"
+              value={week}
+              onChange={(e) => handleWeekChange(parseInt(e.target.value))}
+            >
+              {Array.from({ length: 53 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  Week {i + 1}
+                </option>
+              ))}
+            </select>
+            <select
+              className="border rounded px-2 py-1"
+              value={year}
+              onChange={(e) => handleWeekChange(week, parseInt(e.target.value))}
+            >
+              {Array.from({ length: 5 }, (_, i) => {
+                const y = dayjs().year() - 2 + i;
+                return (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center pt-4">
+          <Button className='bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100'
+            onClick={() => history.go(-1)}
+          >
+            <ArrowLeft />
+            <span className="ml-2">Back</span>
+          </Button>
+          {/* Actions */}
+          <div className="flex justify-end items-center gap-3">
+            <Button
+              className="bg-green-50 text-green-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-green-100"
+              onClick={handleEnrichAppointments}
+            >
+              Verify Appointments
+            </Button>
+            <Button
+              className="bg-blue-50 text-sky-800 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-blue-100"
+              onClick={handleOptimization}
+            >
+              Start Optimization
+            </Button>
+          </div>
+        </div>
+
+        {/* Week Days List */}
+        <div className="flex flex-col gap-3">
+          {weekDates.map((date) => {
+            const dateKey = date.toDate().toDateString();
+            const sc = scenariosByDate[dateKey];
+            const so = solutionByDate[`"${sc?.date}"`];
+
+            return (
+              <div
+                key={date.toISOString()}
+                className="border rounded p-3 shadow-sm"
+              >
+                <div className=" w-full flex justify-between  ">
+                  {' '}
+                  <div>
+                    <div className="mb-4">
+                      <div className="text-lg font-semibold">
+                        {date.format('dddd')}
+                      </div>
+                      <div className="text-base text-gray-600">
+                        {date.format('MMM D, YYYY')}
                       </div>
                     </div>
-                    <div
-                      className="cursor-pointer p-0.5 text-gray-800"
-                      onClick={() =>
-                        navigate({
-                          to: '/map-view',
-                          search: { date: sc.date.toString() },
-                        })
-                      }
-                    >
-                      <Map className="h-4.5 w-4.5" />
-                    </div>
                   </div>
-
-                  <div className="grid grid-cols-2 divide-x divide-gray-200">
-                    <div className="pr-4">
-                      <ul className="text-sm text-gray-700">
-                        <li className="flex items-center gap-1">
-                          <CalendarClock className="h-4 w-4" />
-                          <span className="font-semibold">
-                            Appointments:
-                          </span>{' '}
-                          {sc.jobs.length}
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span className="font-semibold">
-                            Start Time:
-                          </span>{' '}
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span className="font-semibold">End Time:</span>{' '}
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
-                          <span className="font-semibold">Workers:</span>{' '}
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <Waypoints className="h-4 w-4" />
-                          <span className="font-semibold">
-                            Total Distance:
-                          </span>{' '}
-                          km
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="pl-4 text-gray-700">
-                      <p className=" text-sm flex items-center gap-2">
-                        <span className="font-semibold">
-                          Appointments verification:
-                        </span>{' '}
-                        {renderEnrichedStatus(`"${sc.date}"`)}
-                      </p>
-                      <p className=" text-sm flex items-center gap-2">
-                        <span className="font-semibold">
-                          Solution Optimization:
-                        </span>{' '}
-                        {renderSolutionStatus(`"${sc.date}"`)}
-                      </p>
-                    </div>
+                  <div
+                    className="cursor-pointer p-0.5 text-gray-800"
+                    onClick={() =>
+                      navigate({
+                        to: '/map-view',
+                        search: { date: sc.date.toString() },
+                      })
+                    }
+                  >
+                    <Map className="h-4.5 w-4.5" />
                   </div>
-
-                  {/* <div className="w-24 flex items-center gap-1 px-2 py-1 mt-2 rounded bg-sky-600 text-white text-xs font-medium">
-                    <MapPin className="h-4 w-4" />
-                    {sc.jobs.length} jobs
-                  </div> */}
-
-                  {/* 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-18">Verified:</span>{' '}
-                      {renderEnrichedStatus(`"${sc.date}"`)}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-18">Solution:</span>{' '}
-                      {renderSolutionStatus(`"${sc.date}"`)}
-                    </div>
-                  </div> */}
                 </div>
-              )}
-            </div>
-          );
-        })}
+                {sc && (
+                  <div className="">
+
+                    <div className="grid grid-cols-2 divide-x divide-gray-200">
+                      <div className="pr-4">
+                        <ul className="text-sm text-gray-700">
+
+                          {!so ?
+                            (<>
+                              {sc.jobs.length &&
+                                <li className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="font-semibold">
+                                    Jobs:
+                                  </span>{' '}
+                                  {sc.jobs.length}
+                                </li>
+                              }
+                            </>) :
+                            (<>
+                              <li className="flex items-center gap-1">
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="font-semibold">
+                                  Appointments:
+                                </span>{' '}
+                                {so.routes.reduce(
+                                  (acc, route) => acc + route.appointments.length,
+                                  0,
+                                )}
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span className="font-semibold">
+                                  Start Time:
+                                </span>{' '}
+                                {dayjs(so?.routes[0]?.appointments[0]?.appointment_start).format('HH:mm')}
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span className="font-semibold">
+                                  End Time:</span>{' '}
+                                {dayjs(
+                                  so?.routes[so.routes.length - 1]?.appointments[
+                                    so?.routes[so.routes.length - 1]?.appointments.length - 1
+                                  ]?.appointment_end
+                                ).format('HH:mm')}
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <User className="h-4 w-4" />
+                                <span className="font-semibold">
+                                  Workers:</span>{' '}
+                                {so.routes.length}
+                              </li>
+
+                              <li className="flex items-center gap-1">
+                                <Waypoints className="h-4 w-4" />
+                                <span className="font-semibold">
+                                  Total Distance:
+                                </span>{' '}
+                                {(so.max_distance_traveled / 1000).toFixed(2)} km
+                              </li>
+                            </>)}
+                        </ul>
+                      </div>
+
+                      <div className="pl-4 text-gray-700">
+                        <p className=" text-sm flex items-center gap-2">
+                          <span className="font-semibold">
+                            Appointments verification:
+                          </span>{' '}
+                          {renderEnrichedStatus(`"${sc.date}"`)}
+                        </p>
+                        <p className=" text-sm flex items-center gap-2">
+                          <span className="font-semibold">
+                            Solution Optimization:
+                          </span>{' '}
+                          {renderSolutionStatus(`"${sc.date}"`)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
