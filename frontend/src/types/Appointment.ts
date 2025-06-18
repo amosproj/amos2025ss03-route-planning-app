@@ -1,4 +1,4 @@
-import { Address } from './Adress';
+import { Address } from './Address';
 
 export interface Appointment {
   appointment_start: string;

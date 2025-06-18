@@ -1,4 +1,4 @@
-import { Address } from "./Adress";
+import { Address } from "./Address";
 
 export interface OperationHours {
     start_minutes: number;
@@ -13,5 +13,7 @@ export interface Vehicle {
     depot?: {
         start: Address;
         finish: Address;
-    }
+    };
+    cost_per_km?: number;
+    cost_per_hour?: number;
 }
