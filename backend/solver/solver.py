@@ -116,7 +116,7 @@ def solve_appointment_routing(
         routing.solver().Add(cumul + service_times[idx] <= end)
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
-    penalty_default = 10000
+    penalty_default = 100000
     compat_matrix = build_compatibility_matrix(optimization_request.appointments, optimization_request.company_info.vehicles)
 
     for appt_idx, row in enumerate(compat_matrix):
