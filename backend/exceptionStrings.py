@@ -1,5 +1,5 @@
 # CompanyInfo Validation Messages
-NUMBER_OF_WORKERS_INVALID = "Number of workers must be at least 1."
+NUMBER_OF_VEHICLES_INVALID = "Number of workers must be at least 1."
 START_ADDRESS_EMPTY = "Start address must not be empty."
 FINISH_ADDRESS_EMPTY = "Finish address must not be empty."
 

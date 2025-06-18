@@ -40,6 +40,18 @@ class FilledVehicle(BaseModel):
     skills: Set[str] = Field(default_factory=set)
     worker_amount:int
     operation_hours:OperationHours
+    start_address: Address
+    finish_address: Address
+
+class EnhancedFilledVehicle(BaseModel):
+    vehicle_id:int
+    skills: Set[str] = Field(default_factory=set)
+    worker_amount:int
+    operation_hours:OperationHours
+    start_address: Address
+    start_location: Location
+    finish_address: Address
+    finish_location: Location
 
 class CompanyInfo(BaseModel):
     start_address: Address
@@ -51,7 +63,7 @@ class EnhancedCompanyInfo(BaseModel):
     start_location: Location
     finish_address: Address
     finish_location: Location
-    vehicles: List[FilledVehicle]
+    vehicles: List[EnhancedFilledVehicle]
 
 class OptimizationRequest(BaseModel):
     company_info: CompanyInfo
