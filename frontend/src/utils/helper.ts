@@ -2,7 +2,7 @@ import { Scenario } from '../types/Scenario';
 import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { CompanyInfo } from '../types/CompanyInfo';
-import { Address } from '../types/Adress';
+import { Address } from '../types/Address';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Warehouse } from 'lucide-react';

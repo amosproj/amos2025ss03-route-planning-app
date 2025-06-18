@@ -6,7 +6,7 @@ import { Solution } from '@/types/Solution';
 import { RouteCard } from '@/components/RouteCard';
 import { getRouteColor } from '@/utils/routeColors';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Map } from 'lucide-react';
 
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
@@ -95,12 +95,28 @@ function DailyPlan() {
             Daily Plan for {formatDateString(date)}
           </span>{' '}
         </h2>
-        <Button
-          onClick={downloadSolution}
-          className="bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-indigo-200"
-        >
-          <Download /> Download Day Plan
-        </Button>
+
+        <div className="flex gap-3">
+          {' '}
+          <Button
+            variant="outline"
+            className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200 hover:text-orange-900 hover:border-orange-300"
+            onClick={() =>
+              navigate({
+                to: `/map-view?date=${date}`,
+              })
+            }
+          >
+            <Map /> Show Daily Plan
+          </Button>
+          <Button
+            variant="outline"
+            onClick={downloadSolution}
+            className="bg-indigo-100 text-blue-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-indigo-200 hover:text-blue-900 hover:border-indigo-300"
+          >
+            <Download /> Download Day Plan
+          </Button>
+        </div>
       </div>
       {solution.routes.map((route, idx) => (
         <RouteCard

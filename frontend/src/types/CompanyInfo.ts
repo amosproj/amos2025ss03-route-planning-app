@@ -1,4 +1,4 @@
-import { Address } from "./Adress";
+import { Address } from "./Address";
 import { Vehicle } from "./Vehicle";
 export interface CompanyInfo {
     start_address: Address;

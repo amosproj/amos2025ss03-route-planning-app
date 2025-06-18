@@ -6,7 +6,15 @@ from inputAnalyzer import *
 from solver.solver import solve_appointment_routing
 from solver.models import *
 from testdata.data_generator import create_testdata_optimization_request
+from distance_matrix import get_distance_matrix_with_cache
 from redis_client import RedisClient
+import logging
+
+# Setup logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 load_dotenv()
 
@@ -23,10 +31,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
-
-@app.on_event("startup")
-async def startup_event():
-    RedisClient.get_client()
 
 # API Endpoints
 @app.get("/api/test")
@@ -58,7 +62,7 @@ def receive_appointments(appointments: List[Appointment]):
 @app.post("/api/distance-matrix")
 def full_matrix(payload: DistanceMatrixRequest):
     try:
-        return get_distance_matrix_2d(payload.locations)
+        return get_distance_matrix_with_cache(payload.locations)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
