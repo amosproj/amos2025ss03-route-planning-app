@@ -60,6 +60,9 @@ def solve_appointment_routing(
     start_indices = vehicle_start_end_indices[::2]
     end_indices = vehicle_start_end_indices[1::2]
 
+    # Create mapping between OR-Tools vehicle indices and actual vehicle IDs
+    vehicle_index_to_id = {i: vehicle.vehicle_id for i, vehicle in enumerate(optimization_request.company_info.vehicles)}
+
     # Routing setup
     manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, start_indices,end_indices)
     routing = pywrapcp.RoutingModel(manager)
@@ -92,14 +95,14 @@ def solve_appointment_routing(
     time_dimension.SetSlackCostCoefficientForAllVehicles(1)
     time_dimension.SetGlobalSpanCostCoefficient(100)
 
-    for vehicle_id, vehicle in enumerate(optimization_request.company_info.vehicles):
-        filled_vehicle = optimization_request.company_info.vehicles[vehicle_id]
+    for vehicle_index, _ in enumerate(optimization_request.company_info.vehicles):
+        filled_vehicle = optimization_request.company_info.vehicles[vehicle_index]
 
         start = filled_vehicle.operation_hours.start_minutes
         end = filled_vehicle.operation_hours.end_minutes
 
-        start_index = routing.Start(vehicle_id)
-        end_index = routing.End(vehicle_id)
+        start_index = routing.Start(vehicle_index)
+        end_index = routing.End(vehicle_index)
 
         time_dimension.CumulVar(start_index).SetRange(start, end)
         time_dimension.CumulVar(end_index).SetRange(start, end)
@@ -155,10 +158,13 @@ def solve_appointment_routing(
     max_time = 0
     routes: List[Route] = []
 
-    for vehicle_id in range(num_vehicles):
-        index = routing.Start(vehicle_id)
-        start_index = routing.Start(vehicle_id)
-        end_index = routing.End(vehicle_id)
+    for vehicle_index in range(num_vehicles):
+        # Get the actual vehicle ID from our mapping
+        actual_vehicle_id = vehicle_index_to_id[vehicle_index]
+
+        index = routing.Start(vehicle_index)
+        start_index = routing.Start(vehicle_index)
+        end_index = routing.End(vehicle_index)
 
         start_time = solution.Value(time_dimension.CumulVar(start_index))
         end_time = solution.Value(time_dimension.CumulVar(end_index))
@@ -169,7 +175,7 @@ def solve_appointment_routing(
         end_hours = end_time // 60
         end_minutes = end_time % 60
         # TODO add this starting_time to route information as soon as the data structure exists
-        print(f"Vehicle {vehicle_id}:")
+        print(f"Vehicle {actual_vehicle_id} (index {vehicle_index}):")
         print(f"  Leaves the depot at {start_hours:02d}:{start_minutes:02d}")
         print(f"  Returns to the depot at {end_hours:02d}:{end_minutes:02d}")
 
@@ -220,7 +226,7 @@ def solve_appointment_routing(
             index = next_index
 
         last_node = manager.IndexToNode(previous_index)
-        depot_node = manager.IndexToNode(routing.End(vehicle_id))
+        depot_node = manager.IndexToNode(routing.End(vehicle_index))
 
         travel_time_to_depot = optimization_request.time_matrix[last_node][depot_node]
         travel_distance_to_depot = optimization_request.distance_matrix[last_node][depot_node]
@@ -261,8 +267,8 @@ def solve_appointment_routing(
 
         routes.append(
             Route(
-                route_id=vehicle_id,
-                vehicle_id=vehicle_id,
+                route_id=vehicle_index,  # Use vehicle_index as route_id for consistency with OR-Tools
+                vehicle_id=actual_vehicle_id,  # Use the actual vehicle ID from the input
                 distance_traveled=route_distance,
                 time_traveled=route_time,
                 appointments=vehicle_route

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from distance_matrix import get_distance_matrix_2d
+from distance_matrix import get_distance_matrix_with_cache
 from solver.models import *
 from fastapi import HTTPException
 import exceptionStrings
@@ -374,7 +374,7 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     distance matrix will be off size (1+ appointments + 2*vehicles)^2
     """
 
-    distance_matrix_response = get_distance_matrix_2d(all_locations)
+    distance_matrix_response = get_distance_matrix_with_cache(all_locations)
     location_ids = distance_matrix_response.location_ids
     duration_matrix = distance_matrix_response.duration_matrix
     distance_matrix = distance_matrix_response.distance_matrix
