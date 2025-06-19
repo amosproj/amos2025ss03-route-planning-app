@@ -1,6 +1,9 @@
-# redis_client.py
-import redis
 import os
+import redis
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 class RedisClient:
     _instance = None
@@ -12,12 +15,13 @@ class RedisClient:
                 cls._instance = redis.Redis(
                     host=os.getenv("REDIS_HOST", "redis"),
                     port=int(os.getenv("REDIS_PORT", 6379)),
-                    db=0,
+                    db=int(os.getenv("REDIS_DB", 0)),
+                    socket_connect_timeout=3,
                     decode_responses=True,
                 )
                 cls._instance.ping()
-                print("✅ Redis connected successfully.")
+                logger.info("✅ Redis connected successfully.")
             except redis.exceptions.ConnectionError as e:
                 cls._instance = None
-                print(f"❌ Redis connection failed: {e}")
+                logger.warning(f"⚠️ Redis connection failed: {e}")
         return cls._instance
