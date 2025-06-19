@@ -20,8 +20,8 @@ class RedisClient:
                     decode_responses=True,
                 )
                 cls._instance.ping()
-                logger.info("✅ Redis connected successfully.")
+                logger.info("Redis connected successfully.")
             except redis.exceptions.ConnectionError as e:
                 cls._instance = None
-                logger.warning(f"⚠️ Redis connection failed: {e}")
+                logger.warning(f"Redis connection failed: {e}")
         return cls._instance

@@ -109,8 +109,13 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
                 pairs_to_fetch.append((i, j))
                 cache_misses += 1
 
-    logger.info(f"Cache usage - Hits: {cache_hits}, Misses: {cache_misses}, Total: {cache_hits + cache_misses}")
-
+    hit_rate = (cache_hits / (cache_hits + cache_misses)) * 100 if (cache_hits + cache_misses) else 0
+    logger.info(
+        f"Cache Efficiency: {cache_hits} hits, {cache_misses} misses "
+        f"(Total lookups: {cache_hits + cache_misses}, Hit rate: {hit_rate:.2f}%), "
+        f"Locations: {n}"
+    )
+    
     max_elements = 100
     max_destinations = 25
     max_origins = max_elements // max_destinations
