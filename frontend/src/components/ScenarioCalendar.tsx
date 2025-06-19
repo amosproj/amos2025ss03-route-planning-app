@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
@@ -80,29 +82,47 @@ export function ScenarioCalendar({
     return sunday.add(1, 'day').isoWeek();
   };
 
+  const [multipleSelection, setMultipleSelection] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+
+
+
   return (
+
     <div className="max-w-5xl mx-auto mt-2 bg-white rounded-lg border shadow p-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2">
         <div className="flex items-center gap-2 ">
           <button
             onClick={handlePrevMonth}
-            className="px-3 py-1.5 rounded-md border hover:bg-gray-100  text-black"
+            className="px-3 py-1.5 rounded-md border hover:bg-gray-100  text-black cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={handleToday}
-            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100  text-black text-sm"
-          >
-            Today
-          </button>
-          <button
             onClick={handleNextMonth}
-            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100 text-black"
+            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100 text-black cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
+          <button
+            onClick={handleToday}
+            className="px-3 py-1.5 rounded-md border  hover:bg-gray-100  text-black text-sm cursor-pointer"
+          >
+            Today
+          </button>
+
+          {/* multiple selection button */}
+          <Button
+            size={"sm"}
+            onClick={
+              () => setMultipleSelection(!multipleSelection)
+            }
+            className="" variant={multipleSelection ? 'outline' : 'default'
+            }
+          >
+            Multiple Selection
+          </Button>
         </div>
 
         <h2 className="text-xl font-bold text-black">
@@ -169,7 +189,7 @@ export function ScenarioCalendar({
               {/* Week number column */}
               <div className="flex justify-center mt-1.5">
                 <div
-                  className="w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold  text-black   hover:bg-gray-100"
+                  className="w-8 h-8 flex justify-center items-center border rounded-full cursor-pointer font-semibold  text-blue-800 bg-blue-50  hover:border-blue-700"
                   onClick={() =>
                     navigate({
                       to: '/week-view',
@@ -190,6 +210,7 @@ export function ScenarioCalendar({
                 const isToday = day.isSame(today, 'day');
                 const dateKey = day.toDate().toDateString();
                 const sc = scenariosByDate.get(dateKey);
+                const timestamp = day.valueOf().toString();
 
                 return (
                   <div
@@ -206,6 +227,22 @@ export function ScenarioCalendar({
                         <div className="flex justify-between items-center gap-2 mb-2 relative">
                           <div className="text-lg font-semibold">
                             {day.date()}
+                          </div>
+                          <div>
+                            {multipleSelection && (
+                              <Checkbox
+                                checked={selectedDates.includes(timestamp)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedDates((prev) => [...prev, timestamp]);
+                                  } else {
+                                    setSelectedDates((prev) => prev.filter((d) => d !== timestamp));
+                                  }
+                                }}
+                                aria-label="Select dates"
+                                className='bg-white border border-gray-500 cursor-pointer'
+                              />
+                            )}
                           </div>
 
                           {sc?.solution && (
@@ -262,6 +299,22 @@ export function ScenarioCalendar({
           );
         })}
       </div>
+      {/* Optimize button for multiple selection */}
+      {multipleSelection && selectedDates.length > 1 && (
+        <Button
+          className='fixed bottom-4 right-30 px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors'
+          onClick={() => {
+            navigate({
+              to: '/multi-days-view',
+              search: { dates: selectedDates.join(',') },
+            });
+            console.log('Selected Dates for Optimization:', selectedDates);
+          }
+          }
+        >
+          Optimize
+        </Button>
+      )}
     </div>
   );
 }
