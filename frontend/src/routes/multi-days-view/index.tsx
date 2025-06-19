@@ -1,7 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { ProgressAnimation } from '@/components/ui/progressAnimation';
 import { AppDispatch, RootState } from '@/store';
+import { setEnrichedAppointments } from '@/store/enrichedAppointmentsSlice';
+import { addSolution } from '@/store/solutionsSlice';
 import { ScenarioDateString } from '@/types/Scenario';
+import apiClient from '@/utils/apiClient';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import dayjs from 'dayjs';
