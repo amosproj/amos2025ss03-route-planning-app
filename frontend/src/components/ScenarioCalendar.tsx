@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import localeData from 'dayjs/plugin/localeData';
-import { ChevronLeft, ChevronRight, Map, MapPin, Table } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Map, MapPin, Table } from 'lucide-react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
 import { ScenarioByDate } from '@/types/Scenario';
 import {
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
@@ -113,7 +115,7 @@ export function ScenarioCalendar({
           </button>
 
           {/* multiple selection button */}
-          <Button
+          {/* <Button
             size={"sm"}
             onClick={
               () => setMultipleSelection(!multipleSelection)
@@ -122,7 +124,18 @@ export function ScenarioCalendar({
             }
           >
             Multiple Selection
-          </Button>
+          </Button> */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id='multiple-selection'
+              className='cursor-pointer'
+              checked={multipleSelection}
+              onCheckedChange={
+                () => setMultipleSelection(!multipleSelection)
+              }
+            />
+            <Label htmlFor='multiple-selection'>Multiple Selection</Label>
+          </div>
         </div>
 
         <h2 className="text-xl font-bold text-black">
@@ -302,17 +315,17 @@ export function ScenarioCalendar({
       {/* Optimize button for multiple selection */}
       {multipleSelection && selectedDates.length > 1 && (
         <Button
-          className='fixed bottom-4 right-30 px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors'
+          className='fixed top-27 right-4 px-4 py-2 bg-blue-900 text-white rounded hover:bg-indigo-900 transition-colors shadow-lg group flex items-center gap-2'
           onClick={() => {
             navigate({
               to: '/multi-days-view',
               search: { dates: selectedDates.join(',') },
             });
             console.log('Selected Dates for Optimization:', selectedDates);
-          }
-          }
+          }}
         >
-          Optimize
+          <span>Continue</span>
+          <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
         </Button>
       )}
     </div>
