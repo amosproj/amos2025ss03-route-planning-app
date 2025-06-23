@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Minus, Plus, Trash2, Warehouse, Euro, X } from 'lucide-react';
 import { TabsContent } from '@/components/ui/tabs';
 import { getRouteColor } from '@/utils/routeColors';
+import { timeToMinutes, minutesToTime } from '@/utils/helper';
 import {
   FormField,
   FormItem,
@@ -26,16 +27,6 @@ const AVAILABLE_SKILLS = [
   'Landscaping',
 ];
 
-const minutesToTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-};
-
-const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
-};
 
 // Props for section
 interface VehiclesSectionProps {
