@@ -107,7 +107,7 @@ function DailyPlan() {
               })
             }
           >
-            <Map /> Show Daily Plan
+            <Map /> Show Map View
           </Button>
           <Button
             variant="outline"
