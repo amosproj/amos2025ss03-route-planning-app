@@ -1,28 +1,41 @@
-# 🧭 AMOS Project (AMOS SS 2025)
+<div align="center">
+<img src="https://github.com/amosproj/amos2025ss03-route-planning-app/blob/main/Deliverables/sprint-01/team-logo.svg" width="400">
+<div>Smart Route Planning</div>
+</div>
 
-A full-stack **route planning application** that leverages Google Maps APIs, React (with TanStack tools), FastAPI, and Google OR-Tools to generate optimized routes based on input data.
+***
+# 🧭 AMOS Project Wiki
 
----
+Welcome to the **AMOS (Smart Route Planning)** project wiki! This system is designed to optimize routing and scheduling for field service workers, helping organizations reduce travel time, lower costs, and increase operational efficiency.
 
-## ⚙️ Technologies Used
+## 🚀 Overview
 
-### 🖥️ Frontend Application (React + Vite)
+AMOS is a route optimization platform that intelligently plans service routes based on various constraints and goals, including:
 
-- **TypeScript** – Strongly typed programming language that builds on JavaScript.
-- **React** – UI library for building interactive user interfaces.
-- **Vite** – Fast build tool for modern frontend projects.
-- **Tailwind CSS** – Utility-first CSS framework for styling.
-- **Shadcn UI** – Component library based on Tailwind CSS.
-- **TanStack Router** – Type-safe routing for React apps.
-- **TanStack Query** – Data-fetching and state management.
-- **Google Maps JavaScript API** – Enables map visualization and route rendering.
+- **Minimizing travel time and cost**
+- **Maximizing worker productivity and profit**
+- **Supporting both fixed and flexible scheduling**
+- **Visualizing optimized routes using Google Maps**
 
-### 🛠️ Backend Application (FastAPI)
 
-- **Python** – Backend logic and API development.
-- **FastAPI** – High-performance web framework for APIs.
-- **Google OR-Tools** – Optimization engine for solving routing problems.
-- **Google Maps Distance Matrix API** – Calculates distances and durations between coordinates.
+## 🎯 Key Features
+
+- 📍 **Route Optimization**: Computes optimal paths for workers considering job locations, time windows, and constraints.
+- 🗺️ **Map Visualization**: Interactive map with:
+  - Color-coded routes
+  - Numbered stops
+  - Start/end markers
+  - Auto-zoom to fit all stops
+- ⚙️ **optimize API**: Accepts job data and returns optimized routes.
+
+## 🔧 Tech Stack
+
+- **Frontend**: React + TypeScript + Vite + react-google-maps
+- **Backend**: FastAPI (Python) or Express (Node.js)
+- **Google Maps API**: For route and location visualization
+- **GitHub Actions**: For CI/CD (under setup)
+
+
 
 ---
 
