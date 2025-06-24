@@ -56,7 +56,9 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
           const hasDepot = Boolean(vehicles[index]?.depot);
           const hasCost =
             vehicles[index]?.cost_per_km != null &&
-            vehicles[index]?.cost_per_hour != null;
+            vehicles[index]?.cost_per_hour != null &&
+            vehicles[index].cost_per_km > 0 &&
+            vehicles[index].cost_per_hour > 0;
           return (
             <Card
               key={field.id}
@@ -251,6 +253,8 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
               skills: null,
               worker_amount: 1,
               operation_hours: { start_minutes: 480, end_minutes: 960 },
+              cost_per_km: 0.5,
+              cost_per_hour: 45.0,
             })
           }
           className="p-3 border-2 border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 cursor-pointer"

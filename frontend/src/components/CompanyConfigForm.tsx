@@ -116,13 +116,17 @@ export function CompanyConfigForm() {
                   start_minutes: 480,
                   end_minutes: 960,
                 },
+                cost_per_km: vehicle.cost_per_km ?? 0.5,
+                cost_per_hour: vehicle.cost_per_hour ?? 45.0,
               }))
             : [
                 {
                   vehicle_id: 0,
                   skills: null,
                   worker_amount: 1,
-                  operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
+                  operation_hours: { start_minutes: 480, end_minutes: 960 },
+                  cost_per_km: 0.5,
+                  cost_per_hour: 45.0,
                 },
               ],
       });
@@ -163,6 +167,8 @@ export function CompanyConfigForm() {
       skills: null,
       worker_amount: 1,
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
+      cost_per_km: 0.5,
+      cost_per_hour: 45.0,
     });
   };
 

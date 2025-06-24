@@ -38,6 +38,9 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     vehicle_id: 0,
     skills: '',
     worker_amount: 1,
+    operation_hours: { start_minutes: 480, end_minutes: 960 },
+    cost_per_km: 0.5,
+    cost_per_hour: 45.0,
   } as Vehicle;
   return Object.entries(groups).map(
     ([date, jobs]) =>
@@ -73,6 +76,12 @@ export function parseScenariofromJson(jsonData: string): Scenario {
         vehicle_id: veh.vehicle_id,
         skills: veh.skills || '',
         worker_amount: veh.worker_amount || 1,
+        operation_hours: {
+          start_minutes: 480,
+          end_minutes: 960,
+        },
+        cost_per_km: 0.5,
+        cost_per_hour: 45.0,
       })),
     };
     return scenario;
@@ -122,6 +131,8 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
             start_minutes: 480, // 08:00
             end_minutes: 960, // 16:00
           },
+          cost_per_km: 0.5,
+          cost_per_hour: 45.0,
         });
       }
     }
