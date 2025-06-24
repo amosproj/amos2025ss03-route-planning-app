@@ -10,7 +10,14 @@ const defaultAddress = { street: '', zip_code: '', city: '' };
 const defaultCompanyInfo: CompanyInfo = {
   start_address: defaultAddress,
   finish_address: defaultAddress,
-  vehicles: [],
+  vehicles: [{
+    vehicle_id: 0,
+    skills: null,
+    worker_amount: 1,
+    operation_hours: { start_minutes: 480, end_minutes: 960 },
+    cost_per_km: 0.5,
+    cost_per_hour: 45.0,
+  }],
 };
 
 const initialState: CompanyInfoState = {};

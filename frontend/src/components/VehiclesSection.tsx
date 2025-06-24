@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Minus, Plus, Trash2, Warehouse, Euro, X } from 'lucide-react';
 import { TabsContent } from '@/components/ui/tabs';
 import { getRouteColor } from '@/utils/routeColors';
+import { timeToMinutes, minutesToTime } from '@/utils/helper';
 import {
   FormField,
   FormItem,
@@ -26,16 +27,6 @@ const AVAILABLE_SKILLS = [
   'Landscaping',
 ];
 
-const minutesToTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-};
-
-const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
-};
 
 // Props for section
 interface VehiclesSectionProps {
@@ -65,7 +56,9 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
           const hasDepot = Boolean(vehicles[index]?.depot);
           const hasCost =
             vehicles[index]?.cost_per_km != null &&
-            vehicles[index]?.cost_per_hour != null;
+            vehicles[index]?.cost_per_hour != null &&
+            vehicles[index].cost_per_km > 0 &&
+            vehicles[index].cost_per_hour > 0;
           return (
             <Card
               key={field.id}
@@ -260,6 +253,8 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
               skills: null,
               worker_amount: 1,
               operation_hours: { start_minutes: 480, end_minutes: 960 },
+              cost_per_km: 0.5,
+              cost_per_hour: 45.0,
             })
           }
           className="p-3 border-2 border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 cursor-pointer"
