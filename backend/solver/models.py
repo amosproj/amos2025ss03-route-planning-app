@@ -42,6 +42,8 @@ class FilledVehicle(BaseModel):
     operation_hours:OperationHours
     start_address: Address
     finish_address: Address
+    cost_per_km: float
+    cost_per_hour: float
 
 class EnhancedFilledVehicle(BaseModel):
     vehicle_id:int
@@ -52,6 +54,8 @@ class EnhancedFilledVehicle(BaseModel):
     start_location: Location
     finish_address: Address
     finish_location: Location
+    cost_per_km: float
+    cost_per_hour: float
 
 class CompanyInfo(BaseModel):
     start_address: Address
