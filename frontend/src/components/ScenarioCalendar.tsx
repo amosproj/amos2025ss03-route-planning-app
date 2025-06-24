@@ -85,9 +85,7 @@ export function ScenarioCalendar({
   };
 
   const [multipleSelection, setMultipleSelection] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-
-
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   return (
 
@@ -244,12 +242,12 @@ export function ScenarioCalendar({
                           <div>
                             {multipleSelection && (
                               <Checkbox
-                                checked={selectedDates.includes(timestamp)}
+                                checked={selectedDays.includes(timestamp)}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
-                                    setSelectedDates((prev) => [...prev, timestamp]);
+                                    setSelectedDays((prev) => [...prev, timestamp]);
                                   } else {
-                                    setSelectedDates((prev) => prev.filter((d) => d !== timestamp));
+                                    setSelectedDays((prev) => prev.filter((d) => d !== timestamp));
                                   }
                                 }}
                                 aria-label="Select dates"
@@ -313,15 +311,14 @@ export function ScenarioCalendar({
         })}
       </div>
       {/* Optimize button for multiple selection */}
-      {multipleSelection && selectedDates.length > 1 && (
+      {multipleSelection && selectedDays.length > 1 && (
         <Button
           className='fixed top-27 right-4 px-4 py-2 bg-blue-900 text-white rounded hover:bg-indigo-900 transition-colors shadow-lg group flex items-center gap-2'
           onClick={() => {
             navigate({
               to: '/multi-days-view',
-              search: { dates: selectedDates.join(',') },
+              search: { dates: selectedDays.join(',') },
             });
-            console.log('Selected Dates for Optimization:', selectedDates);
           }}
         >
           <span>Continue</span>
