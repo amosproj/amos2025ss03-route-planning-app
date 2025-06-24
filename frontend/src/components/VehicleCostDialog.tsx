@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 interface VehicleCostDialogProps {
   open: boolean;
   vehicleIndex: number | null;
-  initialCosts: { cost_per_km?: number; cost_per_hour?: number } | null;
+  initialCosts: { cost_per_km: number; cost_per_hour: number } | null;
   onSave: (costs: { cost_per_km: number; cost_per_hour: number }) => void;
   onClose: () => void;
 }
@@ -23,11 +23,11 @@ const VehicleCostDialog: React.FC<VehicleCostDialogProps> = ({
 
   useEffect(() => {
     if (initialCosts) {
-      setCostKm(initialCosts.cost_per_km?.toString() ?? '');
-      setCostHr(initialCosts.cost_per_hour?.toString() ?? '');
+      setCostKm(initialCosts.cost_per_km.toString());
+      setCostHr(initialCosts.cost_per_hour.toString());
     } else {
-      setCostKm('');
-      setCostHr('');
+      setCostKm('0.5');
+      setCostHr('45.0');
     }
   }, [initialCosts]);
 
