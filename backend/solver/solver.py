@@ -149,7 +149,14 @@ def solve_appointment_routing(
             max_distance_traveled=0,
             routes=[],
             method_used="No solution",
-            problem_metrics = optimization_problem_information
+            problem_metrics=optimization_problem_information,
+            validation_report=SolutionValidationReport(
+                is_valid=False,
+                errors=["No solution found"],
+                missing_appointments=[],
+                duplicate_appointments=[],
+                route_level_errors=[]
+            )
         )
 
     total_time = 0
@@ -239,24 +246,22 @@ def solve_appointment_routing(
         start, end = extract_day_bounds(optimization_request.appointments[0].appointment_start)
 
         vehicle_route.insert(0, EnhancedAppointment(
-            address=optimization_request.company_info.vehicles[vehicle_id].start_address,
+            address=optimization_request.company_info.vehicles[vehicle_index].start_address,
             appointment_start= start,
             appointment_end= end,
             service_time=0,
-            skills_needed = (),
-            location=optimization_request.company_info.vehicles[vehicle_id].start_location,
-            id="depot_start",
+            skills_needed = set(),
+            location=optimization_request.company_info.vehicles[vehicle_index].start_location,
             number_of_workers=0
         ))
 
         vehicle_route.append(EnhancedAppointment(
-            address=optimization_request.company_info.vehicles[vehicle_id].finish_address,
+            address=optimization_request.company_info.vehicles[vehicle_index].finish_address,
             appointment_start= start,
             appointment_end= end,
             service_time=0,
             skills_needed=set(),
-            location=optimization_request.company_info.vehicles[vehicle_id].finish_location,
-            id="depot_end",
+            location=optimization_request.company_info.vehicles[vehicle_index].finish_location,
             number_of_workers=0
         ))
 
