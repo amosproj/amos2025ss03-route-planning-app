@@ -31,8 +31,8 @@ export const formSchema = z.object({
 
             return true;
           }, 'Operation periods cannot overlap and end time must be after start time'),
-        cost_per_km: z.number().min(0, 'Cost per km cannot be negative').optional(),
-        cost_per_hour: z.number().min(0, 'Cost per hour cannot be negative').optional(),
+        cost_per_km: z.number().min(0, 'Cost per km cannot be negative'),
+        cost_per_hour: z.number().min(0, 'Cost per hour cannot be negative'),
         depot: z
           .object({
             start: z.object({

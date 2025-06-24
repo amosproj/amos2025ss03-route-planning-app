@@ -157,7 +157,14 @@ def solve_appointment_routing(
             max_distance_traveled=0,
             routes=[],
             method_used="No solution",
-            problem_metrics=optimization_problem_information
+            problem_metrics=optimization_problem_information,
+            validation_report=SolutionValidationReport(
+                is_valid=False,
+                errors=["No solution found"],
+                missing_appointments=[],
+                duplicate_appointments=[],
+                route_level_errors=[]
+            )
         )
 
     total_time = 0
@@ -244,24 +251,23 @@ def solve_appointment_routing(
         vehicle = optimization_request.company_info.vehicles[vehicle_index]
 
         vehicle_route.insert(0, EnhancedAppointment(
-            address=vehicle.start_address,
-            appointment_start=start,
-            appointment_end=end,
+
+            address=optimization_request.company_info.vehicles[vehicle_index].start_address,
+            appointment_start= start,
+            appointment_end= end,
             service_time=0,
-            skills_needed=set(),
-            location=vehicle.start_location,
-            id="depot_start",
+            skills_needed = set(),
+            location=optimization_request.company_info.vehicles[vehicle_index].start_location,
             number_of_workers=0
         ))
 
         vehicle_route.append(EnhancedAppointment(
-            address=vehicle.finish_address,
-            appointment_start=start,
-            appointment_end=end,
+ation_request.company_info.vehicles[vehicle_index].finish_address,
+            appointment_start= start,
+            appointment_end= end,
             service_time=0,
             skills_needed=set(),
-            location=vehicle.finish_location,
-            id="depot_end",
+            location=optimization_request.company_info.vehicles[vehicle_index].finish_location,
             number_of_workers=0
         ))
 
