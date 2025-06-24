@@ -39,6 +39,9 @@ function MapView() {
   const excluded = useSelector(
     (s: RootState) => s.excludedAppointments[date] ?? [],
   );
+  const excludedVehicles = useSelector(
+    (s: RootState) => s.excludedVehicles[date] ?? [],
+  );
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
@@ -174,14 +177,16 @@ function MapView() {
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
-      vehicles: companyInfo.vehicles.map((v) => ({
-        vehicle_id: v.vehicle_id,
-        skills: v.skills ? [...v.skills] : [],
-        worker_amount: v.worker_amount,
-        operation_hours: v.operation_hours,
-        start_address: v.depot?.start || companyInfo.start_address,
-        finish_address: v.depot?.finish || companyInfo.finish_address,
-      })),
+      vehicles: companyInfo.vehicles
+        .filter((v) => !excludedVehicles.includes(v.vehicle_id))
+        .map((v) => ({
+          vehicle_id: v.vehicle_id,
+          skills: v.skills ? [...v.skills] : [],
+          worker_amount: v.worker_amount,
+          operation_hours: v.operation_hours,
+          start_address: v.depot?.start || companyInfo.start_address,
+          finish_address: v.depot?.finish || companyInfo.finish_address,
+        })),
     };
 
     // The backend expects an array of skills, not the frontend's string format
@@ -191,13 +196,13 @@ function MapView() {
       appointments: enhancedAppointments,
     } ;
 
-    // console.log(JSON.stringify(request, null, 2));
+    console.log(JSON.stringify(request, null, 2));
     optimizationMutation.mutate(request);
   };
 
   // Calculate metrics for OptimizationBar
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
-  const totalWorkers = companyInfo.vehicles.length || 0;
+  const totalWorkers = companyInfo ? companyInfo.vehicles.filter(v => !excludedVehicles.includes(v.vehicle_id)).length : 0;
   const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)

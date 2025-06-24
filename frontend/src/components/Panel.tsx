@@ -9,6 +9,7 @@ import { Solution } from '@/types/Solution';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import VehicleList from '@/components/VehicleList';
 
 interface PanelProps {
   date: string;
@@ -36,32 +37,44 @@ export default function Panel({
   const solutions = useSelector((state: RootState) => state.solutions);
   const solution: Solution = solutions.byDate[date];
   const [activeTab, setActiveTab] = useState('appointments');
+  const [hasUserChangedTab, setHasUserChangedTab] = useState(false);
 
   useEffect(() => {
-    if (solution || optimizationErrors.length > 0) {
+    // Only auto-switch to solutions tab if user hasn't manually changed tabs
+    if ((solution || optimizationErrors.length > 0) && !hasUserChangedTab) {
       setActiveTab('solutions');
     }
-  }, [solution, optimizationErrors]);
+  }, [solution, optimizationErrors, hasUserChangedTab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setHasUserChangedTab(true);
+  };
 
   return (
     <div className="flex flex-col h-screen w-90 flex-shrink-0 bg-white shadow-lg overflow-auto rounded-r-lg p-4">
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         className="flex flex-col flex-1 w-full"
       >
         <TabsList className="mb-4 bg-gray-100 p-1 rounded-lg shadow-inner min-h-min">
           <TabsTrigger
             value="appointments"
-            className="text-lg font-semibold  px-6 rounded-lg"
+            className="text-lg font-semibold  px-4 rounded-lg"
           >
             Appointments
+          </TabsTrigger>
+          <TabsTrigger
+          value='fleet'
+          className="text-lg font-semibold  px-4 rounded-lg">
+            Fleet
           </TabsTrigger>
 
           <TabsTrigger
             value="solutions"
             disabled={!solution && optimizationErrors.length === 0}
-            className="text-lg font-semibold py-2 px-6 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
+            className="text-lg font-semibold py-2 px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
           >
             Routes
           </TabsTrigger>
@@ -80,6 +93,9 @@ export default function Panel({
               onToggleExclude={onToggleExclude}
               onToggleAll={onToggleAll}
             />
+          </TabsContent>
+          <TabsContent value='fleet'>
+            <VehicleList date={date} />
           </TabsContent>
           <TabsContent value="solutions" className="h-full">
             {solution && <SolutionList  solution={solution} date={date} />}
