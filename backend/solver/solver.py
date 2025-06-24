@@ -262,7 +262,7 @@ def solve_appointment_routing(
         ))
 
         vehicle_route.append(EnhancedAppointment(
-ation_request.company_info.vehicles[vehicle_index].finish_address,
+            address=optimization_request.company_info.vehicles[vehicle_index].finish_address,
             appointment_start= start,
             appointment_end= end,
             service_time=0,
