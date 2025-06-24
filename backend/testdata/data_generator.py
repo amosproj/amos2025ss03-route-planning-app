@@ -85,18 +85,21 @@ def get_random_service_time() -> int:
 skills_pool = ["electrician", "plumber","carpenter"]
 
 def generate_filled_vehicles(amount: int) -> list[FilledVehicle]:
-    vehicle_address = generate_random_address() #TODO change to real logic
+    vehicle_address = generate_random_address()  # TODO change to real logic
 
     return [
         FilledVehicle(
             vehicle_id=i + 1,
             skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),
             worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0],
-            operation_hours = OperationHours(start_minutes = 0,end_minutes = 1440),#TODO change to real logic
-            start_address = vehicle_address,
-            finish_address = vehicle_address
+            operation_hours=OperationHours(start_minutes=0, end_minutes=1440),  # TODO change to real logic
+            start_address=vehicle_address,
+            finish_address=vehicle_address,
+            cost_per_km=round(random.uniform(0.4, 1.0), 2),
+            cost_per_hour=round(random.uniform(20.0, 60.0), 2)
         ) for i in range(amount)
     ]
+
 
 def round_to_nearest_quarter(dt: datetime, direction: str = "down") -> datetime:
     minute = (dt.minute // 15) * 15
