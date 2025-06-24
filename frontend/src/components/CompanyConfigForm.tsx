@@ -10,23 +10,20 @@ import { Address } from '@/types/Address';
 import { CompanyInfo } from '@/types/CompanyInfo';
 import { setCompanyInfo } from '@/store/companyInfoSlice';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from './ui/sonner';
 import { toast } from 'sonner';
-import {AddressSection} from './AddressSection';
-import {VehiclesSection} from './VehiclesSection';
-import {DepotDialog} from './DepotDialog';
+import { AddressSection } from './AddressSection';
+import { VehiclesSection } from './VehiclesSection';
+import { DepotDialog } from './DepotDialog';
 import VehicleCostDialog from './VehicleCostDialog';
 
 import { MapPin, Truck } from 'lucide-react';
 
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
-
 
 export function CompanyConfigForm() {
   const dispatch = useDispatch<AppDispatch>();
@@ -54,9 +51,18 @@ export function CompanyConfigForm() {
   // Depot dialog state and handlers
   const [depotOpen, setDepotOpen] = useState(false);
   const [currentDepotIdx, setCurrentDepotIdx] = useState<number | null>(null);
-  const initialDepot = currentDepotIdx !== null ? (form.getValues(`vehicles.${currentDepotIdx}.depot`) || null) : null;
-  const openDepotDialog = (idx: number) => { setCurrentDepotIdx(idx); setDepotOpen(true); };
-  const closeDepotDialog = () => { setDepotOpen(false); setCurrentDepotIdx(null); };
+  const initialDepot =
+    currentDepotIdx !== null
+      ? form.getValues(`vehicles.${currentDepotIdx}.depot`) || null
+      : null;
+  const openDepotDialog = (idx: number) => {
+    setCurrentDepotIdx(idx);
+    setDepotOpen(true);
+  };
+  const closeDepotDialog = () => {
+    setDepotOpen(false);
+    setCurrentDepotIdx(null);
+  };
   const handleSaveDepot = (depot: { start: Address; finish: Address }) => {
     if (currentDepotIdx !== null) {
       form.setValue(`vehicles.${currentDepotIdx}.depot`, depot);
@@ -73,16 +79,36 @@ export function CompanyConfigForm() {
   // Cost dialog state and handlers
   const [costOpen, setCostOpen] = useState(false);
   const [currentCostIdx, setCurrentCostIdx] = useState<number | null>(null);
-  const initialCost = currentCostIdx !== null ? {
-    cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
-    cost_per_hour: form.getValues(`vehicles.${currentCostIdx}.cost_per_hour`),
-  } : null;
-  const openCostDialog = (idx: number) => { setCurrentCostIdx(idx); setCostOpen(true); };
-  const closeCostDialog = () => { setCostOpen(false); setCurrentCostIdx(null); };
-  const handleSaveCost = (costs: { cost_per_km: number; cost_per_hour: number }) => {
+  const initialCost =
+    currentCostIdx !== null
+      ? {
+          cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
+          cost_per_hour: form.getValues(
+            `vehicles.${currentCostIdx}.cost_per_hour`,
+          ),
+        }
+      : null;
+  const openCostDialog = (idx: number) => {
+    setCurrentCostIdx(idx);
+    setCostOpen(true);
+  };
+  const closeCostDialog = () => {
+    setCostOpen(false);
+    setCurrentCostIdx(null);
+  };
+  const handleSaveCost = (costs: {
+    cost_per_km: number;
+    cost_per_hour: number;
+  }) => {
     if (currentCostIdx !== null) {
-      form.setValue(`vehicles.${currentCostIdx}.cost_per_km`, costs.cost_per_km);
-      form.setValue(`vehicles.${currentCostIdx}.cost_per_hour`, costs.cost_per_hour);
+      form.setValue(
+        `vehicles.${currentCostIdx}.cost_per_km`,
+        costs.cost_per_km,
+      );
+      form.setValue(
+        `vehicles.${currentCostIdx}.cost_per_hour`,
+        costs.cost_per_hour,
+      );
     }
     closeCostDialog();
   };
@@ -116,13 +142,17 @@ export function CompanyConfigForm() {
                   start_minutes: 480,
                   end_minutes: 960,
                 },
+                cost_per_km: vehicle.cost_per_km ?? 0.5,
+                cost_per_hour: vehicle.cost_per_hour ?? 45.0,
               }))
             : [
                 {
                   vehicle_id: 0,
                   skills: null,
                   worker_amount: 1,
-                  operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
+                  operation_hours: { start_minutes: 480, end_minutes: 960 },
+                  cost_per_km: 0.5,
+                  cost_per_hour: 45.0,
                 },
               ],
       });
@@ -131,8 +161,6 @@ export function CompanyConfigForm() {
       setFinishAddrObj(existingCompany.finish_address);
     }
   }, [existingCompany, form]);
-
-
 
   const onSubmit = (values: FormSchemaType) => {
     console.log('Form submitted with values:', values);
@@ -163,9 +191,10 @@ export function CompanyConfigForm() {
       skills: null,
       worker_amount: 1,
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
+      cost_per_km: 0.5,
+      cost_per_hour: 45.0,
     });
   };
-
 
   return (
     <Form {...form}>
@@ -174,13 +203,23 @@ export function CompanyConfigForm() {
           console.error('Form validation errors:', errors);
         })}
         noValidate
-        className="space-y-8"
+        className="space-y-4"
       >
         <Toaster />
         <Tabs defaultValue="addresses" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="addresses"><span className="flex items-center gap-2"><MapPin className="h-4 w-4" />Addresses</span></TabsTrigger>
-            <TabsTrigger value="vehicles"><span className="flex items-center gap-2"><Truck className="h-4 w-4" />Vehicles</span></TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-3">
+            <TabsTrigger value="addresses">
+              <span className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Addresses
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="vehicles">
+              <span className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                Vehicles
+              </span>
+            </TabsTrigger>
           </TabsList>
           <AddressSection
             initialStartValue={form.watch('startAddress')}
