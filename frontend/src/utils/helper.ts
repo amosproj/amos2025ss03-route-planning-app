@@ -197,7 +197,6 @@ export const getStartOfWeek = (year: number, week: number) => {
   const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
   return firstSunday.add(week - 1, 'week');
 }
-
 export const minutesToTime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;

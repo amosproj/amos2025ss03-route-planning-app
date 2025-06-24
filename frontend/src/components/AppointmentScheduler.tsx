@@ -226,6 +226,8 @@ export function AppointmentScheduler({
           operation_hours: v.operation_hours,
           start_address: v.depot?.start || companyInfo.start_address,
           finish_address: v.depot?.finish || companyInfo.finish_address,
+          cost_per_km: v.cost_per_km,
+          cost_per_hour: v.cost_per_hour,
         })),
       };
 
