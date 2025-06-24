@@ -15,6 +15,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as WeekViewIndexImport } from './routes/week-view/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
+import { Route as MultiDaysViewIndexImport } from './routes/multi-days-view/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
 import { Route as DailyPlanIndexImport } from './routes/daily-plan/index'
 import { Route as CompanyConfigIndexImport } from './routes/company-config/index'
@@ -42,6 +43,12 @@ const WeekViewIndexRoute = WeekViewIndexImport.update({
 const ScenariosIndexRoute = ScenariosIndexImport.update({
   id: '/scenarios/',
   path: '/scenarios/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MultiDaysViewIndexRoute = MultiDaysViewIndexImport.update({
+  id: '/multi-days-view/',
+  path: '/multi-days-view/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapViewIndexImport
       parentRoute: typeof rootRoute
     }
+    '/multi-days-view/': {
+      id: '/multi-days-view/'
+      path: '/multi-days-view'
+      fullPath: '/multi-days-view'
+      preLoaderRoute: typeof MultiDaysViewIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/scenarios/': {
       id: '/scenarios/'
       path: '/scenarios'
@@ -126,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/company-config': typeof CompanyConfigIndexRoute
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
+  '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -136,6 +151,7 @@ export interface FileRoutesByTo {
   '/company-config': typeof CompanyConfigIndexRoute
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
+  '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
@@ -147,6 +163,7 @@ export interface FileRoutesById {
   '/company-config/': typeof CompanyConfigIndexRoute
   '/daily-plan/': typeof DailyPlanIndexRoute
   '/map-view/': typeof MapViewIndexRoute
+  '/multi-days-view/': typeof MultiDaysViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
   '/week-view/': typeof WeekViewIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
@@ -159,6 +176,7 @@ export interface FileRouteTypes {
     | '/company-config'
     | '/daily-plan'
     | '/map-view'
+    | '/multi-days-view'
     | '/scenarios'
     | '/week-view'
     | '/worker-view'
@@ -168,6 +186,7 @@ export interface FileRouteTypes {
     | '/company-config'
     | '/daily-plan'
     | '/map-view'
+    | '/multi-days-view'
     | '/scenarios'
     | '/week-view'
     | '/worker-view'
@@ -177,6 +196,7 @@ export interface FileRouteTypes {
     | '/company-config/'
     | '/daily-plan/'
     | '/map-view/'
+    | '/multi-days-view/'
     | '/scenarios/'
     | '/week-view/'
     | '/worker-view/'
@@ -188,6 +208,7 @@ export interface RootRouteChildren {
   CompanyConfigIndexRoute: typeof CompanyConfigIndexRoute
   DailyPlanIndexRoute: typeof DailyPlanIndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
+  MultiDaysViewIndexRoute: typeof MultiDaysViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
   WeekViewIndexRoute: typeof WeekViewIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
@@ -198,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompanyConfigIndexRoute: CompanyConfigIndexRoute,
   DailyPlanIndexRoute: DailyPlanIndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
+  MultiDaysViewIndexRoute: MultiDaysViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
   WeekViewIndexRoute: WeekViewIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
@@ -217,6 +239,7 @@ export const routeTree = rootRoute
         "/company-config/",
         "/daily-plan/",
         "/map-view/",
+        "/multi-days-view/",
         "/scenarios/",
         "/week-view/",
         "/worker-view/"
@@ -233,6 +256,9 @@ export const routeTree = rootRoute
     },
     "/map-view/": {
       "filePath": "map-view/index.tsx"
+    },
+    "/multi-days-view/": {
+      "filePath": "multi-days-view/index.tsx"
     },
     "/scenarios/": {
       "filePath": "scenarios/index.tsx"
