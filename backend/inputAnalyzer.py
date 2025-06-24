@@ -307,7 +307,9 @@ def enhance_vehicles(
             start_address=vehicle.start_address,
             start_location=start_location,
             finish_address=vehicle.finish_address,
-            finish_location=finish_location
+            finish_location=finish_location,
+            cost_per_km=vehicle.cost_per_km,
+            cost_per_hour=vehicle.cost_per_hour
         )
         enhanced_vehicles.append(enhanced_vehicle)
 

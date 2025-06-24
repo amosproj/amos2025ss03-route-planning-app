@@ -6,6 +6,7 @@ import { Address } from '../types/Address';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Warehouse } from 'lucide-react';
+import dayjs from 'dayjs';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
@@ -180,6 +181,22 @@ export const createDepotMarkerIcon = () => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
+// Helper functions for week navigation
+export const getWeekStartingSunday = (date: dayjs.Dayjs) => {
+  const yearStart = dayjs(`${date.year()}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  const diffInDays = date.startOf('day').diff(firstSunday, 'day');
+  const week = Math.floor(diffInDays / 7) + 1;
+  return { year: date.year(), week };
+}
+
+export const getStartOfWeek = (year: number, week: number) => {
+  const yearStart = dayjs(`${year}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  return firstSunday.add(week - 1, 'week');
+}
 export const minutesToTime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
