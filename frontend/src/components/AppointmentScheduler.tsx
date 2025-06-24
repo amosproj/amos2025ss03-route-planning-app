@@ -8,6 +8,7 @@ import apiClient from '@/utils/apiClient';
 import { getStartOfWeek, getWeekStartingSunday } from '@/utils/helper';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
+import { getRouteColor } from '@/utils/routeColors';
 import dayjs from 'dayjs';
 import {
   ArrowLeft,
@@ -21,7 +22,7 @@ import {
   Loader2,
   Map,
   MapPin,
-  User,
+  History,
   Waypoints,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -42,7 +43,7 @@ export function AppointmentScheduler({
   showBackButton = true,
   showWeekNavigation = false,
   onWeekChange,
-  className = "",
+  className = '',
 }: AppointmentSchedulerProps) {
   const navigate = useNavigate();
   const { history } = useRouter();
@@ -101,12 +102,18 @@ export function AppointmentScheduler({
   }, [dates, scenariosByDate]);
 
   // State management
-  const [enrichLoading, setEnrichLoading] = useState<Record<string, boolean>>({});
-  const [optimizeLoading, setOptimizeLoading] = useState<Record<string, boolean>>({});
+  const [enrichLoading, setEnrichLoading] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [optimizeLoading, setOptimizeLoading] = useState<
+    Record<string, boolean>
+  >({});
   const [enrichProgress, setEnrichProgress] = useState(-1);
   const [optimizeProgress, setOptimizeProgress] = useState(-1);
   const [enrichError, setEnrichError] = useState<Record<string, boolean>>({});
-  const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>({});
+  const [optimizeError, setOptimizeError] = useState<Record<string, boolean>>(
+    {},
+  );
 
   // Week navigation handlers
   const handleWeekChange = (weekOffset: number) => {
@@ -124,20 +131,20 @@ export function AppointmentScheduler({
       const adjustedWeek = prevYearWeekInfo.week;
       const newStartOfWeek = getStartOfWeek(newYear, adjustedWeek);
       const newWeekDates = Array.from({ length: 7 }, (_, i) =>
-        newStartOfWeek.add(i, 'day')
+        newStartOfWeek.add(i, 'day'),
       );
       onWeekChange(newWeekDates);
     } else if (newWeek > 53) {
       newYear += 1;
       const newStartOfWeek = getStartOfWeek(newYear, 1);
       const newWeekDates = Array.from({ length: 7 }, (_, i) =>
-        newStartOfWeek.add(i, 'day')
+        newStartOfWeek.add(i, 'day'),
       );
       onWeekChange(newWeekDates);
     } else {
       const newStartOfWeek = getStartOfWeek(newYear, newWeek);
       const newWeekDates = Array.from({ length: 7 }, (_, i) =>
-        newStartOfWeek.add(i, 'day')
+        newStartOfWeek.add(i, 'day'),
       );
       onWeekChange(newWeekDates);
     }
@@ -148,7 +155,7 @@ export function AppointmentScheduler({
 
     const newStartOfWeek = getStartOfWeek(currentWeekInfo.year, week);
     const newWeekDates = Array.from({ length: 7 }, (_, i) =>
-      newStartOfWeek.add(i, 'day')
+      newStartOfWeek.add(i, 'day'),
     );
     onWeekChange(newWeekDates);
   };
@@ -158,7 +165,7 @@ export function AppointmentScheduler({
 
     const newStartOfWeek = getStartOfWeek(year, currentWeekInfo.week);
     const newWeekDates = Array.from({ length: 7 }, (_, i) =>
-      newStartOfWeek.add(i, 'day')
+      newStartOfWeek.add(i, 'day'),
     );
     onWeekChange(newWeekDates);
   };
@@ -345,7 +352,9 @@ export function AppointmentScheduler({
   };
 
   return (
-    <div className={`my-6 max-w-xl mx-auto bg-white rounded-lg border shadow relative ${className}`}>
+    <div
+      className={`my-6 max-w-4xl mx-auto bg-white rounded-lg border shadow relative ${className}`}
+    >
       {/* Progress bars */}
       <div className="absolute top-0 left-0 w-full">
         {enrichProgress !== -1 && (
@@ -382,7 +391,9 @@ export function AppointmentScheduler({
               </button>
             </div>
 
-            <div className="text-lg font-semibold text-center">{weekRangeText}</div>
+            <div className="text-lg font-semibold text-center">
+              {weekRangeText}
+            </div>
 
             <div className="flex gap-2">
               <select
@@ -474,21 +485,33 @@ export function AppointmentScheduler({
                       </div>
                     </div>
                   </div>
-                  <div
-                    className="cursor-pointer p-0.5 text-gray-800"
-                    onClick={() =>
-                      navigate({
-                        to: '/map-view',
-                        search: { date: sc?.date?.toString() },
-                      })
-                    }
-                  >
-                    <Map className="h-4.5 w-4.5" />
-                  </div>
+                  {sc && (
+                    <div className=" flex divide-x divide-gray-200 items-center gap-2">
+                      <p className="text-sm flex items-center gap-2 pr-3">
+                        <span className="font-semibold">Verified:</span>{' '}
+                        {renderEnrichedStatus(`"${sc.date}"`)}
+                      </p>
+                      <p className="text-sm flex items-center gap-2 pr-3">
+                        <span className="font-semibold">Optimized:</span>{' '}
+                        {renderSolutionStatus(`"${sc.date}"`)}
+                      </p>
+                      <div
+                        className="cursor-pointer p-0.5 text-gray-800"
+                        onClick={() =>
+                          navigate({
+                            to: '/map-view',
+                            search: { date: sc?.date?.toString() },
+                          })
+                        }
+                      >
+                        <Map className="h-4.5 w-4.5" />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {sc && (
-                  <div className="grid grid-cols-2 divide-x divide-gray-200">
+                  <div className="">
                     <div className="pr-4">
                       <ul className="text-sm text-gray-700">
                         {!so ? (
@@ -496,59 +519,124 @@ export function AppointmentScheduler({
                             {sc.jobs.length > 0 && (
                               <li className="flex items-center gap-1">
                                 <MapPin className="h-4 w-4" />
-                                <span className="font-semibold">Jobs:</span>{' '}
+                                <span className="font-semibold">
+                                  Jobs:
+                                </span>{' '}
                                 {sc.jobs.length}
                               </li>
                             )}
                           </>
                         ) : (
                           <>
-                            <li className="flex items-center gap-1">
-                              <CalendarClock className="h-4 w-4" />
-                              <span className="font-semibold">Appointments:</span>{' '}
-                              {so.routes.reduce(
-                                (acc, route) => acc + route.appointments.length,
-                                0,
-                              )}
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span className="font-semibold">Start Time:</span>{' '}
-                              {dayjs(so?.routes[0]?.appointments[0]?.appointment_start).format('HH:mm')}
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span className="font-semibold">End Time:</span>{' '}
-                              {dayjs(
-                                so?.routes[so.routes.length - 1]?.appointments[
-                                  so?.routes[so.routes.length - 1]?.appointments.length - 1
-                                ]?.appointment_end
-                              ).format('HH:mm')}
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              <span className="font-semibold">Workers:</span>{' '}
-                              {so.routes.length}
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <Waypoints className="h-4 w-4" />
-                              <span className="font-semibold">Total Distance:</span>{' '}
-                              {(so.max_distance_traveled / 1000).toFixed(2)} km
-                            </li>
+                            <div className="  flex overflow-auto gap-4">
+                              {so.routes.map((route, idx) => {
+                                const appointments = route.appointments;
+                                const routeMetrics = route.route_metrics;
+
+                                return (
+                                  <div
+                                    key={route.route_id}
+                                    className=" min-w-[350px] p-2 border border-l-4 rounded-sm"
+                                    style={{
+                                      borderLeftColor: getRouteColor(idx),
+                                    }}
+                                  >
+                                    <p
+                                      className="font-semibold text-base mb-2"
+                                      style={{
+                                        color: getRouteColor(idx),
+                                      }}
+                                    >
+                                      Route {idx + 1}
+                                    </p>
+
+                                    <ul className="space-y-1">
+                                      {' '}
+                                      <li className="flex items-center gap-1">
+                                        <CalendarClock className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          Appointments:
+                                        </span>{' '}
+                                        {appointments.length}
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <MapPin className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          Start Address:
+                                        </span>{' '}
+                                        {appointments[0]?.address.street},{' '}
+                                        {appointments[0]?.address.zip_code}{' '}
+                                        {appointments[0]?.address.city}
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <MapPin className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          End Address:
+                                        </span>{' '}
+                                        {
+                                          appointments[appointments.length - 1]
+                                            ?.address.street
+                                        }
+                                        ,{' '}
+                                        {
+                                          appointments[appointments.length - 1]
+                                            ?.address.zip_code
+                                        }{' '}
+                                        {
+                                          appointments[appointments.length - 1]
+                                            ?.address.city
+                                        }
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <Clock className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          Start Time:
+                                        </span>{' '}
+                                        {dayjs(
+                                          appointments[0]?.appointment_start,
+                                        ).format('HH:mm')}
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <Clock className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          End Time:
+                                        </span>{' '}
+                                        {dayjs(
+                                          appointments[appointments.length - 1]
+                                            ?.appointment_end,
+                                        ).format('HH:mm')}
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <History className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          Total Service Time:
+                                        </span>{' '}
+                                        {routeMetrics
+                                          ? `${routeMetrics.total_service_time_min} ${
+                                              routeMetrics.total_service_time_min <=
+                                              1
+                                                ? 'min'
+                                                : 'mins'
+                                            }`
+                                          : '-'}
+                                      </li>
+                                      <li className="flex items-center gap-1">
+                                        <Waypoints className="h-4 w-4" />
+                                        <span className="font-semibold">
+                                          Total Distance:
+                                        </span>{' '}
+                                        {routeMetrics
+                                          ? `${routeMetrics.total_travel_distance_km.toFixed(2)} km`
+                                          : '-'}
+                                      </li>
+                                    </ul>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </>
                         )}
                       </ul>
-                    </div>
-
-                    <div className="pl-4 text-gray-700">
-                      <p className="text-sm flex items-center gap-2">
-                        <span className="font-semibold">Appointments verification:</span>{' '}
-                        {renderEnrichedStatus(`"${sc.date}"`)}
-                      </p>
-                      <p className="text-sm flex items-center gap-2">
-                        <span className="font-semibold">Solution Optimization:</span>{' '}
-                        {renderSolutionStatus(`"${sc.date}"`)}
-                      </p>
                     </div>
                   </div>
                 )}
