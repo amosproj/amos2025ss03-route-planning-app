@@ -48,7 +48,8 @@ function MapView() {
 
   // Prepare appointments payload
   const appointmentsPayload =
-    scenario?.jobs.map((job) => ({
+    scenario?.jobs.sort((a,b) =>{ return new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime()})
+    .map((job) => ({
       address: job.address,
       number_of_workers: job.number_of_workers,
       service_time: 30,
@@ -186,6 +187,8 @@ function MapView() {
           operation_hours: v.operation_hours,
           start_address: v.depot?.start || companyInfo.start_address,
           finish_address: v.depot?.finish || companyInfo.finish_address,
+          cost_per_km: v.cost_per_km,
+          cost_per_hour: v.cost_per_hour,
         })),
     };
 
