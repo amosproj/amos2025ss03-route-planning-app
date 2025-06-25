@@ -267,7 +267,8 @@ def solve_appointment_routing(
             service_time=0,
             skills_needed = set(),
             location=optimization_request.company_info.vehicles[vehicle_index].start_location,
-            number_of_workers=0
+            number_of_workers=0,
+            appointment_type=AppointmentType.DEPOT.value
         ))
 
         vehicle_route.append(EnhancedAppointment(
@@ -277,7 +278,8 @@ def solve_appointment_routing(
             service_time=0,
             skills_needed=set(),
             location=optimization_request.company_info.vehicles[vehicle_index].finish_location,
-            number_of_workers=0
+            number_of_workers=0,
+            appointment_type = AppointmentType.DEPOT.value
         ))
 
         total_time += route_time
