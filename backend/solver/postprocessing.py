@@ -19,7 +19,6 @@ def extract_enriched_metrics(
         total_travel_time = 0
         total_travel_distance = 0.0
         total_service_time = 0
-        total_idle_time = 0
 
         for i in range(len(appts) - 1):
             current = appts[i]
@@ -40,13 +39,6 @@ def extract_enriched_metrics(
 
             total_service_time += current.service_time
 
-            # Skip idle time if current or next appointment is depot
-            if i > 0 and i < len(appts) - 2:
-                current_end = to_minutes(current.appointment_start) + current.service_time
-                next_start = to_minutes(nxt.appointment_start)
-                wait_time = max(0, next_start - current_end)
-                total_idle_time += wait_time
-
         # Add last appointment's service time
         last_appt = appts[-1]
         total_service_time += last_appt.service_time
@@ -58,6 +50,8 @@ def extract_enriched_metrics(
         times = next((rt for rt in route_times if rt.route_id == route.route_id), None)
         if times is None:
             raise ValueError(f"No RouteTimes entry found for route_id {route.route_id}")
+
+        total_idle_time = times.end_time - times.start_time - total_travel_time - total_service_time
 
         metrics = RouteMetrics(
             route_id=route.route_id,
