@@ -172,6 +172,7 @@ def solve_appointment_routing(
     max_distance = 0
     max_time = 0
     routes: List[Route] = []
+    route_times = []
 
     for vehicle_index in range(num_vehicles):
         # Get the actual vehicle ID from our mapping
@@ -193,6 +194,14 @@ def solve_appointment_routing(
         print(f"Vehicle {actual_vehicle_id} (index {vehicle_index}):")
         print(f"  Leaves the depot at {start_hours:02d}:{start_minutes:02d}")
         print(f"  Returns to the depot at {end_hours:02d}:{end_minutes:02d}")
+
+        route_times.append(
+            RouteTimes(
+                route_id = vehicle_index,
+                start_time = start_time,
+                end_time = end_time,
+            )
+        )
 
         route_time = 0
         route_distance = 0
@@ -300,7 +309,8 @@ def solve_appointment_routing(
         routes=routes,
         time_matrix=optimization_request.time_matrix,
         distance_matrix=optimization_request.distance_matrix,
-        location_ids=optimization_request.location_ids
+        location_ids=optimization_request.location_ids,
+        route_times = route_times
     )
 
     response = Solution(

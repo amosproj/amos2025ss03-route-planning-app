@@ -2,12 +2,15 @@ from typing import List
 from solver.models import Route, RouteMetrics
 from solver.util import to_minutes
 
+from solver.models import RouteTimes
+
 
 def extract_enriched_metrics(
     routes: List[Route],
     time_matrix: List[List[int]],
     distance_matrix: List[List[float]],
     location_ids: List[str],
+    route_times: List[RouteTimes]
 ) -> List[Route]:
     enriched_routes = []
 
@@ -52,6 +55,10 @@ def extract_enriched_metrics(
 
         total_travel_distance_km = round(total_travel_distance / 1000.0, 2)
 
+        times = next((rt for rt in route_times if rt.route_id == route.route_id), None)
+        if times is None:
+            raise ValueError(f"No RouteTimes entry found for route_id {route.route_id}")
+
         metrics = RouteMetrics(
             route_id=route.route_id,
             vehicle_id=route.vehicle_id if route.vehicle_id is not None else -1,
@@ -60,6 +67,8 @@ def extract_enriched_metrics(
             total_travel_distance_km=total_travel_distance_km,
             total_service_time_min=total_service_time,
             total_idle_time_min=total_idle_time,
+            start_time=times.start_time,
+            end_time=times.end_time
         )
 
         enriched_routes.append(Route(
