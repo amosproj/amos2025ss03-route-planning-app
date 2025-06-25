@@ -1,4 +1,6 @@
 # backend/app.py
+from calendar import month
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,7 +95,9 @@ def get_testdata_optimization_request(request:TestdataRequest):
         opti_request = create_testdata_optimization_request(
             num_vehicles = request.number_of_vehicles,
             num_appointments = request.number_of_appointments,
-            appointment_duration_factor= request.appointment_duration_factor
+            appointment_duration_factor= request.appointment_duration_factor,
+            month = request.month,
+            day = request.day
         )
         return opti_request
     except Exception as e:

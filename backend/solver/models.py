@@ -167,4 +167,6 @@ class RouteTimes(BaseModel):
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
+    appointment_duration_factor:float#the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
+    month:int
+    day:int
