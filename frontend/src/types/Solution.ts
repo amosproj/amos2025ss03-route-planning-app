@@ -30,6 +30,8 @@ interface RouteMetrics {
   total_travel_distance_km: number;
   total_service_time_min: number;
   total_idle_time_min: number;
+  start_time: number;
+  end_time: number; 
 }
 
 interface RouteValidationError {

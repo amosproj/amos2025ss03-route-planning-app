@@ -65,8 +65,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -117,9 +117,7 @@ function MapView() {
   const companyInfo = useSelector(
     (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
   );
-  const solution = useSelector(
-    (s: RootState) => s.solutions.byDate[date],
-  );
+  const solution = useSelector((s: RootState) => s.solutions.byDate[date]);
 
   // console.log('MapView companyInfo', companyInfo);
   const [startLoc, setStartLoc] = useState<{ lat: number; lng: number } | null>(
@@ -197,7 +195,7 @@ function MapView() {
       //@ts-expect-error // The backend expects a specific format for company info
       company_info: alteredCompanyInfo,
       appointments: enhancedAppointments,
-    } ;
+    };
 
     console.log(JSON.stringify(request, null, 2));
     optimizationMutation.mutate(request);
@@ -291,6 +289,20 @@ function MapView() {
   if (loadError) return <div>Error loading Google Maps</div>;
   if (!isLoaded) return <div>Loading map...</div>;
 
+  const handleBackButtonClick = () => {
+    const sanitizedDate = date.replace(/"/g, '').trim();
+    const dateObj = new Date(Number(sanitizedDate));
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth();
+    navigate({
+      to: '/scenarios',
+      search: {
+        year: year,
+        month: month,
+      },
+    });
+  };
+
   return (
     <>
       <div className="flex w-full h-[calc(100vh-4rem)]">
@@ -333,7 +345,7 @@ function MapView() {
             <div className="p-2 flex items-center justify-between border-b ">
               <span className="flex items-center ">
                 <button
-                  onClick={() => navigate({ to: '/scenarios' })}
+                  onClick={handleBackButtonClick}
                   className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
                 >
                   ←
@@ -374,8 +386,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
@@ -385,25 +397,26 @@ function MapView() {
                 )}
                 {/* Start and finish markers - or depot marker if same location */}
                 {solution &&
-                solution.routes.map((route) => {
-                  if (route.appointments[0].address.street !== companyInfo?.start_address.street) {
-                    return (
-                      <Marker
-                        key={route.vehicle_id}
-                        position={{
-                          lat: route.appointments[0].location.lat,
-                          lng: route.appointments[0].location.lng,
-                        }}
-                        icon={{
-                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                        }}
-                        title="Depot (Start)"
-                      />
-                    );
-                  }
-                  
-                })
-                }
+                  solution.routes.map((route) => {
+                    if (
+                      route.appointments[0].address.street !==
+                      companyInfo?.start_address.street
+                    ) {
+                      return (
+                        <Marker
+                          key={route.vehicle_id}
+                          position={{
+                            lat: route.appointments[0].location.lat,
+                            lng: route.appointments[0].location.lng,
+                          }}
+                          icon={{
+                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                          }}
+                          title="Depot (Start)"
+                        />
+                      );
+                    }
+                  })}
                 {isSameLocation && startLoc ? (
                   <Marker
                     position={startLoc}
