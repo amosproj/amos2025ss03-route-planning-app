@@ -488,7 +488,7 @@ export function AppointmentScheduler({
                     </div>
                   </div>
                   {sc && (
-                    <div className=" flex divide-x divide-gray-200 items-center gap-2">
+                    <div className="flex divide-x divide-gray-200 items-center gap-2">
                       <p className="text-sm flex items-center gap-2 pr-3">
                         <span className="font-semibold">Verified:</span>{' '}
                         {renderEnrichedStatus(`"${sc.date}"`)}
@@ -513,133 +513,127 @@ export function AppointmentScheduler({
                 </div>
 
                 {sc && (
-                  <div className="">
-                    <div className="pr-4">
-                      <ul className="text-sm text-gray-700">
-                        {!so ? (
-                          <>
-                            {sc.jobs.length > 0 && (
-                              <li className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
-                                <span className="font-semibold">
-                                  Jobs:
-                                </span>{' '}
-                                {sc.jobs.length}
-                              </li>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <div className="  flex overflow-auto gap-4">
-                              {so.routes.map((route, idx) => {
-                                const appointments = route.appointments;
-                                const routeMetrics = route.route_metrics;
-
-                                return (
-                                  <div
-                                    key={route.route_id}
-                                    className=" min-w-[350px] p-2 border border-l-4 rounded-sm"
-                                    style={{
-                                      borderLeftColor: getRouteColor(idx),
-                                    }}
-                                  >
-                                    <p
-                                      className="font-semibold text-base mb-2"
-                                      style={{
-                                        color: getRouteColor(idx),
-                                      }}
-                                    >
-                                      Route {idx + 1}
-                                    </p>
-
-                                    <ul className="space-y-1">
-                                      {' '}
-                                      <li className="flex items-center gap-1">
-                                        <CalendarClock className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          Appointments:
-                                        </span>{' '}
-                                        {appointments.length}
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <MapPin className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          Start Address:
-                                        </span>{' '}
-                                        {appointments[0]?.address.street},{' '}
-                                        {appointments[0]?.address.zip_code}{' '}
-                                        {appointments[0]?.address.city}
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <MapPin className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          End Address:
-                                        </span>{' '}
-                                        {
-                                          appointments[appointments.length - 1]
-                                            ?.address.street
-                                        }
-                                        ,{' '}
-                                        {
-                                          appointments[appointments.length - 1]
-                                            ?.address.zip_code
-                                        }{' '}
-                                        {
-                                          appointments[appointments.length - 1]
-                                            ?.address.city
-                                        }
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          Start Time:
-                                        </span>{' '}
-                                        {dayjs(
-                                          appointments[0]?.appointment_start,
-                                        ).format('HH:mm')}
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          End Time:
-                                        </span>{' '}
-                                        {dayjs(
-                                          appointments[appointments.length - 1]
-                                            ?.appointment_end,
-                                        ).format('HH:mm')}
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <History className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          Total Service Time:
-                                        </span>{' '}
-                                        {routeMetrics
-                                          ? `${routeMetrics.total_service_time_min} ${
-                                              routeMetrics.total_service_time_min <=
-                                              1
-                                                ? 'min'
-                                                : 'mins'
-                                            }`
-                                          : '-'}
-                                      </li>
-                                      <li className="flex items-center gap-1">
-                                        <Waypoints className="h-4 w-4" />
-                                        <span className="font-semibold">
-                                          Total Distance:
-                                        </span>{' '}
-                                        {routeMetrics
-                                          ? `${routeMetrics.total_travel_distance_km.toFixed(2)} km`
-                                          : '-'}
-                                      </li>
-                                    </ul>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </>
+                  <div className="text-sm text-gray-700">
+                    {!so ? (
+                      <>
+                        {sc.jobs.length > 0 && (
+                          <li className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            <span className="font-semibold">Jobs:</span>{' '}
+                            {sc.jobs.length}
+                          </li>
                         )}
-                      </ul>
-                    </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex overflow-auto gap-4">
+                          {so.routes.map((route, idx) => {
+                            const appointments = route.appointments;
+                            const routeMetrics = route.route_metrics;
+
+                            return (
+                              <div
+                                key={route.route_id}
+                                className=" min-w-[350px] p-2 border border-l-4 rounded-sm"
+                                style={{
+                                  borderLeftColor: getRouteColor(idx),
+                                }}
+                              >
+                                <p
+                                  className="font-semibold text-base mb-2"
+                                  style={{
+                                    color: getRouteColor(idx),
+                                  }}
+                                >
+                                  Route {idx + 1}
+                                </p>
+
+                                <ul className="space-y-1">
+                                  {' '}
+                                  <li className="flex items-center gap-1">
+                                    <CalendarClock className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      Appointments:
+                                    </span>{' '}
+                                    {appointments.length}
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      Start Address:
+                                    </span>{' '}
+                                    {appointments[0]?.address.street},{' '}
+                                    {appointments[0]?.address.zip_code}{' '}
+                                    {appointments[0]?.address.city}
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      End Address:
+                                    </span>{' '}
+                                    {
+                                      appointments[appointments.length - 1]
+                                        ?.address.street
+                                    }
+                                    ,{' '}
+                                    {
+                                      appointments[appointments.length - 1]
+                                        ?.address.zip_code
+                                    }{' '}
+                                    {
+                                      appointments[appointments.length - 1]
+                                        ?.address.city
+                                    }
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      Start Time:
+                                    </span>{' '}
+                                    {dayjs(
+                                      appointments[0]?.appointment_start,
+                                    ).format('HH:mm')}
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      End Time:
+                                    </span>{' '}
+                                    {dayjs(
+                                      appointments[appointments.length - 1]
+                                        ?.appointment_end,
+                                    ).format('HH:mm')}
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <History className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      Total Service Time:
+                                    </span>{' '}
+                                    {routeMetrics
+                                      ? `${routeMetrics.total_service_time_min} ${
+                                          routeMetrics.total_service_time_min <=
+                                          1
+                                            ? 'min'
+                                            : 'mins'
+                                        }`
+                                      : '-'}
+                                  </li>
+                                  <li className="flex items-center gap-1">
+                                    <Waypoints className="h-4 w-4" />
+                                    <span className="font-semibold">
+                                      Total Distance:
+                                    </span>{' '}
+                                    {routeMetrics
+                                      ? `${routeMetrics.total_travel_distance_km.toFixed(2)} km`
+                                      : '-'}
+                                  </li>
+                                </ul>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
