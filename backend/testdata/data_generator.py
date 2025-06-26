@@ -153,13 +153,17 @@ def round_to_nearest_quarter(dt: datetime, direction: str = "down") -> datetime:
         timedelta(hours=1) if minute == 0 and direction == "up" else timedelta()
     )
 
-def generate_random_appointments(n: int, appointment_duration_factor: float = 3.0) -> List[Appointment]:
+def generate_random_appointments(
+        n: int,
+        appointment_duration_factor: float = 3.0,
+        month:int =4,
+        day:int= 29
+) -> List[Appointment]:
     appointments = []
     addresses = generate_random_addresses(n)
 
-    base_date = datetime(2025, 4, 29)
-    day_start = datetime(2025, 4, 29, 8, 0, 0)
-    day_end = datetime(2025, 4, 29, 18, 0, 0)
+    day_start = datetime(2025, month, day, 8, 0, 0)
+    day_end = datetime(2025, month, day, 18, 0, 0)
 
     for i in range(n):
         service_time = get_random_service_time()
@@ -194,7 +198,13 @@ def generate_random_appointments(n: int, appointment_duration_factor: float = 3.
 
 # === MAIN FACTORY FUNCTION ===
 
-def create_testdata_optimization_request(num_vehicles: int, num_appointments: int,appointment_duration_factor:float = 3.0) -> OptimizationRequest:
+def create_testdata_optimization_request(
+        num_vehicles: int,
+        num_appointments: int,
+        appointment_duration_factor:float = 3.0,
+        month:int = 4,
+        day:int = 29
+) -> OptimizationRequest:
     start_address = generate_random_address()
     finish_address = start_address
 
@@ -204,7 +214,7 @@ def create_testdata_optimization_request(num_vehicles: int, num_appointments: in
         vehicles =generate_filled_vehicles(num_vehicles)
     )
 
-    appointments = generate_random_appointments(num_appointments,appointment_duration_factor)
+    appointments = generate_random_appointments(num_appointments,appointment_duration_factor,month,day)
 
     return OptimizationRequest(
         company_info=company_info,
