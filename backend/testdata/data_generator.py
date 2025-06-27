@@ -67,7 +67,50 @@ def generate_random_addresses(n:int) -> Address:
         Address(street="Königsheideweg 9b", zip_code="12437", city="Berlin"),
         Address(street="Johannisthaler Ch 46", zip_code="12437", city="Berlin"),
         Address(street="Seeadlerweg 103", zip_code="12355", city="Berlin"),
-        Address(street="Titastraße 11", zip_code="13053", city="Berlin")
+        Address(street="Titastraße 11", zip_code="13053", city="Berlin"),
+        Address(street="Schubartstraße 47", zip_code="13509", city="Berlin"),
+        Address(street="Gorkistraße 127", zip_code="13509", city="Berlin"),
+        Address(street="Alt-Wittenau 56", zip_code="13437", city="Berlin"),
+        Address(street="Dannenwalder Weg 70", zip_code="13439", city="Berlin"),
+        Address(street="Teschendorfer Weg 6", zip_code="13439", city="Berlin"),
+        Address(street="Uhlandstraße 33", zip_code="13158", city="Berlin"),
+        Address(street="Kastanienallee 58A", zip_code="13158", city="Berlin"),
+        Address(street="Florastraße 27", zip_code="13187", city="Berlin"),
+        Address(street="Langhansstraße 86", zip_code="13086", city="Berlin"),
+        Address(street="Dohlengrund 79", zip_code="12683", city="Berlin"),
+        Address(street="Chemnitzer Str. 93", zip_code="12621", city="Berlin"),
+        Address(street="Mirower Str. 152", zip_code="12623", city="Berlin"),
+        Address(street="Summter Str. 229", zip_code="12623", city="Berlin"),
+        Address(street="Köpenicker Str. 150", zip_code="12355", city="Berlin"),
+        Address(street="Rhodeländerweg 111", zip_code="12355", city="Berlin"),
+        Address(street="Karl-Marx-Str. 142", zip_code="12529", city="Schönefeld"),
+        Address(street="Bornhagenweg 55", zip_code="12309", city="Berlin"),
+        Address(street="Wünsdorfer Str. 98", zip_code="12307", city="Berlin"),
+        Address(street="Ernst-Lemmer-Ring 14", zip_code="14165", city="Berlin"),
+        Address(street="Robert-von-Ostertag-Straße 30", zip_code="14163", city="Berlin"),
+        Address(street="Alt-Gatow 1-3", zip_code="14089", city="Berlin"),
+        Address(street="Eisenzahnstraße 43-44", zip_code="10709", city="Berlin"),
+        Address(street="Augsburger Str. 31", zip_code="10789", city="Berlin"),
+        Address(street="Tauentzienstraße 20", zip_code="10789", city="Berlin"),
+        Address(street="Budapester Str. 37", zip_code="10787", city="Berlin"),
+        Address(street="Luisenstraße 64", zip_code="10117", city="Berlin"),
+        Address(street="Wöhlertstraße 12-13", zip_code="10115", city="Berlin"),
+        Address(street="Herzbergstraße 128-139", zip_code="10365", city="Berlin"),
+        Address(street="Bernhard-Bästlein-Straße 56", zip_code="10367", city="Berlin"),
+        Address(street="Weißenseer Weg 32-34", zip_code="13055", city="Berlin"),
+        Address(street="Josef-Orlopp-Straße 51", zip_code="10365", city="Berlin"),
+        Address(street="Coppistraße 14-24", zip_code="10365", city="Berlin"),
+        Address(street="Fischerstraße 16", zip_code="10317", city="Berlin"),
+        Address(street="Salzmannstraße 28", zip_code="10319", city="Berlin"),
+        Address(street="Köpenicker Landstraße 66A", zip_code="12435", city="Berlin"),
+        Address(street="Lützowstraße 73", zip_code="10785", city="Berlin"),
+        Address(street="Pohlstraße 74", zip_code="10785", city="Berlin"),
+        Address(street="Hohenstaufenstraße", zip_code="10781", city="Berlin"),
+        Address(street="Barbarossastraße 25", zip_code="10779", city="Berlin"),
+        Address(street="Jenaer Str. 27", zip_code="10717", city="Berlin"),
+        Address(street="Pfalzburger Str. 43/44", zip_code="10717", city="Berlin"),
+        Address(street="Bessemerstraße 42A", zip_code="12103", city="Berlin"),
+        Address(street="Burgemeisterstraße 34", zip_code="12103", city="Berlin")
     ]
     if n > len(addresses):
         raise ValueError(f"Requested {n} addresses, but only {len(addresses)} are available.")
@@ -110,13 +153,17 @@ def round_to_nearest_quarter(dt: datetime, direction: str = "down") -> datetime:
         timedelta(hours=1) if minute == 0 and direction == "up" else timedelta()
     )
 
-def generate_random_appointments(n: int, appointment_duration_factor: float = 3.0) -> List[Appointment]:
+def generate_random_appointments(
+        n: int,
+        appointment_duration_factor: float = 3.0,
+        month:int =4,
+        day:int= 29
+) -> List[Appointment]:
     appointments = []
     addresses = generate_random_addresses(n)
 
-    base_date = datetime(2025, 4, 29)
-    day_start = datetime(2025, 4, 29, 8, 0, 0)
-    day_end = datetime(2025, 4, 29, 18, 0, 0)
+    day_start = datetime(2025, month, day, 8, 0, 0)
+    day_end = datetime(2025, month, day, 18, 0, 0)
 
     for i in range(n):
         service_time = get_random_service_time()
@@ -151,7 +198,13 @@ def generate_random_appointments(n: int, appointment_duration_factor: float = 3.
 
 # === MAIN FACTORY FUNCTION ===
 
-def create_testdata_optimization_request(num_vehicles: int, num_appointments: int,appointment_duration_factor:float = 3.0) -> OptimizationRequest:
+def create_testdata_optimization_request(
+        num_vehicles: int,
+        num_appointments: int,
+        appointment_duration_factor:float = 3.0,
+        month:int = 4,
+        day:int = 29
+) -> OptimizationRequest:
     start_address = generate_random_address()
     finish_address = start_address
 
@@ -161,7 +214,7 @@ def create_testdata_optimization_request(num_vehicles: int, num_appointments: in
         vehicles =generate_filled_vehicles(num_vehicles)
     )
 
-    appointments = generate_random_appointments(num_appointments,appointment_duration_factor)
+    appointments = generate_random_appointments(num_appointments,appointment_duration_factor,month,day)
 
     return OptimizationRequest(
         company_info=company_info,

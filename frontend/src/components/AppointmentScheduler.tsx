@@ -9,6 +9,7 @@ import { getStartOfWeek, getWeekStartingSunday } from '@/utils/helper';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { getRouteColor } from '@/utils/routeColors';
+import { minutesToTime } from '@/utils/helper';
 import dayjs from 'dayjs';
 import {
   ArrowLeft,
@@ -548,7 +549,7 @@ export function AppointmentScheduler({
                                   Route {idx + 1}
                                 </p>
 
-                                <ul className="space-y-1">
+                                <ul className="space-y-0.5">
                                   {' '}
                                   <li className="flex items-center gap-1">
                                     <CalendarClock className="h-4 w-4" />
@@ -590,19 +591,16 @@ export function AppointmentScheduler({
                                     <span className="font-semibold">
                                       Start Time:
                                     </span>{' '}
-                                    {dayjs(
-                                      appointments[0]?.appointment_start,
-                                    ).format('HH:mm')}
+                                    <span>
+                                      {minutesToTime(routeMetrics?.start_time)}
+                                    </span>
                                   </li>
                                   <li className="flex items-center gap-1">
                                     <Clock className="h-4 w-4" />
                                     <span className="font-semibold">
                                       End Time:
                                     </span>{' '}
-                                    {dayjs(
-                                      appointments[appointments.length - 1]
-                                        ?.appointment_end,
-                                    ).format('HH:mm')}
+                                    {minutesToTime(routeMetrics?.end_time)}
                                   </li>
                                   <li className="flex items-center gap-1">
                                     <History className="h-4 w-4" />

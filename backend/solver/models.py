@@ -127,6 +127,8 @@ class RouteMetrics(BaseModel):
     total_travel_distance_km: float
     total_service_time_min: int
     total_idle_time_min: int
+    start_time:int
+    end_time:int
 
 class Route(BaseModel):
     route_id: int
@@ -157,7 +159,14 @@ class Solution(BaseModel):
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport
 
+class RouteTimes(BaseModel):
+    route_id: int
+    start_time: int
+    end_time: int
+
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
+    appointment_duration_factor:float#the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
+    month:int
+    day:int
