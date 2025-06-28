@@ -26,7 +26,7 @@ export const Route = createFileRoute("/testdata-generate/")({
 function TestDataGeneratePage() {
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
-    to: Date | undefined;
+    to?: Date | undefined;
   }>({
     from: subDays(new Date(), 7),
     to: new Date(),

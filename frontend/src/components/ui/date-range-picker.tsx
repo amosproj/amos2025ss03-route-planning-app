@@ -31,8 +31,11 @@ export function CalendarDateRangePicker({
         <Calendar
           mode="range"
           selected={dateRange}
-          onSelect={setDateRange}
+          onSelect={(range) => {
+            if (range) setDateRange(range);
+          }}
           numberOfMonths={2}
+          required={false}
         />
       </PopoverContent>
     </Popover>
