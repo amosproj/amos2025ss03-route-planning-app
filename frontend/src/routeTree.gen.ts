@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as WeekViewIndexImport } from './routes/week-view/index'
+import { Route as TestdataGenerateIndexImport } from './routes/testdata-generate/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
 import { Route as MultiDaysViewIndexImport } from './routes/multi-days-view/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
@@ -37,6 +38,12 @@ const WorkerViewIndexRoute = WorkerViewIndexImport.update({
 const WeekViewIndexRoute = WeekViewIndexImport.update({
   id: '/week-view/',
   path: '/week-view/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const TestdataGenerateIndexRoute = TestdataGenerateIndexImport.update({
+  id: '/testdata-generate/',
+  path: '/testdata-generate/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -116,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScenariosIndexImport
       parentRoute: typeof rootRoute
     }
+    '/testdata-generate/': {
+      id: '/testdata-generate/'
+      path: '/testdata-generate'
+      fullPath: '/testdata-generate'
+      preLoaderRoute: typeof TestdataGenerateIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/week-view/': {
       id: '/week-view/'
       path: '/week-view'
@@ -142,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/map-view': typeof MapViewIndexRoute
   '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/testdata-generate': typeof TestdataGenerateIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -153,6 +168,7 @@ export interface FileRoutesByTo {
   '/map-view': typeof MapViewIndexRoute
   '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/testdata-generate': typeof TestdataGenerateIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -165,6 +181,7 @@ export interface FileRoutesById {
   '/map-view/': typeof MapViewIndexRoute
   '/multi-days-view/': typeof MultiDaysViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
+  '/testdata-generate/': typeof TestdataGenerateIndexRoute
   '/week-view/': typeof WeekViewIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
 }
@@ -178,6 +195,7 @@ export interface FileRouteTypes {
     | '/map-view'
     | '/multi-days-view'
     | '/scenarios'
+    | '/testdata-generate'
     | '/week-view'
     | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
@@ -188,6 +206,7 @@ export interface FileRouteTypes {
     | '/map-view'
     | '/multi-days-view'
     | '/scenarios'
+    | '/testdata-generate'
     | '/week-view'
     | '/worker-view'
   id:
@@ -198,6 +217,7 @@ export interface FileRouteTypes {
     | '/map-view/'
     | '/multi-days-view/'
     | '/scenarios/'
+    | '/testdata-generate/'
     | '/week-view/'
     | '/worker-view/'
   fileRoutesById: FileRoutesById
@@ -210,6 +230,7 @@ export interface RootRouteChildren {
   MapViewIndexRoute: typeof MapViewIndexRoute
   MultiDaysViewIndexRoute: typeof MultiDaysViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
+  TestdataGenerateIndexRoute: typeof TestdataGenerateIndexRoute
   WeekViewIndexRoute: typeof WeekViewIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
 }
@@ -221,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   MapViewIndexRoute: MapViewIndexRoute,
   MultiDaysViewIndexRoute: MultiDaysViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
+  TestdataGenerateIndexRoute: TestdataGenerateIndexRoute,
   WeekViewIndexRoute: WeekViewIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
 }
@@ -241,6 +263,7 @@ export const routeTree = rootRoute
         "/map-view/",
         "/multi-days-view/",
         "/scenarios/",
+        "/testdata-generate/",
         "/week-view/",
         "/worker-view/"
       ]
@@ -262,6 +285,9 @@ export const routeTree = rootRoute
     },
     "/scenarios/": {
       "filePath": "scenarios/index.tsx"
+    },
+    "/testdata-generate/": {
+      "filePath": "testdata-generate/index.tsx"
     },
     "/week-view/": {
       "filePath": "week-view/index.tsx"
