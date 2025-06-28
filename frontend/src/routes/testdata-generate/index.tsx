@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { setScenarios } from "@/store/scenariosSlice";
+import { setCompanyInfo } from "@/store/companyInfoSlice";
+import { Scenario } from "@/types/Scenario";
 
 
 dayjs.extend(isSameOrBefore);
@@ -63,6 +65,7 @@ function TestDataGeneratePage() {
 
     const totalDays = end.diff(start, "day") + 1;
     let processed = 0;
+    const newScenarios: Scenario[] = [];
 
     for (let d = start; d.isSameOrBefore(end); d = d.add(1, "day")) {
       const payload = {
@@ -79,9 +82,12 @@ function TestDataGeneratePage() {
           `✅ Success for ${payload.month}/${payload.day}`
         );
         console.log(`Generated data for ${payload.month}/${payload.day}`, response);
-        const { appointments, conpany_info } = response;
+        const { appointments, company_info } = response;
+        const timestamp = d.toDate().getTime();
+
         const scenario = {
-          date: new Date(2025, d.month(), d.day() + 1).getTime(), // timestamp
+          // date: new Date(2025, d.month(), d.day() + 1).getTime(), // timestamp
+          date: timestamp,
           jobs: appointments,
           vehicles: [
             {
@@ -97,9 +103,14 @@ function TestDataGeneratePage() {
             },
           ],
         };
-        dispatch(setScenarios([...scenarios, scenario]));
-        console.log(`Scenario for ${d.format('YYYY-MM-DD')}:`, scenario);
-      } catch (error) {
+        newScenarios.push(scenario);
+        // companyInfoByDate[timestamp] = company_info;
+        dispatch(setCompanyInfo({
+          date: timestamp.toString(),
+          companyInfo: company_info,
+        }));
+        console.log(`📦 Scenario for ${d.format("YYYY-MM-DD")}:`, scenario);
+      } catch {
         toast(
           `❌ Failed for ${payload.month}/${payload.day}`
         );
@@ -109,6 +120,7 @@ function TestDataGeneratePage() {
       setProgress((processed / totalDays) * 100);
     }
 
+    dispatch(setScenarios([...scenarios, ...newScenarios]));
     toast("🎉 Test data generation complete!");
   };
 
