@@ -4,46 +4,28 @@ import hashlib
 import logging
 import requests
 import numpy as np
-
 from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from solver.models import Location, DistanceAndDurationMatrices
 from redis_client import RedisClient
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
-# Function to create a unique key for origin-destination pairs
+
+# Generate a unique Redis cache key for a location pair using hashed coordinates
 def make_pair_key(origin: Location, destination: Location, precision=5) -> str:
     origin_lat = round(origin.lat, precision)
     origin_lng = round(origin.lng, precision)
     dest_lat = round(destination.lat, precision)
     dest_lng = round(destination.lng, precision)
-
     raw_key = f"{origin_lat},{origin_lng}-{dest_lat},{dest_lng}"
     hashed_key = hashlib.md5(raw_key.encode()).hexdigest()
     return f"cache:distance_matrix:{hashed_key}"
 
-# Function to get cached distance and duration from Redis Hash
-def get_cached_pair(origin: Location, destination: Location) -> Optional[dict]:
-    redis_client = RedisClient.get_client()
-    if not redis_client:
-        logger.warning("Redis client not initialized.")
-        return None
 
-    key = make_pair_key(origin, destination)
-    try:
-        data = redis_client.hgetall(key)
-        if data:
-            return {
-                "distance": int(data["distance"]),
-                "duration": int(data["duration"])
-            }
-        return None
-    except Exception as e:
-        logger.error(f"Redis HGETALL failed for key {key}: {e}")
-        return None
-
-# Function to cache distance and duration using Redis Hash with TTL
+# Cache a distance-duration pair in Redis with optional TTL (default: 30 days)
 def set_cached_pair(origin: Location, destination: Location, distance: int, duration: int, ttl: int = 30 * 24 * 3600):
     redis_client = RedisClient.get_client()
     if not redis_client:
@@ -60,21 +42,29 @@ def set_cached_pair(origin: Location, destination: Location, distance: int, dura
     except Exception as e:
         logger.error(f"Redis HSET/EXPIRE failed for key {key}: {e}")
 
-# Retry wrapper for Google API
-def fetch_with_retry(url: str, retries: int = 2, delay: int = 1) -> Optional[dict]:
+
+# Google API call with retry and exponential backoff
+def fetch_with_retry(url: str, retries: int = 3, base_delay: int = 1) -> Optional[dict]:
     for attempt in range(retries):
         try:
             response = requests.get(url, timeout=5)
             data = response.json()
             if data.get("status") == "OK":
                 return data
-            logger.warning(f"Google API status not OK: {data.get('status')}")
+            logger.warning(f"Google API status not OK (attempt {attempt + 1}): {data.get('status')}")
         except Exception as e:
             logger.error(f"API request failed (attempt {attempt + 1}): {e}")
+
+        # Wait with exponential backoff: 1s, 2s, 4s...
+        delay = base_delay * (2 ** attempt)
+        logger.info(f"Retrying in {delay} seconds...")
         time.sleep(delay)
+
+    logger.error(f"All {retries} retries failed for URL: {url}")
     return None
 
-# Main function with optional Redis caching
+
+# Main function to build distance & duration matrix, using Redis cache + Google API batching
 def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDurationMatrices:
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     if not api_key:
@@ -88,38 +78,64 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
     duration_matrix = np.full((n, n), -1, dtype=int)
     coordinates = [f"{loc.lat},{loc.lng}" for loc in locations]
 
+    # Cache check: use Redis pipeline to batch get cached values
     pairs_to_fetch = []
     cache_hits = 0
     cache_misses = 0
+    pair_indices = []
+    pair_keys = []
 
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                distance_matrix[i][j] = 0
-                duration_matrix[i][j] = 0
-                continue
+    if use_cache:
+        pipe = redis_client.pipeline()
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    distance_matrix[i][j] = 0
+                    duration_matrix[i][j] = 0
+                    continue
+                key = make_pair_key(locations[i], locations[j])
+                pair_indices.append((i, j))
+                pair_keys.append(key)
+                pipe.hgetall(key)
 
-            cached = get_cached_pair(locations[i], locations[j]) if use_cache else None
+        redis_results = pipe.execute()
 
-            if cached:
-                distance_matrix[i][j] = cached["distance"]
-                duration_matrix[i][j] = cached["duration"]
+        # Process results from Redis
+        for (i, j), data in zip(pair_indices, redis_results):
+            if data and "distance" in data and "duration" in data:
+                distance_matrix[i][j] = int(data["distance"])
+                duration_matrix[i][j] = int(data["duration"])
                 cache_hits += 1
             else:
                 pairs_to_fetch.append((i, j))
                 cache_misses += 1
+    else:
+        # If no Redis, treat all as cache misses
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    distance_matrix[i][j] = 0
+                    duration_matrix[i][j] = 0
+                    continue
+                pairs_to_fetch.append((i, j))
+                cache_misses += 1
 
+    # Log cache performance
     hit_rate = (cache_hits / (cache_hits + cache_misses)) * 100 if (cache_hits + cache_misses) else 0
     logger.info(
         f"Cache Efficiency: {cache_hits} hits, {cache_misses} misses "
         f"(Total lookups: {cache_hits + cache_misses}, Hit rate: {hit_rate:.2f}%), "
         f"Locations: {n}"
     )
-    
+
+    # Google API batching constraints
     max_elements = 100
     max_destinations = 25
     max_origins = max_elements // max_destinations
 
+    batch_requests = []
+
+    # Create all necessary origin-destination batch requests
     for origin_start in range(0, n, max_origins):
         origin_end = min(origin_start + max_origins, n)
         origin_coords = coordinates[origin_start:origin_end]
@@ -128,6 +144,7 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
             dest_end = min(dest_start + max_destinations, n)
             dest_coords = coordinates[dest_start:dest_end]
 
+            # Collect only uncached pairs
             sub_pairs = [
                 (i, j)
                 for i in range(origin_start, origin_end)
@@ -142,8 +159,22 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
                 f"origins={'|'.join(origin_coords)}&destinations={'|'.join(dest_coords)}&"
                 f"mode=driving&units=metric&key={api_key}"
             )
+            batch_requests.append((origin_start, dest_start, sub_pairs, url))
 
-            data = fetch_with_retry(url)
+    # Helper function to process a single batch request
+    def process_batch(origin_start, dest_start, sub_pairs, url):
+        data = fetch_with_retry(url)
+        return (origin_start, dest_start, sub_pairs, data)
+
+    # Run all Google API batches in parallel (up to 10 threads)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(process_batch, origin_start, dest_start, sub_pairs, url)
+            for origin_start, dest_start, sub_pairs, url in batch_requests
+        ]
+
+        for future in as_completed(futures):
+            origin_start, dest_start, sub_pairs, data = future.result()
             if not data:
                 logger.warning("Skipping batch due to failed fetch after retries.")
                 continue
@@ -153,11 +184,11 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
                 for j, element in enumerate(row.get("elements", [])):
                     oi = origin_start + i
                     dj = dest_start + j
-                    if (oi, dj) not in pairs_to_fetch:
+                    if (oi, dj) not in sub_pairs:
                         continue
                     if element.get("status") == "OK":
                         dist = element["distance"]["value"]
-                        dur = element["duration"]["value"] // 60
+                        dur = element["duration"]["value"] // 60  # seconds to minutes
                         distance_matrix[oi][dj] = dist
                         duration_matrix[oi][dj] = dur
                         if use_cache:
