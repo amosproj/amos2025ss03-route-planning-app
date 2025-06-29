@@ -8,13 +8,12 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { Slider } from "@/components/ui/slider";
 import apiClient from '@/utils/apiClient';
 import { useMutation } from "@tanstack/react-query";
-import { ToastContainer, toast } from 'react-toastify';
-import { Progress } from "@/components/ui/progress";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { setScenarios } from "@/store/scenariosSlice";
 import { setCompanyInfo } from "@/store/companyInfoSlice";
 import { Scenario } from "@/types/Scenario";
+import { ProgressAnimation } from "@/components/ui/progressAnimation";
 
 
 dayjs.extend(isSameOrBefore);
@@ -36,7 +35,9 @@ function TestDataGeneratePage() {
   const scenarios = useSelector((s: RootState) => s.scenarios.scenarios)
 
   const [appointmentRange, setAppointmentRange] = useState<[number, number]>([10, 50]);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(-1);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [isComplete, setIsComplete] = useState(false);
 
   const getRandomInt = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
@@ -56,7 +57,10 @@ function TestDataGeneratePage() {
 
   const handleSubmit = async () => {
     if (!dateRange.from || !dateRange.to) {
-      toast("Date range is incomplete.");
+      setErrorMessages((prev) => [
+        ...prev,
+        "Please select a complete date range.",
+      ]);
       return;
     }
 
@@ -70,17 +74,14 @@ function TestDataGeneratePage() {
     for (let d = start; d.isSameOrBefore(end); d = d.add(1, "day")) {
       const payload = {
         number_of_appointments: getRandomInt(appointmentRange[0], appointmentRange[1]),
-        number_of_vehicles: 20,
-        appointment_duration_factor: 3.0,
+        number_of_vehicles: 5,
+        appointment_duration_factor: 2.0,
         month: d.month() + 1,
         day: d.date(),
       };
 
       try {
         const response = await generateTestDataMutation.mutateAsync(payload);
-        toast(
-          `✅ Success for ${payload.month}/${payload.day}`
-        );
         console.log(`Generated data for ${payload.month}/${payload.day}`, response);
         const { appointments, company_info } = response;
         const timestamp = d.toDate().getTime();
@@ -92,7 +93,7 @@ function TestDataGeneratePage() {
           vehicles: [
             {
               vehicle_id: 0,
-              skills: "",
+              skills: [],
               worker_amount: 1,
               operation_hours: {
                 start_minutes: 480,
@@ -111,9 +112,12 @@ function TestDataGeneratePage() {
         }));
         console.log(`📦 Scenario for ${d.format("YYYY-MM-DD")}:`, scenario);
       } catch {
-        toast(
-          `❌ Failed for ${payload.month}/${payload.day}`
-        );
+        setErrorMessages((prev) => [
+          ...prev,
+          `Failed to generate data for ${payload.month}/${payload.day}`,
+        ]);
+        console.error(`Failed to generate data for ${payload.month}/${payload.day}`);
+        continue;
       }
 
       processed += 1;
@@ -121,17 +125,21 @@ function TestDataGeneratePage() {
     }
 
     dispatch(setScenarios([...scenarios, ...newScenarios]));
-    toast("🎉 Test data generation complete!");
+    setIsComplete(true);
+
+    setTimeout(() => setProgress(-1), 1000);
+    setTimeout(() => setIsComplete(false), 5000);
   };
 
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-      />
-      <Progress value={progress} className="h-2" />
+    <div className="my-6 max-w-xl mx-auto p-6 space-y-6 bg-white rounded-lg border shadow relative">
+      {/* Progress bars */}
+      <div className="absolute top-0 left-0 w-full">
+        {progress !== -1 && (
+          <ProgressAnimation value={progress} className="h-2" />
+        )}
+      </div>
       <h1 className="text-2xl font-bold">Test Data Generator</h1>
 
       <div>
@@ -156,9 +164,33 @@ function TestDataGeneratePage() {
         />
       </div>
 
-      <Button onClick={handleSubmit} disabled={generateTestDataMutation.isPending}>
+      <Button
+        onClick={handleSubmit}
+        disabled={generateTestDataMutation.isPending}
+      >
         {generateTestDataMutation.isPending ? "Sending..." : "Generate Test Data"}
       </Button>
+
+      {/* Completion message */}
+      {isComplete && (
+        <div className="mt-4 p-4 bg-green-100 text-green-800 rounded">
+          <h2 className="font-semibold">🎉 Test data generation complete!</h2>
+        </div>
+      )}
+
+      {/* error message  */}
+      {errorMessages.length > 0 && (
+        <div className="mt-4 p-4 bg-red-100 text-red-800 rounded">
+          <h2 className="font-semibold">Errors:</h2>
+          <ul className="list-disc pl-5">
+            {errorMessages.map((msg, index) => (
+              <li key={index}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
     </div>
   );
 }

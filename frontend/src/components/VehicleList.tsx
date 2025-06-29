@@ -112,11 +112,10 @@ export default function VehicleList({ date }: VehicleListProps) {
           return (
             <Card
               key={vehicle.vehicle_id}
-              className={`p-4 border-l-4 transition-all duration-200 ${
-                isExcluded
+              className={`p-4 border-l-4 transition-all duration-200 ${isExcluded
                   ? 'opacity-50 bg-gray-50 border-gray-300'
                   : 'hover:shadow-md cursor-pointer'
-              }`}
+                }`}
               style={{
                 borderLeftColor: isExcluded ? '#d1d5db' : vehicleColor,
               }}
@@ -127,9 +126,8 @@ export default function VehicleList({ date }: VehicleListProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <div
-                        className={`font-medium text-sm ${
-                          isExcluded ? 'text-gray-400' : 'text-gray-900'
-                        }`}
+                        className={`font-medium text-sm ${isExcluded ? 'text-gray-400' : 'text-gray-900'
+                          }`}
                       >
                         Vehicle {index + 1}
                       </div>
@@ -145,9 +143,8 @@ export default function VehicleList({ date }: VehicleListProps) {
 
                     {/* Workers */}
                     <div
-                      className={`flex items-center space-x-1 mb-2 text-xs ${
-                        isExcluded ? 'text-gray-400' : 'text-gray-600'
-                      }`}
+                      className={`flex items-center space-x-1 mb-2 text-xs ${isExcluded ? 'text-gray-400' : 'text-gray-600'
+                        }`}
                     >
                       <Users className="h-3 w-3" />
                       <span>
@@ -158,9 +155,8 @@ export default function VehicleList({ date }: VehicleListProps) {
 
                     {/* Operation Hours */}
                     <div
-                      className={`flex items-center space-x-1 mb-2 text-xs ${
-                        isExcluded ? 'text-gray-400' : 'text-gray-600'
-                      }`}
+                      className={`flex items-center space-x-1 mb-2 text-xs ${isExcluded ? 'text-gray-400' : 'text-gray-600'
+                        }`}
                     >
                       <Clock className="h-3 w-3" />
                       <span>
@@ -174,14 +170,12 @@ export default function VehicleList({ date }: VehicleListProps) {
                       <div className="mb-2">
                         <div className="flex flex-wrap gap-1">
                           {vehicle.skills
-                            .split(',')
                             .map((skill, skillIndex) => (
                               <Badge
                                 key={skillIndex}
                                 variant="default"
-                                className={`text-xs  ${
-                                  isExcluded ? 'bg-gray-100 text-gray-400' : ''
-                                }`}
+                                className={`text-xs  ${isExcluded ? 'bg-gray-100 text-gray-400' : ''
+                                  }`}
                               >
                                 {skill.trim()}
                               </Badge>
@@ -194,9 +188,8 @@ export default function VehicleList({ date }: VehicleListProps) {
                     <div className="flex items-center space-x-2 mt-2">
                       {hasDepot && (
                         <div
-                          className={`flex items-center space-x-1 text-xs ${
-                            isExcluded ? 'text-gray-400' : 'text-blue-600'
-                          }`}
+                          className={`flex items-center space-x-1 text-xs ${isExcluded ? 'text-gray-400' : 'text-blue-600'
+                            }`}
                         >
                           <Warehouse className="h-3 w-3" />
                           <span>Custom Depot</span>
@@ -207,9 +200,8 @@ export default function VehicleList({ date }: VehicleListProps) {
                     {/* Depot Address if available */}
                     {hasDepot && vehicle.depot && (
                       <div
-                        className={`mt-2 text-xs ${
-                          isExcluded ? 'text-gray-400' : 'text-gray-500'
-                        }`}
+                        className={`mt-2 text-xs ${isExcluded ? 'text-gray-400' : 'text-gray-500'
+                          }`}
                       >
                         <div className="flex items-start space-x-1">
                           <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
