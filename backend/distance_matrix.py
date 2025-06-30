@@ -66,12 +66,19 @@ def fetch_with_retry(url: str, retries: int = 3, base_delay: int = 1) -> Optiona
 
 # Main function to build distance & duration matrix, using Redis cache + Google API batching
 def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDurationMatrices:
+    # Start time of the operation
+    start_time = time.time()
+    
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     if not api_key:
         raise EnvironmentError("Google Maps API key not set")
 
     redis_client = RedisClient.get_client()
     use_cache = redis_client is not None
+    if redis_client:
+        logger.info("🚀 Redis available: caching enabled.")
+    else:
+        logger.info("🚫 Redis not available: running without cache.")
 
     n = len(locations)
     distance_matrix = np.full((n, n), -1, dtype=int)
@@ -195,6 +202,17 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
                             set_cached_pair(locations[oi], locations[dj], dist, dur)
                     else:
                         logger.warning(f"Element status not OK for {oi} → {dj}: {element.get('status')}")
+
+    # Final matrix validation
+    missing_entries = np.sum(distance_matrix == -1)
+    if missing_entries > 0:
+        raise RuntimeError(
+            f"Distance matrix build failed: {missing_entries} elements are still missing."
+        )
+
+    # Log total time taken for the operation
+    elapsed_time = time.time() - start_time
+    logger.info(f"Distance matrix computation completed in {elapsed_time:.2f} seconds.")
 
     return DistanceAndDurationMatrices(
         location_ids=[loc.id for loc in locations],
