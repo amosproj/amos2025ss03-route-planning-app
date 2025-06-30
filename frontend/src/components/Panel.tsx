@@ -61,13 +61,13 @@ export default function Panel({
         <TabsList className="mb-4 bg-gray-100 p-1 rounded-lg shadow-inner min-h-min">
           <TabsTrigger
             value="appointments"
-            className="text-lg font-semibold  px-4 rounded-lg"
+            className="text-lg font-semibold  px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200"
           >
             Appointments
           </TabsTrigger>
           <TabsTrigger
           value='fleet'
-          className="text-lg font-semibold  px-4 rounded-lg">
+          className="text-lg font-semibold  px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-500 data-[state=active]:shadow-md hover:bg-gray-200">
             Fleet
           </TabsTrigger>
 

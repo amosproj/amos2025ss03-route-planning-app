@@ -82,7 +82,7 @@ def solve_appointment_routing(
 
         callback_index = routing.RegisterTransitCallback(vehicle_cost_callback)
         routing.SetArcCostEvaluatorOfVehicle(callback_index, vehicle_index)
-
+        
     # Add Time Dimension
     routing.AddDimension(
         time_callback_index,
@@ -95,6 +95,21 @@ def solve_appointment_routing(
     # Treat waiting time as equivalent to driving time
     time_dimension.SetSlackCostCoefficientForAllVehicles(1)
     time_dimension.SetGlobalSpanCostCoefficient(100)
+    
+    # Set breaks for vehicles if defined
+    node_visit_transits = [0] * routing.Size()
+    solver = routing.solver()
+    for vehicle_index, vehicle in enumerate(optimization_request.company_info.vehicles):
+        if vehicle.vehicle_break:
+            lunch = solver.FixedDurationIntervalVar(
+                vehicle.vehicle_break.start_min,
+                vehicle.vehicle_break.start_max,
+                vehicle.vehicle_break.duration,
+                False,
+                f"lunch_break_vehicle_{vehicle_index}"
+            )
+            # Add the break to the vehicle
+            time_dimension.SetBreakIntervalsOfVehicle([lunch], vehicle_index, node_visit_transits)
 
     for vehicle_index, vehicle in enumerate(optimization_request.company_info.vehicles):
         filled_vehicle = optimization_request.company_info.vehicles[vehicle_index]

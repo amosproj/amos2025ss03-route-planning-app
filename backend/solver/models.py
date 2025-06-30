@@ -35,6 +35,10 @@ class EnhancedAppointment(BaseModel):
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
 
+class VehicleBreak(BaseModel):
+    duration: int  # in minutes
+    start_min: int  # earliest start time in minutes
+    start_max: int  # latest start time in minutes
 class FilledVehicle(BaseModel):
     vehicle_id:int
     skills: Set[str] = Field(default_factory=set)
@@ -44,6 +48,7 @@ class FilledVehicle(BaseModel):
     finish_address: Address
     cost_per_km: float
     cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class EnhancedFilledVehicle(BaseModel):
     vehicle_id:int
@@ -56,6 +61,7 @@ class EnhancedFilledVehicle(BaseModel):
     finish_location: Location
     cost_per_km: float
     cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class CompanyInfo(BaseModel):
     start_address: Address
