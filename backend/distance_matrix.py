@@ -75,10 +75,6 @@ def get_distance_matrix_with_cache(locations: List[Location]) -> DistanceAndDura
 
     redis_client = RedisClient.get_client()
     use_cache = redis_client is not None
-    if redis_client:
-        logger.info("🚀 Redis available: caching enabled.")
-    else:
-        logger.info("🚫 Redis not available: running without cache.")
 
     n = len(locations)
     distance_matrix = np.full((n, n), -1, dtype=int)
