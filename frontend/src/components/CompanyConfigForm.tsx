@@ -82,11 +82,11 @@ export function CompanyConfigForm() {
   const initialCost =
     currentCostIdx !== null
       ? {
-          cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
-          cost_per_hour: form.getValues(
-            `vehicles.${currentCostIdx}.cost_per_hour`,
-          ),
-        }
+        cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
+        cost_per_hour: form.getValues(
+          `vehicles.${currentCostIdx}.cost_per_hour`,
+        ),
+      }
       : null;
   const openCostDialog = (idx: number) => {
     setCurrentCostIdx(idx);
@@ -137,24 +137,24 @@ export function CompanyConfigForm() {
         vehicles:
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
-                ...vehicle,
-                operation_hours: vehicle.operation_hours || {
-                  start_minutes: 480,
-                  end_minutes: 960,
-                },
-                cost_per_km: vehicle.cost_per_km ?? 0.5,
-                cost_per_hour: vehicle.cost_per_hour ?? 45.0,
-              }))
+              ...vehicle,
+              operation_hours: vehicle.operation_hours || {
+                start_minutes: 480,
+                end_minutes: 960,
+              },
+              cost_per_km: vehicle.cost_per_km ?? 0.5,
+              cost_per_hour: vehicle.cost_per_hour ?? 45.0,
+            }))
             : [
-                {
-                  vehicle_id: 0,
-                  skills: null,
-                  worker_amount: 1,
-                  operation_hours: { start_minutes: 480, end_minutes: 960 },
-                  cost_per_km: 0.5,
-                  cost_per_hour: 45.0,
-                },
-              ],
+              {
+                vehicle_id: 0,
+                skills: [],
+                worker_amount: 1,
+                operation_hours: { start_minutes: 480, end_minutes: 960 },
+                cost_per_km: 0.5,
+                cost_per_hour: 45.0,
+              },
+            ],
       });
 
       setStartAddrObj(existingCompany.start_address);
@@ -188,7 +188,7 @@ export function CompanyConfigForm() {
       fields.length > 0 ? Math.max(...fields.map((f) => f.vehicle_id)) + 1 : 0;
     append({
       vehicle_id: newId,
-      skills: null,
+      skills: [],
       worker_amount: 1,
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
       cost_per_km: 0.5,

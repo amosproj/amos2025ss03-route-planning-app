@@ -7,7 +7,7 @@ export interface OperationHours {
 
 export interface Vehicle {
     vehicle_id: number;
-    skills: string[] | null;
+    skills: string[];
     worker_amount: number;
     operation_hours: OperationHours;
     depot?: {
