@@ -51,7 +51,7 @@ export function AppointmentScheduler({
   const dispatch = useDispatch<AppDispatch>();
 
   // Redux selectors
-  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
+  const scenarios = useSelector((state: RootState) => state.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
   const enrichedByDate = useSelector(
     (state: RootState) => state.enrichedAppointments,
@@ -60,8 +60,12 @@ export function AppointmentScheduler({
     (state: RootState) => state.solutions.byDate,
   );
   const companyInfo = useSelector(
-    (s: RootState) => Object.values(s.companyInfo)[0],
+    (state: RootState) => state.companyInfo,
   );
+  const excludedVehicles = useSelector(
+    (state: RootState) => state.excludedVehicles,
+  );
+
 
   // Week navigation state
   const currentWeekInfo = useMemo(() => {
@@ -200,6 +204,14 @@ export function AppointmentScheduler({
   const optimizeMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
+      // Check for required data presence
+      const companyInfoByDate = companyInfo[scenario.date];
+      if (!companyInfoByDate) {
+        console.error(`Missing companyInfo for date: ${date}`);
+        throw new Error(`Missing company info for date: ${date}`);
+      }
+
+      const excludedVehiclesByDate = excludedVehicles[date] ?? [];
 
       const appointments = scenario.jobs.map((job) => ({
         address: job.address,
@@ -217,19 +229,38 @@ export function AppointmentScheduler({
             .split('.')[0] + '.000',
       }));
 
+      // const companyPayload = {
+      //   start_address: companyInfo.start_address,
+      //   finish_address: companyInfo.finish_address,
+      //   vehicles: companyInfo.vehicles.map((v) => ({
+      //     vehicle_id: v.vehicle_id,
+      //     skills: v.skills ? [...v.skills] : [],
+      //     worker_amount: v.worker_amount,
+      //     operation_hours: v.operation_hours,
+      //     start_address: v.depot?.start || companyInfo.start_address,
+      //     finish_address: v.depot?.finish || companyInfo.finish_address,
+      //     cost_per_km: v.cost_per_km,
+      //     cost_per_hour: v.cost_per_hour,
+      //   })),
+      // };
+
+      const { start_address, finish_address, vehicles } = companyInfo[scenario.date]
+
       const companyPayload = {
-        start_address: companyInfo.start_address,
-        finish_address: companyInfo.finish_address,
-        vehicles: companyInfo.vehicles.map((v) => ({
-          vehicle_id: v.vehicle_id,
-          skills: v.skills ? [...v.skills] : [],
-          worker_amount: v.worker_amount,
-          operation_hours: v.operation_hours,
-          start_address: v.depot?.start || companyInfo.start_address,
-          finish_address: v.depot?.finish || companyInfo.finish_address,
-          cost_per_km: v.cost_per_km,
-          cost_per_hour: v.cost_per_hour,
-        })),
+        start_address,
+        finish_address,
+        vehicles: vehicles
+          .filter((v) => !excludedVehiclesByDate.includes(v.vehicle_id))
+          .map((v) => ({
+            vehicle_id: v.vehicle_id,
+            skills: v.skills ? [...v.skills] : [],
+            worker_amount: v.worker_amount,
+            operation_hours: v.operation_hours,
+            start_address: v.depot?.start || start_address,
+            finish_address: v.depot?.finish || finish_address,
+            cost_per_km: v.cost_per_km,
+            cost_per_hour: v.cost_per_hour,
+          })),
       };
 
       const res = await apiClient.post('/api/check-and-solve', {
@@ -241,6 +272,9 @@ export function AppointmentScheduler({
     },
     onSuccess: ({ date, solution }) => {
       dispatch(addSolution({ date, solution }));
+    },
+    onError: (error) => {
+      console.error('Optimization failed:', error);
     },
   });
 
@@ -608,12 +642,11 @@ export function AppointmentScheduler({
                                       Total Service Time:
                                     </span>{' '}
                                     {routeMetrics
-                                      ? `${routeMetrics.total_service_time_min} ${
-                                          routeMetrics.total_service_time_min <=
-                                          1
-                                            ? 'min'
-                                            : 'mins'
-                                        }`
+                                      ? `${routeMetrics.total_service_time_min} ${routeMetrics.total_service_time_min <=
+                                        1
+                                        ? 'min'
+                                        : 'mins'
+                                      }`
                                       : '-'}
                                   </li>
                                   <li className="flex items-center gap-1">
