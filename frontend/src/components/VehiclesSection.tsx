@@ -175,19 +175,12 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
                       control={control}
                       name={`vehicles.${index}.skills`}
                       render={({ field }) => {
-                        const selected: string[] = field.value
-                          ? field.value
-                              .split(',')
-                              .map((s: string) => s.trim())
-                              .filter((s: string) => Boolean(s))
-                          : [];
+                        const selected: string[] = Array.isArray(field.value) ? field.value : [];
                         const toggle = (skill: string) => {
                           const updated: string[] = selected.includes(skill)
                             ? selected.filter((s: string) => s !== skill)
                             : [...selected, skill];
-                          field.onChange(
-                            updated.length ? updated.join(', ') : null,
-                          );
+                          field.onChange(updated);
                         };
                         return (
                           <FormItem className="w-full">
@@ -274,7 +267,7 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
           onClick={() =>
             append({
               vehicle_id: fields.length,
-              skills: null,
+              skills: [],
               worker_amount: 1,
               operation_hours: { start_minutes: 480, end_minutes: 960 },
               cost_per_km: 0.5,

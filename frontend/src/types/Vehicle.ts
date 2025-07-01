@@ -2,7 +2,7 @@ import { Address } from "./Address";
 
 export interface OperationHours {
     start_minutes: number;
-    end_minutes: number; 
+    end_minutes: number;
 }
 
 export interface VehicleBreak {
@@ -13,7 +13,7 @@ export interface VehicleBreak {
 
 export interface Vehicle {
     vehicle_id: number;
-    skills: string | null;        
+    skills: string[];
     worker_amount: number;
     operation_hours: OperationHours;
     depot?: {

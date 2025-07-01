@@ -5,6 +5,7 @@ const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'Calendar', path: '/scenarios' },
     { name: 'Settings', path: '/company-config' },
+    { name: 'Test Data', path: '/testdata-generate' },
     // { name: 'Map View', path: '/map-view' },
     // { name: 'Daily Plan', path: '/daily-plan' },
     // { name: 'Worker View', path: '/worker-view' },
@@ -30,12 +31,12 @@ const Navbar = () => {
           </div>
         </Link>
         {/* Desktop Navigation */}
-        <div className="hidden sm:flex gap-4">
+        <div className="hidden sm:flex gap-2">
           {menuItems.map((item) => (
             <Link
               key={item.name}
               to={item.path}
-              className="text-primary hover:font-bold px-2"
+              className="text-primary hover:font-bold w-20 text-center"
               activeProps={{ className: 'font-bold ' }}
             >
               {item.name}
