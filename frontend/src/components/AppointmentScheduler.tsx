@@ -25,6 +25,7 @@ import {
   MapPin,
   History,
   Waypoints,
+  Truck,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -64,6 +65,9 @@ export function AppointmentScheduler({
   );
   const excludedVehicles = useSelector(
     (state: RootState) => state.excludedVehicles,
+  );
+  const excludedAppointmentsByDate = useSelector(
+    (state: RootState) => state.excludedAppointments,
   );
 
 
@@ -319,9 +323,13 @@ export function AppointmentScheduler({
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      const enriched = enrichedByDate[date];
+      const enriched = enrichedByDate[date] || [];
+      const excludedAppointments = excludedAppointmentsByDate[date] || [];
+      const finalEnrichedAppointments = enriched.filter((_, idx) => {
+        return !excludedAppointments.includes(idx);
+      })
       const alreadySolved = solutionByDate[date];
-      return !alreadySolved && enriched && allLocationsFullyFound(enriched);
+      return !alreadySolved && finalEnrichedAppointments && allLocationsFullyFound(finalEnrichedAppointments);
     });
 
     if (tasksToRun.length === 0) {
@@ -349,6 +357,20 @@ export function AppointmentScheduler({
     setTimeout(() => setOptimizeProgress(-1), 1000);
   };
 
+  const finalEnrichedAppointments = (date: string) => {
+    const enriched = enrichedByDate[date] || [];
+    const excludedAppointments = excludedAppointmentsByDate[date] || [];
+    return enriched.filter((_, idx) => !excludedAppointments.includes(idx));
+
+  }
+
+  const finalVehicles = (date: string) => {
+    const dateWithQuotes = `"${date}"`;
+    const vehicles = companyInfo[date]?.vehicles || [];
+    const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
+    return vehicles.filter((v) => !excludedVehiclesByDate.includes(v.vehicle_id));
+  }
+
   // Status renderers
   const renderEnrichedStatus = (date: string) => {
     if (enrichLoading[date]) {
@@ -359,9 +381,10 @@ export function AppointmentScheduler({
       return <CircleX className="h-4 w-4 text-red-500" />;
     }
 
-    const enriched = enrichedByDate[date];
-    if (enriched) {
-      if (allLocationsFullyFound(enriched)) {
+    console.log('Final enriched appointments:', finalEnrichedAppointments(date));
+
+    if (finalEnrichedAppointments(date).length > 0) {
+      if (allLocationsFullyFound(finalEnrichedAppointments(date))) {
         return <CircleCheck className="h-4 w-4 text-green-600" />;
       } else {
         return <CircleX className="h-4 w-4 text-red-500" />;
@@ -548,15 +571,22 @@ export function AppointmentScheduler({
                 </div>
 
                 {sc && (
-                  <div className="text-sm text-gray-700">
+                  <div className="flex justify-start items-center gap-4 text-sm text-gray-700">
                     {!so ? (
                       <>
                         {sc.jobs.length > 0 && (
-                          <li className="flex items-center gap-1">
+                          <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
                             <span className="font-semibold">Jobs:</span>{' '}
                             {sc.jobs.length}
-                          </li>
+                          </div>
+                        )}
+                        {finalVehicles(sc.date).length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Truck className="h-4 w-4" />
+                            <span className="font-semibold">Vehicles:</span>{' '}
+                            {finalVehicles(sc.date).length}
+                          </div>
                         )}
                       </>
                     ) : (
