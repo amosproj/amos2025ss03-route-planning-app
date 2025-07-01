@@ -6,6 +6,11 @@ from fastapi import HTTPException
 import exceptionStrings
 import os
 import requests
+import time
+import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 def parse_datetime(dt_str: str) -> datetime:
     # Support ISO8601 with or without timezone Z or offset
@@ -319,6 +324,8 @@ def enhance_vehicles(
 
 
 def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> EnhancedOptimizationRequest:
+    # Start time of the operation
+    start_time = time.time()
 
     company_info = opti_request.company_info
     appointments = opti_request.appointments
@@ -377,6 +384,11 @@ def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> 
     """
     distance matrix will be off size (1+ appointments + 2*vehicles)^2
     """
+
+    # Log total time taken for the operation
+    elapsed_time = time.time() - start_time
+    logger.info(f"Enhancing optimization request completed in {elapsed_time:.2f} seconds.")
+
 
     distance_matrix_response = get_distance_matrix_with_cache(all_locations)
     location_ids = distance_matrix_response.location_ids
