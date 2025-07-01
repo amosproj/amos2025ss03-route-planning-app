@@ -48,14 +48,20 @@ function MapView() {
 
   // Prepare appointments payload
   const appointmentsPayload =
-    scenario?.jobs.sort((a,b) =>{ return new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime()})
-    .map((job) => ({
-      address: job.address,
-      number_of_workers: job.number_of_workers,
-      service_time: 30,
-      appointment_start: new Date(job.appointment_start).toISOString(),
-      appointment_end: new Date(job.appointment_end).toISOString(),
-    })) || [];
+    scenario?.jobs
+      .sort((a, b) => {
+        return (
+          new Date(b.appointment_start).getTime() -
+          new Date(a.appointment_start).getTime()
+        );
+      })
+      .map((job) => ({
+        address: job.address,
+        number_of_workers: job.number_of_workers,
+        service_time: 30,
+        appointment_start: new Date(job.appointment_start).toISOString(),
+        appointment_end: new Date(job.appointment_end).toISOString(),
+      })) || [];
 
   // console.log('MapView appointmentsPayload', appointmentsPayload);
 
@@ -187,6 +193,7 @@ function MapView() {
           finish_address: v.depot?.finish || companyInfo.finish_address,
           cost_per_km: v.cost_per_km,
           cost_per_hour: v.cost_per_hour,
+          vehicle_break: v.vehicle_break || null,
         })),
     };
 
@@ -203,7 +210,11 @@ function MapView() {
 
   // Calculate metrics for OptimizationBar
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
-  const totalWorkers = companyInfo ? companyInfo.vehicles.filter(v => !excludedVehicles.includes(v.vehicle_id)).length : 0;
+  const totalWorkers = companyInfo
+    ? companyInfo.vehicles.filter(
+        (v) => !excludedVehicles.includes(v.vehicle_id),
+      ).length
+    : 0;
   const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
