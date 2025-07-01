@@ -5,6 +5,12 @@ export interface OperationHours {
     end_minutes: number; 
 }
 
+export interface VehicleBreak {
+    duration: number;
+    start_min: number;
+    start_max: number;
+}
+
 export interface Vehicle {
     vehicle_id: number;
     skills: string | null;        
@@ -16,4 +22,5 @@ export interface Vehicle {
     };
     cost_per_km: number;
     cost_per_hour: number;
+    vehicle_break?: VehicleBreak | null;
 }
