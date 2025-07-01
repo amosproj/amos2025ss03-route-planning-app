@@ -229,6 +229,7 @@ export function AppointmentScheduler({
           finish_address: v.depot?.finish || companyInfo.finish_address,
           cost_per_km: v.cost_per_km,
           cost_per_hour: v.cost_per_hour,
+          vehicle_break: v.vehicle_break || null,
         })),
       };
 

@@ -50,7 +50,11 @@ function MapView() {
   const appointmentsPayload =
     // Create a shallow copy HERE using the spread syntax [...] before sorting
     [...(scenario?.jobs || [])]
-      .sort((a, b) => new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.appointment_start).getTime() -
+          new Date(a.appointment_start).getTime(),
+      )
       .map((job) => ({
         address: job.address,
         number_of_workers: job.number_of_workers,
@@ -67,8 +71,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -190,6 +194,7 @@ function MapView() {
           finish_address: v.depot?.finish || companyInfo.finish_address,
           cost_per_km: v.cost_per_km,
           cost_per_hour: v.cost_per_hour,
+          vehicle_break: v.vehicle_break || null,
         })),
     };
 
@@ -205,7 +210,11 @@ function MapView() {
 
   // Calculate metrics for OptimizationBar
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
-  const totalWorkers = companyInfo ? companyInfo.vehicles.filter(v => !excludedVehicles.includes(v.vehicle_id)).length : 0;
+  const totalWorkers = companyInfo
+    ? companyInfo.vehicles.filter(
+        (v) => !excludedVehicles.includes(v.vehicle_id),
+      ).length
+    : 0;
   const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
@@ -388,8 +397,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
