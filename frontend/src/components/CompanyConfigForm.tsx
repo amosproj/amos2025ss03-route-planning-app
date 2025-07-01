@@ -19,6 +19,7 @@ import { AddressSection } from './AddressSection';
 import { VehiclesSection } from './VehiclesSection';
 import { DepotDialog } from './DepotDialog';
 import VehicleCostDialog from './VehicleCostDialog';
+import VehicleBreakDialog from './VehicleBreakDialog';
 
 import { MapPin, Truck } from 'lucide-react';
 
@@ -113,6 +114,32 @@ export function CompanyConfigForm() {
     closeCostDialog();
   };
 
+  // Vehicle break dialog state and handlers
+  const [breakOpen, setBreakOpen] = useState(false);
+  const [currentBreakIdx, setCurrentBreakIdx] = useState<number | null>(null);
+  const initialBreak =
+    currentBreakIdx !== null
+      ? form.getValues(`vehicles.${currentBreakIdx}.vehicle_break`) || null
+      : null;
+  const openBreakDialog = (idx: number) => {
+    setCurrentBreakIdx(idx);
+    setBreakOpen(true);
+  };
+  const closeBreakDialog = () => {
+    setBreakOpen(false);
+    setCurrentBreakIdx(null);
+  };
+  const handleSaveBreak = (breakInfo: {
+    duration: number;
+    start_min: number;
+    start_max: number;
+  }) => {
+    if (currentBreakIdx !== null) {
+      form.setValue(`vehicles.${currentBreakIdx}.vehicle_break`, breakInfo);
+    }
+    closeBreakDialog();
+  };
+
   useEffect(() => {
     if (existingCompany) {
       const hasStart =
@@ -193,6 +220,11 @@ export function CompanyConfigForm() {
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
       cost_per_km: 0.5,
       cost_per_hour: 45.0,
+      vehicle_break: {
+        duration: 30,
+        start_min: 720,
+        start_max: 840,
+      },
     });
   };
 
@@ -240,6 +272,7 @@ export function CompanyConfigForm() {
             remove={remove}
             onEditDepot={openDepotDialog}
             onEditCost={openCostDialog}
+            onEditBreak={openBreakDialog}
           />
         </Tabs>
 
@@ -264,6 +297,13 @@ export function CompanyConfigForm() {
           initialCosts={initialCost}
           onSave={handleSaveCost}
           onClose={closeCostDialog}
+        />
+        <VehicleBreakDialog
+          open={breakOpen}
+          vehicleIndex={currentBreakIdx}
+          initialBreak={initialBreak}
+          onSave={handleSaveBreak}
+          onClose={closeBreakDialog}
         />
       </form>
     </Form>

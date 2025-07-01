@@ -3,7 +3,7 @@ import type { FieldArrayWithId, Control } from 'react-hook-form';
 import type { FormSchemaType } from '@/schemas/formSchema';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, Trash2, Warehouse, Euro, X } from 'lucide-react';
+import { Minus, Plus, Trash2, Warehouse, Euro, X, Pause } from 'lucide-react';
 import { TabsContent } from '@/components/ui/tabs';
 import { getRouteColor } from '@/utils/routeColors';
 import { timeToMinutes, minutesToTime } from '@/utils/helper';
@@ -35,6 +35,7 @@ interface VehiclesSectionProps {
   remove: (index: number) => void;
   onEditDepot: (idx: number) => void;
   onEditCost: (idx: number) => void;
+  onEditBreak: (idx: number) => void;
 }
 
 export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
@@ -44,6 +45,7 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
   remove,
   onEditDepot,
   onEditCost,
+  onEditBreak,
 }) => {
   // watch vehicles array to detect depot and cost presence
   const vehicles = useWatch({ control, name: 'vehicles' }) || [];
@@ -59,6 +61,13 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
               vehicles[index]?.cost_per_hour != null &&
               vehicles[index].cost_per_km > 0 &&
               vehicles[index].cost_per_hour > 0;
+
+            const hasBreakInfo =
+              vehicles[index]?.vehicle_break &&
+              vehicles[index].vehicle_break.duration > 0 &&
+              vehicles[index].vehicle_break.start_min >= 0 &&
+              vehicles[index].vehicle_break.start_max >= 0;
+
             return (
               <Card
                 key={field.id}
@@ -221,7 +230,7 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
                         );
                       }}
                     />
-                    <div className="flex flex-col justify-end p-2 space-y-2">
+                    <div className="min-w-max grid grid-cols-2 gap-y-2 gap-x-2">
                       <Button
                         type="button"
                         size="sm"
@@ -237,6 +246,14 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
                         onClick={() => onEditDepot(index)}
                       >
                         <Warehouse className="h-4 w-4 mr-1" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={hasBreakInfo ? undefined : 'outline'}
+                        onClick={() => onEditBreak(index)}
+                      >
+                        <Pause className="h-4 w-4 mr-1" />
                       </Button>
                       <Button
                         type="button"
@@ -262,6 +279,11 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
               operation_hours: { start_minutes: 480, end_minutes: 960 },
               cost_per_km: 0.5,
               cost_per_hour: 45.0,
+              vehicle_break: {
+                duration: 30,
+                start_min: 720,
+                start_max: 840,
+              },
             })
           }
           className="p-3 border-2 border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 cursor-pointer"
