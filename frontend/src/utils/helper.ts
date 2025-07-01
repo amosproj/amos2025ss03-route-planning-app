@@ -37,7 +37,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
   });
   const defaultVehicle = {
     vehicle_id: 0,
-    skills: '',
+    skills: [],
     worker_amount: 1,
     operation_hours: { start_minutes: 480, end_minutes: 960 },
     cost_per_km: 0.5,
@@ -126,7 +126,7 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
       for (let i = 0; i < num; i++) {
         vehicles.push({
           vehicle_id: i,
-          skills: 'electrician',
+          skills: ['electrician'],
           worker_amount: 1,
           operation_hours: {
             start_minutes: 480, // 08:00

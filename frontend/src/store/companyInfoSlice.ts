@@ -12,7 +12,7 @@ const defaultCompanyInfo: CompanyInfo = {
   finish_address: defaultAddress,
   vehicles: [{
     vehicle_id: 0,
-    skills: null,
+    skills: [],
     worker_amount: 1,
     operation_hours: { start_minutes: 480, end_minutes: 960 },
     cost_per_km: 0.5,

@@ -48,14 +48,16 @@ function MapView() {
 
   // Prepare appointments payload
   const appointmentsPayload =
-    scenario?.jobs.sort((a,b) =>{ return new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime()})
-    .map((job) => ({
-      address: job.address,
-      number_of_workers: job.number_of_workers,
-      service_time: 30,
-      appointment_start: new Date(job.appointment_start).toISOString(),
-      appointment_end: new Date(job.appointment_end).toISOString(),
-    })) || [];
+    // Create a shallow copy HERE using the spread syntax [...] before sorting
+    [...(scenario?.jobs || [])]
+      .sort((a, b) => new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime())
+      .map((job) => ({
+        address: job.address,
+        number_of_workers: job.number_of_workers,
+        service_time: 30, // Note: You have this hardcoded
+        appointment_start: new Date(job.appointment_start).toISOString(),
+        appointment_end: new Date(job.appointment_end).toISOString(),
+      }));
 
   // console.log('MapView appointmentsPayload', appointmentsPayload);
 
@@ -65,8 +67,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-    ? { address_responses: cachedResponses, errors: [] }
-    : undefined;
+      ? { address_responses: cachedResponses, errors: [] }
+      : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -117,6 +119,7 @@ function MapView() {
   const companyInfo = useSelector(
     (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
   );
+  console.log('MapView companyInfo', companyInfo);
   const solution = useSelector((s: RootState) => s.solutions.byDate[date]);
 
   // console.log('MapView companyInfo', companyInfo);
@@ -192,7 +195,6 @@ function MapView() {
 
     // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
-      //@ts-expect-error // The backend expects a specific format for company info
       company_info: alteredCompanyInfo,
       appointments: enhancedAppointments,
     };
@@ -386,8 +388,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                  loc.latitude != null &&
-                  loc.longitude != null ? (
+                    loc.latitude != null &&
+                    loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}

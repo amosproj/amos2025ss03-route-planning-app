@@ -7,7 +7,7 @@ export const formSchema = z.object({
     .array(
       z.object({
         vehicle_id: z.number(),
-        skills: z.string().nullable(),
+        skills: z.array(z.string()),
         worker_amount: z
           .number()
           .min(1, 'Worker amount must be at least 1')
