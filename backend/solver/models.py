@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Union, Set
 from dataclasses import dataclass
+from enum import Enum
 
 class Address(BaseModel):
     street: str
@@ -16,6 +17,13 @@ class OperationHours(BaseModel):
     start_minutes: int
     end_minutes: int
 
+
+class AppointmentType(Enum):
+    REAL_APPOINTMENT = "REAL_APPOINTMENT"
+    LUNCHBREAK = "LUNCHBREAK"
+    DEPOT = "DEPOT"
+
+
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
@@ -23,6 +31,7 @@ class Appointment(BaseModel):
     service_time: int
     number_of_workers: int
     skills_needed: Set[str] = Field(default_factory=set)
+    appointment_type: AppointmentType = Field(default_factory=AppointmentType)
 
 class EnhancedAppointment(BaseModel):
     appointment_start: str
@@ -32,9 +41,14 @@ class EnhancedAppointment(BaseModel):
     location:Location
     number_of_workers: int
     skills_needed: Set[str] = Field(default_factory=set)
+    appointment_type: AppointmentType = Field(default_factory=AppointmentType)
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
 
+class VehicleBreak(BaseModel):
+    duration: int  # in minutes
+    start_min: int  # earliest start time in minutes
+    start_max: int  # latest start time in minutes
 class FilledVehicle(BaseModel):
     vehicle_id:int
     skills: Set[str] = Field(default_factory=set)
@@ -44,6 +58,7 @@ class FilledVehicle(BaseModel):
     finish_address: Address
     cost_per_km: float
     cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class EnhancedFilledVehicle(BaseModel):
     vehicle_id:int
@@ -56,6 +71,7 @@ class EnhancedFilledVehicle(BaseModel):
     finish_location: Location
     cost_per_km: float
     cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class CompanyInfo(BaseModel):
     start_address: Address

@@ -8,7 +8,39 @@ from typing import Any
 
 from solver.models import *
 
+
 # === HELPERS ===
+
+def generate_random_vehicle_addresses(n:int) -> Address:
+    vehicle_addresses = [
+        Address(street="Friedrichstraße 236", zip_code="10969", city="Berlin"),
+        Address(street="Kastanienallee 61", zip_code="10119", city="Berlin"),
+        Address(street="Reinickendorfer Str. 54", zip_code="13347", city="Berlin"),
+        Address(street="Kurt-Schumacher-Damm 41", zip_code="13405", city="Berlin"),
+        Address(street="Goebelstraße 122A", zip_code="13629", city="Berlin"),
+        Address(street="Werkring 3", zip_code="13597", city="Berlin"),
+        Address(street="Murellenweg 1", zip_code="14052", city="Berlin"),
+        Address(street="Wilhelmshöher Str. 13", zip_code="12161", city="Berlin"),
+        Address(street="Beckerstraße 5", zip_code="12157", city="Berlin"),
+        Address(street="Bessemerstraße 42A", zip_code="12103", city="Berlin"),
+        Address(street="Hermannstraße 179", zip_code="12049", city="Berlin"),
+        Address(street="Emser Str. 131", zip_code="12051", city="Berlin"),
+        Address(street="Thomasstraße 53", zip_code="12053", city="Berlin"),
+        Address(street="Sonnenallee 59", zip_code="12045", city="Berlin"),
+        Address(street="Reichenberger Str. 71A", zip_code="10999", city="Berlin"),
+        Address(street="Gustav-Zahnke-Straße 17", zip_code="10369", city="Berlin"),
+        Address(street="Erich-Kuttner-Straße 3", zip_code="10369", city="Berlin"),
+        Address(street="Storkower Str. 139D", zip_code="10407", city="Berlin"),
+        Address(street="Bauhofstraße 6", zip_code="10117", city="Berlin"),
+        Address(street="Unter den Linden 6", zip_code="10117", city="Berlin"),
+        Address(street="Wilhelmstraße 55", zip_code="10117", city="Berlin"),
+        Address(street="Jägerstraße 70", zip_code="10117", city="Berlin")
+    ]
+
+    if n > len(vehicle_addresses):
+        raise ValueError(f"Requested {n} vehicle_addresses, but only {len(vehicle_addresses)} are available.")
+
+    return random.sample(vehicle_addresses, n)
 
 def generate_random_addresses(n:int) -> Address:
     addresses = [
@@ -112,6 +144,7 @@ def generate_random_addresses(n:int) -> Address:
         Address(street="Bessemerstraße 42A", zip_code="12103", city="Berlin"),
         Address(street="Burgemeisterstraße 34", zip_code="12103", city="Berlin")
     ]
+
     if n > len(addresses):
         raise ValueError(f"Requested {n} addresses, but only {len(addresses)} are available.")
 
@@ -119,6 +152,9 @@ def generate_random_addresses(n:int) -> Address:
 
 def generate_random_address() -> Address:
     return generate_random_addresses(1)[0]
+
+def generate_random_vehicle_address() -> Address:
+    return generate_random_vehicle_addresses(1)[0]
 
 def get_random_service_time() -> int:
     choices = [30, 60, 45, 90]
@@ -128,16 +164,16 @@ def get_random_service_time() -> int:
 skills_pool = ["electrician", "plumber","carpenter"]
 
 def generate_filled_vehicles(amount: int) -> list[FilledVehicle]:
-    vehicle_address = generate_random_address()  # TODO change to real logic
+    vehicle_addresses = generate_random_vehicle_addresses(amount)
 
     return [
         FilledVehicle(
             vehicle_id=i + 1,
             skills=set(random.sample(skills_pool, k=random.randint(1, len(skills_pool)))),
             worker_amount=random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0],
-            operation_hours=OperationHours(start_minutes=0, end_minutes=1440),  # TODO change to real logic
-            start_address=vehicle_address,
-            finish_address=vehicle_address,
+            operation_hours=OperationHours(start_minutes= 360, end_minutes=1140), #todo change to real logic
+            start_address=vehicle_addresses[i],
+            finish_address=vehicle_addresses[i],
             cost_per_km=round(random.uniform(0.4, 1.0), 2),
             cost_per_hour=round(random.uniform(20.0, 60.0), 2)
         ) for i in range(amount)
@@ -187,7 +223,8 @@ def generate_random_appointments(
             address=addresses[i],
             service_time=str(service_time),
             skills_needed=selected_skills,
-            number_of_workers=random.choices([1, 2, 3], weights=[0.7, 0.25, 0.05])[0]
+            number_of_workers=random.choices([1, 2, 3], weights=[0.7, 0.25, 0.05])[0],
+            appointment_type = AppointmentType.REAL_APPOINTMENT.value
         )
 
         appointments.append(appointment)

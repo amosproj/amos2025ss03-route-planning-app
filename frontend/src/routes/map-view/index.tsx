@@ -7,7 +7,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -22,7 +22,7 @@ import {
   setExcludedAppointments,
 } from '../../store/excludedAppointmentsSlice';
 import { Button } from '@/components/ui/button';
-import { Fullscreen } from 'lucide-react';
+import { ArrowLeft, Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
 import { createDepotMarkerIcon } from '@/utils/helper';
@@ -31,6 +31,7 @@ export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
   const navigate = useNavigate();
+  const { history } = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
 
@@ -50,13 +51,18 @@ function MapView() {
   const appointmentsPayload =
     // Create a shallow copy HERE using the spread syntax [...] before sorting
     [...(scenario?.jobs || [])]
-      .sort((a, b) => new Date(b.appointment_start).getTime() - new Date(a.appointment_start).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.appointment_start).getTime() -
+          new Date(a.appointment_start).getTime(),
+      )
       .map((job) => ({
         address: job.address,
         number_of_workers: job.number_of_workers,
         service_time: 30, // Note: You have this hardcoded
         appointment_start: new Date(job.appointment_start).toISOString(),
         appointment_end: new Date(job.appointment_end).toISOString(),
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
   // console.log('MapView appointmentsPayload', appointmentsPayload);
@@ -172,6 +178,7 @@ function MapView() {
             address: app.address,
             number_of_workers: app.number_of_workers,
             service_time: 15,
+            appointment_type: app?.appointment_type || 'REAL_APPOINTMENT',
           };
         }) || [];
 
@@ -190,6 +197,7 @@ function MapView() {
           finish_address: v.depot?.finish || companyInfo.finish_address,
           cost_per_km: v.cost_per_km,
           cost_per_hour: v.cost_per_hour,
+          vehicle_break: v.vehicle_break || null,
         })),
     };
 
@@ -205,7 +213,11 @@ function MapView() {
 
   // Calculate metrics for OptimizationBar
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
-  const totalWorkers = companyInfo ? companyInfo.vehicles.filter(v => !excludedVehicles.includes(v.vehicle_id)).length : 0;
+  const totalWorkers = companyInfo
+    ? companyInfo.vehicles.filter(
+      (v) => !excludedVehicles.includes(v.vehicle_id),
+    ).length
+    : 0;
   const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
@@ -291,20 +303,6 @@ function MapView() {
   if (loadError) return <div>Error loading Google Maps</div>;
   if (!isLoaded) return <div>Loading map...</div>;
 
-  const handleBackButtonClick = () => {
-    const sanitizedDate = date.replace(/"/g, '').trim();
-    const dateObj = new Date(Number(sanitizedDate));
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth();
-    navigate({
-      to: '/scenarios',
-      search: {
-        year: year,
-        month: month,
-      },
-    });
-  };
-
   return (
     <>
       <div className="flex w-full h-[calc(100vh-4rem)]">
@@ -345,14 +343,14 @@ function MapView() {
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
             <div className="p-2 flex items-center justify-between border-b ">
-              <span className="flex items-center ">
-                <button
-                  onClick={handleBackButtonClick}
-                  className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
-                >
-                  ←
-                </button>
-              </span>
+              <Button
+                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
+                onClick={() => history.go(-1)}
+              >
+                <ArrowLeft />
+                <span className="ml-2">Back</span>
+              </Button>
+
               <OptimizationBar
                 includedJobs={includedJobs}
                 totalWorkers={totalWorkers}
@@ -376,7 +374,7 @@ function MapView() {
             <div className="relative flex-1">
               <Button
                 onClick={goHomeView}
-                className="absolute top-3 right-14 z-10  rounded shadow"
+                className="absolute top-3 right-14 z-10 rounded shadow bg-white text-gray-800 hover:bg-gray-100"
               >
                 <Fullscreen />{' '}
               </Button>

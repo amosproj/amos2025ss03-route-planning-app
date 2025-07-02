@@ -1,24 +1,23 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { CalendarDateRangePicker } from "@/components/ui/date-range-picker";
-import { subDays } from "date-fns";
-import dayjs from "dayjs";
+import { useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { CalendarDateRangePicker } from '@/components/ui/date-range-picker';
+import { subDays } from 'date-fns';
+import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { Slider } from "@/components/ui/slider";
+import { Slider } from '@/components/ui/slider';
 import apiClient from '@/utils/apiClient';
-import { useMutation } from "@tanstack/react-query";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/store";
-import { setScenarios } from "@/store/scenariosSlice";
-import { setCompanyInfo } from "@/store/companyInfoSlice";
-import { Scenario } from "@/types/Scenario";
-import { ProgressAnimation } from "@/components/ui/progressAnimation";
-
+import { useMutation } from '@tanstack/react-query';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { setScenarios } from '@/store/scenariosSlice';
+import { setCompanyInfo } from '@/store/companyInfoSlice';
+import { Scenario } from '@/types/Scenario';
+import { ProgressAnimation } from '@/components/ui/progressAnimation';
 
 dayjs.extend(isSameOrBefore);
 
-export const Route = createFileRoute("/testdata-generate/")({
+export const Route = createFileRoute('/testdata-generate/')({
   component: TestDataGeneratePage,
 });
 
@@ -32,9 +31,11 @@ function TestDataGeneratePage() {
   });
 
   const dispatch = useDispatch<AppDispatch>();
-  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios)
+  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
 
-  const [appointmentRange, setAppointmentRange] = useState<[number, number]>([10, 50]);
+  const [appointmentRange, setAppointmentRange] = useState<[number, number]>([
+    10, 50,
+  ]);
   const [progress, setProgress] = useState(-1);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [isComplete, setIsComplete] = useState(false);
@@ -50,7 +51,10 @@ function TestDataGeneratePage() {
       month: number;
       day: number;
     }) => {
-      const res = await apiClient.post('/api/testdata/optimization-request', payload);
+      const res = await apiClient.post(
+        '/api/testdata/optimization-request',
+        payload,
+      );
       return res.data;
     },
   });
@@ -59,7 +63,7 @@ function TestDataGeneratePage() {
     if (!dateRange.from || !dateRange.to) {
       setErrorMessages((prev) => [
         ...prev,
-        "Please select a complete date range.",
+        'Please select a complete date range.',
       ]);
       return;
     }
@@ -67,13 +71,16 @@ function TestDataGeneratePage() {
     const start = dayjs(dateRange.from);
     const end = dayjs(dateRange.to);
 
-    const totalDays = end.diff(start, "day") + 1;
+    const totalDays = end.diff(start, 'day') + 1;
     let processed = 0;
     const newScenarios: Scenario[] = [];
 
-    for (let d = start; d.isSameOrBefore(end); d = d.add(1, "day")) {
+    for (let d = start; d.isSameOrBefore(end); d = d.add(1, 'day')) {
       const payload = {
-        number_of_appointments: getRandomInt(appointmentRange[0], appointmentRange[1]),
+        number_of_appointments: getRandomInt(
+          appointmentRange[0],
+          appointmentRange[1],
+        ),
         number_of_vehicles: 5,
         appointment_duration_factor: 2.0,
         month: d.month() + 1,
@@ -82,7 +89,10 @@ function TestDataGeneratePage() {
 
       try {
         const response = await generateTestDataMutation.mutateAsync(payload);
-        console.log(`Generated data for ${payload.month}/${payload.day}`, response);
+        console.log(
+          `Generated data for ${payload.month}/${payload.day}`,
+          response,
+        );
         const { appointments, company_info } = response;
         const timestamp = d.toDate().getTime();
 
@@ -106,17 +116,21 @@ function TestDataGeneratePage() {
         };
         newScenarios.push(scenario);
         // companyInfoByDate[timestamp] = company_info;
-        dispatch(setCompanyInfo({
-          date: timestamp.toString(),
-          companyInfo: company_info,
-        }));
-        console.log(`📦 Scenario for ${d.format("YYYY-MM-DD")}:`, scenario);
+        dispatch(
+          setCompanyInfo({
+            date: timestamp.toString(),
+            companyInfo: company_info,
+          }),
+        );
+        console.log(`📦 Scenario for ${d.format('YYYY-MM-DD')}:`, scenario);
       } catch {
         setErrorMessages((prev) => [
           ...prev,
           `Failed to generate data for ${payload.month}/${payload.day}`,
         ]);
-        console.error(`Failed to generate data for ${payload.month}/${payload.day}`);
+        console.error(
+          `Failed to generate data for ${payload.month}/${payload.day}`,
+        );
         continue;
       }
 
@@ -130,7 +144,6 @@ function TestDataGeneratePage() {
     setTimeout(() => setProgress(-1), 1000);
     setTimeout(() => setIsComplete(false), 5000);
   };
-
 
   return (
     <div className="my-6 max-w-xl mx-auto p-6 space-y-6 bg-white rounded-lg border shadow relative">
@@ -151,7 +164,9 @@ function TestDataGeneratePage() {
       </div>
 
       <div>
-        <label className="block mb-1 font-medium">Number of Appointments (Range)</label>
+        <label className="block mb-1 font-medium">
+          Number of Appointments (Range)
+        </label>
         <div className="text-sm text-muted-foreground mb-2">
           {appointmentRange[0]} to {appointmentRange[1]} appointments per day
         </div>
@@ -160,15 +175,20 @@ function TestDataGeneratePage() {
           max={100}
           step={1}
           value={appointmentRange}
-          onValueChange={(vals) => setAppointmentRange(vals as [number, number])}
+          onValueChange={(vals) =>
+            setAppointmentRange(vals as [number, number])
+          }
         />
       </div>
 
       <Button
+        className="bg-sky-600 text-white hover:bg-sky-600/90"
         onClick={handleSubmit}
         disabled={generateTestDataMutation.isPending}
       >
-        {generateTestDataMutation.isPending ? "Sending..." : "Generate Test Data"}
+        {generateTestDataMutation.isPending
+          ? 'Sending...'
+          : 'Generate Test Data'}
       </Button>
 
       {/* Completion message */}
@@ -189,8 +209,6 @@ function TestDataGeneratePage() {
           </ul>
         </div>
       )}
-
-
     </div>
   );
 }

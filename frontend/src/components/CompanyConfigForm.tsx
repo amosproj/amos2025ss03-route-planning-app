@@ -19,6 +19,7 @@ import { AddressSection } from './AddressSection';
 import { VehiclesSection } from './VehiclesSection';
 import { DepotDialog } from './DepotDialog';
 import VehicleCostDialog from './VehicleCostDialog';
+import VehicleBreakDialog from './VehicleBreakDialog';
 
 import { MapPin, Truck } from 'lucide-react';
 
@@ -82,11 +83,11 @@ export function CompanyConfigForm() {
   const initialCost =
     currentCostIdx !== null
       ? {
-        cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
-        cost_per_hour: form.getValues(
-          `vehicles.${currentCostIdx}.cost_per_hour`,
-        ),
-      }
+          cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
+          cost_per_hour: form.getValues(
+            `vehicles.${currentCostIdx}.cost_per_hour`,
+          ),
+        }
       : null;
   const openCostDialog = (idx: number) => {
     setCurrentCostIdx(idx);
@@ -113,6 +114,32 @@ export function CompanyConfigForm() {
     closeCostDialog();
   };
 
+  // Vehicle break dialog state and handlers
+  const [breakOpen, setBreakOpen] = useState(false);
+  const [currentBreakIdx, setCurrentBreakIdx] = useState<number | null>(null);
+  const initialBreak =
+    currentBreakIdx !== null
+      ? form.getValues(`vehicles.${currentBreakIdx}.vehicle_break`) || null
+      : null;
+  const openBreakDialog = (idx: number) => {
+    setCurrentBreakIdx(idx);
+    setBreakOpen(true);
+  };
+  const closeBreakDialog = () => {
+    setBreakOpen(false);
+    setCurrentBreakIdx(null);
+  };
+  const handleSaveBreak = (breakInfo: {
+    duration: number;
+    start_min: number;
+    start_max: number;
+  }) => {
+    if (currentBreakIdx !== null) {
+      form.setValue(`vehicles.${currentBreakIdx}.vehicle_break`, breakInfo);
+    }
+    closeBreakDialog();
+  };
+
   useEffect(() => {
     if (existingCompany) {
       const hasStart =
@@ -137,24 +164,24 @@ export function CompanyConfigForm() {
         vehicles:
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
-              ...vehicle,
-              operation_hours: vehicle.operation_hours || {
-                start_minutes: 480,
-                end_minutes: 960,
-              },
-              cost_per_km: vehicle.cost_per_km ?? 0.5,
-              cost_per_hour: vehicle.cost_per_hour ?? 45.0,
-            }))
+                ...vehicle,
+                operation_hours: vehicle.operation_hours || {
+                  start_minutes: 480,
+                  end_minutes: 960,
+                },
+                cost_per_km: vehicle.cost_per_km ?? 0.5,
+                cost_per_hour: vehicle.cost_per_hour ?? 45.0,
+              }))
             : [
-              {
-                vehicle_id: 0,
-                skills: [],
-                worker_amount: 1,
-                operation_hours: { start_minutes: 480, end_minutes: 960 },
-                cost_per_km: 0.5,
-                cost_per_hour: 45.0,
-              },
-            ],
+                {
+                  vehicle_id: 0,
+                  skills: [],
+                  worker_amount: 1,
+                  operation_hours: { start_minutes: 480, end_minutes: 960 },
+                  cost_per_km: 0.5,
+                  cost_per_hour: 45.0,
+                },
+              ],
       });
 
       setStartAddrObj(existingCompany.start_address);
@@ -193,6 +220,11 @@ export function CompanyConfigForm() {
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
       cost_per_km: 0.5,
       cost_per_hour: 45.0,
+      vehicle_break: {
+        duration: 30,
+        start_min: 720,
+        start_max: 840,
+      },
     });
   };
 
@@ -240,11 +272,16 @@ export function CompanyConfigForm() {
             remove={remove}
             onEditDepot={openDepotDialog}
             onEditCost={openCostDialog}
+            onEditBreak={openBreakDialog}
           />
         </Tabs>
 
         <div className="flex justify-end space-x-4">
-          <Button type="submit" size="lg">
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-sky-600 text-white hover:bg-sky-600/90"
+          >
             Save Company Configuration
           </Button>
         </div>
@@ -264,6 +301,13 @@ export function CompanyConfigForm() {
           initialCosts={initialCost}
           onSave={handleSaveCost}
           onClose={closeCostDialog}
+        />
+        <VehicleBreakDialog
+          open={breakOpen}
+          vehicleIndex={currentBreakIdx}
+          initialBreak={initialBreak}
+          onSave={handleSaveBreak}
+          onClose={closeBreakDialog}
         />
       </form>
     </Form>

@@ -66,7 +66,7 @@ export function AppointmentScheduler({
   const excludedVehicles = useSelector(
     (state: RootState) => state.excludedVehicles,
   );
-  const excludedAppointmentsByDate = useSelector(
+  const excludedAppointments = useSelector(
     (state: RootState) => state.excludedAppointments,
   );
 
@@ -190,6 +190,7 @@ export function AppointmentScheduler({
         service_time: 30,
         appointment_start: new Date(job.appointment_start).toISOString(),
         appointment_end: new Date(job.appointment_end).toISOString(),
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
       const res = await apiClient.post('/api/appointments', payload);
@@ -217,21 +218,24 @@ export function AppointmentScheduler({
 
       const excludedVehiclesByDate = excludedVehicles[date] ?? [];
 
-      const appointments = scenario.jobs.map((job) => ({
-        address: job.address,
-        number_of_workers: job.number_of_workers,
-        service_time: 15,
-        appointment_start:
-          new Date(job.appointment_start)
-            .toISOString()
-            .replace('T', ' ')
-            .split('.')[0] + '.000',
-        appointment_end:
-          new Date(job.appointment_end)
-            .toISOString()
-            .replace('T', ' ')
-            .split('.')[0] + '.000',
-      }));
+      const appointments = scenario.jobs
+        .filter((_, idx) => !excludedAppointments[date]?.includes(idx))
+        .map((job) => ({
+          address: job.address,
+          number_of_workers: job.number_of_workers,
+          service_time: 15,
+          appointment_start:
+            new Date(job.appointment_start)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0] + '.000',
+          appointment_end:
+            new Date(job.appointment_end)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0] + '.000',
+          appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
+        }));
 
       // const companyPayload = {
       //   start_address: companyInfo.start_address,
@@ -254,7 +258,7 @@ export function AppointmentScheduler({
         start_address,
         finish_address,
         vehicles: vehicles
-          .filter((v) => !excludedVehiclesByDate.includes(v.vehicle_id))
+          .filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id))
           .map((v) => ({
             vehicle_id: v.vehicle_id,
             skills: v.skills ? [...v.skills] : [],
@@ -264,9 +268,9 @@ export function AppointmentScheduler({
             finish_address: v.depot?.finish || finish_address,
             cost_per_km: v.cost_per_km,
             cost_per_hour: v.cost_per_hour,
+            vehicle_break: v.vehicle_break || null,
           })),
       };
-
       const res = await apiClient.post('/api/check-and-solve', {
         company_info: companyPayload,
         appointments,
@@ -286,6 +290,21 @@ export function AppointmentScheduler({
   const allLocationsFullyFound = (
     locations: { could_be_fully_found: boolean }[] = [],
   ) => locations.every((loc) => loc.could_be_fully_found);
+
+  const finalEnrichedAppointments = (date: string) => {
+    const dateWithQuotes = date.startsWith('"') ? date : `"${date}"`;
+    const enriched = enrichedByDate[dateWithQuotes] || [];
+    const excludedAppointmentsByDate = excludedAppointments[dateWithQuotes] || [];
+    return enriched.filter((_, idx) => !excludedAppointmentsByDate?.includes(idx));
+
+  }
+
+  const finalVehicles = (date: string) => {
+    const dateWithQuotes = `"${date}"`;
+    const vehicles = companyInfo[date]?.vehicles || [];
+    const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
+    return vehicles.filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id));
+  }
 
   // Action handlers
   const handleEnrichAppointments = async () => {
@@ -323,13 +342,13 @@ export function AppointmentScheduler({
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      const enriched = enrichedByDate[date] || [];
-      const excludedAppointments = excludedAppointmentsByDate[date] || [];
-      const finalEnrichedAppointments = enriched.filter((_, idx) => {
-        return !excludedAppointments.includes(idx);
-      })
+      // const enriched = enrichedByDate[date] || [];
+      // const excludedAppointmentsByDate = excludedAppointments[date] || [];
+      // const finalEnrichedAppointments = enriched.filter((_, idx) => {
+      //   return !excludedAppointmentsByDate.includes(idx);
+      // })
       const alreadySolved = solutionByDate[date];
-      return !alreadySolved && finalEnrichedAppointments && allLocationsFullyFound(finalEnrichedAppointments);
+      return !alreadySolved && finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
     });
 
     if (tasksToRun.length === 0) {
@@ -357,20 +376,6 @@ export function AppointmentScheduler({
     setTimeout(() => setOptimizeProgress(-1), 1000);
   };
 
-  const finalEnrichedAppointments = (date: string) => {
-    const enriched = enrichedByDate[date] || [];
-    const excludedAppointments = excludedAppointmentsByDate[date] || [];
-    return enriched.filter((_, idx) => !excludedAppointments.includes(idx));
-
-  }
-
-  const finalVehicles = (date: string) => {
-    const dateWithQuotes = `"${date}"`;
-    const vehicles = companyInfo[date]?.vehicles || [];
-    const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
-    return vehicles.filter((v) => !excludedVehiclesByDate.includes(v.vehicle_id));
-  }
-
   // Status renderers
   const renderEnrichedStatus = (date: string) => {
     if (enrichLoading[date]) {
@@ -380,8 +385,6 @@ export function AppointmentScheduler({
     if (enrichError[date]) {
       return <CircleX className="h-4 w-4 text-red-500" />;
     }
-
-    console.log('Final enriched appointments:', finalEnrichedAppointments(date));
 
     if (finalEnrichedAppointments(date).length > 0) {
       if (allLocationsFullyFound(finalEnrichedAppointments(date))) {
@@ -574,11 +577,11 @@ export function AppointmentScheduler({
                   <div className="flex justify-start items-center gap-4 text-sm text-gray-700">
                     {!so ? (
                       <>
-                        {sc.jobs.length > 0 && (
+                        {finalEnrichedAppointments(sc.date).length > 0 && (
                           <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
                             <span className="font-semibold">Jobs:</span>{' '}
-                            {sc.jobs.length}
+                            {finalEnrichedAppointments(sc.date).length}
                           </div>
                         )}
                         {finalVehicles(sc.date).length > 0 && (
