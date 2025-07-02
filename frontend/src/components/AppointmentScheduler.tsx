@@ -182,6 +182,7 @@ export function AppointmentScheduler({
         service_time: 30,
         appointment_start: new Date(job.appointment_start).toISOString(),
         appointment_end: new Date(job.appointment_end).toISOString(),
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
       const res = await apiClient.post('/api/appointments', payload);
@@ -215,6 +216,7 @@ export function AppointmentScheduler({
             .toISOString()
             .replace('T', ' ')
             .split('.')[0] + '.000',
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
       const companyPayload = {
