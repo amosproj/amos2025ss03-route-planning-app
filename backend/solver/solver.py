@@ -181,6 +181,20 @@ def solve_appointment_routing(
                 route_level_errors=[]
             )
         )
+    # Unassigned appointments
+    unassigned_appointment_indices = []
+    for node_index in range(routing.Size()):
+        # Skip depots (starts and ends of routes)
+        if routing.IsStart(node_index) or routing.IsEnd(node_index):
+            continue
+
+        # If a node points to itself, it's unassigned
+        if solution.Value(routing.NextVar(node_index)) == node_index:
+            real_node_index = manager.IndexToNode(node_index)
+            # real_node_index - 1 because depot is index 0 in appointments
+            if 1 <= real_node_index <= len(optimization_request.appointments):
+                unassigned_appointment_indices.append(real_node_index - 1)
+    unassigned_appointments = [optimization_request.appointments[i] for i in unassigned_appointment_indices]
 
     total_time = 0
     total_distance = 0
@@ -336,7 +350,8 @@ def solve_appointment_routing(
         routes=enriched_routes,
         method_used="Path Cheapest Arc",
         problem_metrics=optimization_problem_information,
-        validation_report=report
+        validation_report=report,
+        unassigned_appointments=unassigned_appointments
     )
 
     return response

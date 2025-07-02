@@ -174,6 +174,7 @@ class Solution(BaseModel):
     method_used: Optional[str]
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport
+    unassigned_appointments: List[EnhancedAppointment]
 
 class RouteTimes(BaseModel):
     route_id: int
