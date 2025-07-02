@@ -6,6 +6,7 @@ export interface Solution {
   method_used?: string;
   problem_metrics: ProblemMetric[];
   validation_report: SolutionValidationReport;
+  unassigned_appointments: EnhancedAppointment[];
 }
 
 export interface Route {
