@@ -28,29 +28,29 @@ export function OptimizationBar({
           <MapPin className="h-4 w-4 text-blue-500" />
           <span className="text-sm font-medium">{includedJobs}</span>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <Truck className="h-4 w-4 text-green-500" />
           <span className="text-sm font-medium">{totalWorkers}</span>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <Calendar className="h-4 w-4 text-orange-500" />
           <span className="text-sm font-medium">
-            {(scenarioDate || new Date()).toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric' 
+            {(scenarioDate || new Date()).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
             })}
           </span>
         </div>
       </div>
 
       {/* Optimization Button */}
-      <Button 
-        onClick={onOptimize} 
+      <Button
+        onClick={onOptimize}
         disabled={isOptimizing || !canOptimize}
         size="sm"
-        className="ml-auto"
+        className="ml-auto cursor-pointer bg-sky-600 text-white hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {isOptimizing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
