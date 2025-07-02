@@ -27,6 +27,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       number_of_workers: parseInt(workers, 10),
       service_time: 0,
       skills: null,
+      appointment_type: 'REAL_APPOINTMENT',
     };
   });
   const groups: Record<number, Appointment[]> = {};

@@ -61,6 +61,7 @@ function MapView() {
         service_time: 30, // Note: You have this hardcoded
         appointment_start: new Date(job.appointment_start).toISOString(),
         appointment_end: new Date(job.appointment_end).toISOString(),
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
   // console.log('MapView appointmentsPayload', appointmentsPayload);
@@ -176,6 +177,7 @@ function MapView() {
             address: app.address,
             number_of_workers: app.number_of_workers,
             service_time: 15,
+            appointment_type: app?.appointment_type || 'REAL_APPOINTMENT',
           };
         }) || [];
 
