@@ -7,7 +7,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -30,7 +30,6 @@ import { createDepotMarkerIcon } from '@/utils/helper';
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
-  const navigate = useNavigate();
   const { history } = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
