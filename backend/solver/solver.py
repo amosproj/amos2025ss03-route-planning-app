@@ -12,8 +12,9 @@ from solver.postprocessing import extract_enriched_metrics
 from solver.models import FilledVehicle
 
 # Build vehicle-appointment compatibility matrix based on skills and worker count
-def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> List[List[bool]]:
+def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> Tuple[List[List[bool]], List[EnhancedAppointment]]:
     matrix = []
+    incompatible_appointments = []
     for appointment in appointments:
         required_skills = appointment.skills_needed
         required_workers = appointment.number_of_workers
@@ -25,8 +26,12 @@ def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles
             has_enough_workers = available_workers >= required_workers
             is_compatible = has_required_skills and has_enough_workers
             row.append(is_compatible)
+
+        if not any(row):
+            incompatible_appointments.append(appointment)
+
         matrix.append(row)
-    return matrix
+    return matrix,incompatible_appointments
 
 # Main solver function
 def solve_appointment_routing(
@@ -140,7 +145,7 @@ def solve_appointment_routing(
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
     penalty_default = 100000
-    compat_matrix = build_compatibility_matrix(optimization_request.appointments, optimization_request.company_info.vehicles)
+    compat_matrix,incompatible_appointments = build_compatibility_matrix(optimization_request.appointments, optimization_request.company_info.vehicles)
 
     for appt_idx, row in enumerate(compat_matrix):
         # depot = 0, therefore +1
@@ -318,7 +323,8 @@ def solve_appointment_routing(
         time_matrix=optimization_request.time_matrix,
         addresses=optimization_request.location_ids,
         depot_start_location_id=generate_location_id(optimization_request.company_info.start_address),
-        depot_end_location_id=generate_location_id(optimization_request.company_info.finish_address)
+        depot_end_location_id=generate_location_id(optimization_request.company_info.finish_address),
+        incompatible_appointments = incompatible_appointments
     )
 
     # Enriched Routes
