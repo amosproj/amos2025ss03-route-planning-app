@@ -385,7 +385,7 @@ function MapView() {
             <div className="relative flex-1">
               <Button
                 onClick={goHomeView}
-                className="absolute top-3 right-14 z-10  rounded shadow"
+                className="absolute top-3 right-14 z-10 rounded shadow bg-white text-gray-800"
               >
                 <Fullscreen />{' '}
               </Button>
