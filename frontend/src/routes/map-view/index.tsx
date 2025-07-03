@@ -7,7 +7,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -30,7 +30,6 @@ import { createDepotMarkerIcon } from '@/utils/helper';
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
-  const navigate = useNavigate();
   const { history } = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
@@ -494,12 +493,13 @@ function MapView() {
         ) : (
           <Skeleton className="flex-1 flex flex-col">
             <div className="p-2 bg-white shadow-md flex items-center justify-between">
-              <button
-                onClick={() => navigate({ to: '/scenarios' })}
-                className="px-3 py-1 text-sm font-medium text-primary"
+              <Button
+                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
+                onClick={() => history.go(-1)}
               >
-                ← Back
-              </button>
+                <ArrowLeft />
+                <span className="ml-2">Back</span>
+              </Button>
               <span>Loading Locations for map view...</span>
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
