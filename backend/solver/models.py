@@ -166,6 +166,7 @@ class SolutionValidationReport(BaseModel):
     missing_appointments: List[str]
     duplicate_appointments: List[str]
     route_level_errors: List[RouteValidationError]
+    impossible_appointments: List[str]
 
 class Solution(BaseModel):
     total_distance_traveled: float

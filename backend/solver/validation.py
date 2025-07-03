@@ -1,6 +1,6 @@
 from typing import List, Set, Dict
 from collections import defaultdict
-from solver.models import Route, SolutionValidationReport, RouteValidationError,AppointmentType
+from solver.models import Route, SolutionValidationReport, RouteValidationError,AppointmentType,EnhancedAppointment
 from solver.util import to_minutes, to_hhmm
 
 
@@ -9,7 +9,8 @@ def validate_solution_and_report(
     time_matrix: List[List[int]],
     addresses: List[str],
     depot_start_location_id: str,
-    depot_end_location_id: str
+    depot_end_location_id: str,
+    incompatible_appointments: List[EnhancedAppointment]
 ) -> SolutionValidationReport:
     global_errors = []
     route_level_errors = []
@@ -17,6 +18,10 @@ def validate_solution_and_report(
     location_to_routes = defaultdict(list)
     depots: List[str] = []
 
+    imp_app_location_ids = []
+
+    for imp_app in incompatible_appointments:
+        imp_app_location_ids.append(imp_app.location.id)
 
     for route in routes:
         appts = route.appointments
@@ -117,5 +122,6 @@ def validate_solution_and_report(
         errors=global_errors,
         missing_appointments=missed,
         duplicate_appointments=duplicates,
-        route_level_errors=route_level_errors
+        route_level_errors=route_level_errors,
+        impossible_appointments = imp_app_location_ids
     )
