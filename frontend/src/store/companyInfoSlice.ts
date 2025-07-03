@@ -2,12 +2,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CompanyInfo } from '../types/CompanyInfo';
 
-interface CompanyInfoState {
-  [date: string]: CompanyInfo;
-}
-
 const defaultAddress = { street: '', zip_code: '', city: '' };
-const defaultCompanyInfo: CompanyInfo = {
+export const defaultCompanyInfo: CompanyInfo = {
   start_address: defaultAddress,
   finish_address: defaultAddress,
   vehicles: [{
@@ -20,18 +16,14 @@ const defaultCompanyInfo: CompanyInfo = {
   }],
 };
 
-const initialState: CompanyInfoState = {};
+const initialState: CompanyInfo = defaultCompanyInfo;
 
 const companyInfoSlice = createSlice({
   name: 'companyInfo',
   initialState,
   reducers: {
-    setCompanyInfo(state, action: PayloadAction<{ date: string; companyInfo: CompanyInfo }>) {
-      state[action.payload.date] = action.payload.companyInfo;
-    },
-    resetCompanyInfo(state, action: PayloadAction<string>) {
-      state[action.payload] = defaultCompanyInfo;
-    },
+    setCompanyInfo: (_, action: PayloadAction<CompanyInfo>) => action.payload,
+    resetCompanyInfo: () => defaultCompanyInfo,
   },
 });
 
