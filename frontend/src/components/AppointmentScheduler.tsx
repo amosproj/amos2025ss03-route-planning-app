@@ -574,14 +574,20 @@ export function AppointmentScheduler({
                 </div>
 
                 {sc && (
-                  <div className="flex justify-start items-center gap-4 text-sm text-gray-700">
+                  <div className="flex justify-start items-center divide-x divide-gray-200 gap-2 text-sm text-gray-700">
                     {!so ? (
                       <>
-                        {finalEnrichedAppointments(sc.date).length > 0 && (
-                          <div className="flex items-center gap-1">
+                        {finalEnrichedAppointments(sc.date).length > 0 ? (
+                          <div className="flex items-center gap-1 pr-2">
                             <MapPin className="h-4 w-4" />
                             <span className="font-semibold">Jobs:</span>{' '}
                             {finalEnrichedAppointments(sc.date).length}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 pr-2">
+                            <MapPin className="h-4 w-4" />
+                            <span className="font-semibold">Jobs:</span>{' '}
+                            {sc.jobs.length}
                           </div>
                         )}
                         {finalVehicles(sc.date).length > 0 && (
