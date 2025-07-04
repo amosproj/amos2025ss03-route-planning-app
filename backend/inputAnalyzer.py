@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from distance_matrix import get_distance_matrix_with_cache
 from solver.models import *
 from fastapi import HTTPException
@@ -8,6 +7,7 @@ import os
 import requests
 import time
 import logging
+import concurrent.futures
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -22,12 +22,11 @@ def parse_datetime(dt_str: str) -> datetime:
         return datetime.fromisoformat(dt_str)
     except ValueError:
         # Try common formats
-        for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):  # with/without milliseconds
+        for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
             try:
                 return datetime.strptime(original.rstrip('Z'), fmt)
             except ValueError:
                 continue
-    # Raise if parsing failed
     raise ValueError(f"Invalid datetime format: {original}")
 
 def validate_single_address_with_google_maps(street: str, zip_code: str, city: str) -> EnhancedAddressResponse:
@@ -57,7 +56,6 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
         )
 
     data = response.json()
-
 
     if not data.get("results"):
         return EnhancedAddressResponse(
@@ -90,321 +88,255 @@ def validate_single_address_with_google_maps(street: str, zip_code: str, city: s
         longitude=result["geometry"]["location"]["lng"]
     )
 
+
 def check_and_enhance_single_address(address_responses, errors, address, error_information):
     if not address.street.strip() or not address.zip_code.strip() or not address.city.strip():
-        errors.append(exceptionStrings.START_ADDRESS_EMPTY)
+        errors.append(error_information)
         address_responses.append(
             EnhancedAddressResponse(
                 could_be_fully_found=False,
-                error_information= error_information,
+                error_information=error_information,
                 street=address.street,
                 zipcode=address.zip_code,
-                city=address.city,
-                latitude=None,
-                longitude=None
+                city=address.city
             )
         )
     else:
-        start_address_response = validate_single_address_with_google_maps(address.street, address.zip_code, address.city)
-        address_responses.append(start_address_response)
+        resp = validate_single_address_with_google_maps(
+            address.street, address.zip_code, address.city
+        )
+        address_responses.append(resp)
 
 
-def validate_company_info(company_info: CompanyInfo)-> AppointmentValidationResponse:
-    errors = []
-    address_responses = []
+def validate_company_info(company_info: CompanyInfo) -> AppointmentValidationResponse:
+    errors: list[str] = []
+    addr_args: list[tuple[str, str, str, str]] = []
 
     if not company_info.vehicles:
         errors.append(exceptionStrings.NUMBER_OF_VEHICLES_INVALID)
 
-    start = company_info.start_address
-    check_and_enhance_single_address(address_responses, errors, start,exceptionStrings.START_ADDRESS_EMPTY)
+    # Depot start & finish
+    addr_args.append((
+        company_info.start_address.street,
+        company_info.start_address.zip_code,
+        company_info.start_address.city,
+        exceptionStrings.START_ADDRESS_EMPTY
+    ))
+    addr_args.append((
+        company_info.finish_address.street,
+        company_info.finish_address.zip_code,
+        company_info.finish_address.city,
+        exceptionStrings.FINISH_ADDRESS_EMPTY
+    ))
 
-    finish = company_info.finish_address
-    check_and_enhance_single_address(address_responses, errors, finish, exceptionStrings.FINISH_ADDRESS_EMPTY)
-
+    # Each vehicle's start & finish
     for vehicle in company_info.vehicles:
-        vehicle_start = vehicle.start_address
-        check_and_enhance_single_address(
-            address_responses,
-            errors,
-            vehicle_start,
-            f"Startaddress invalid for vehicle {vehicle.vehicle_id} "
-        )
+        addr_args.append((
+            vehicle.start_address.street,
+            vehicle.start_address.zip_code,
+            vehicle.start_address.city,
+            f"Start address invalid for vehicle {vehicle.vehicle_id}"
+        ))
+        addr_args.append((
+            vehicle.finish_address.street,
+            vehicle.finish_address.zip_code,
+            vehicle.finish_address.city,
+            f"End address invalid for vehicle {vehicle.vehicle_id}"
+        ))
 
-        vehicle_finish = vehicle.finish_address
-        check_and_enhance_single_address(
-            address_responses,
-            errors,
-            vehicle_finish,
-            f"Endaddress invalid for vehicle {vehicle.vehicle_id} "
-        )
+    def _validate(arg):
+        street, zip_code, city, err = arg
+        if not street.strip() or not zip_code.strip() or not city.strip():
+            return EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information=err,
+                street=street,
+                zipcode=zip_code,
+                city=city
+            )
+        return validate_single_address_with_google_maps(street, zip_code, city)
 
+    # Parallelize geocoding calls
+    with concurrent.futures.ThreadPoolExecutor() as ex:
+        address_responses = list(ex.map(_validate, addr_args))
 
-    all_valid = len(errors) == 0
+    for resp in address_responses:
+        if not resp.could_be_fully_found:
+            errors.append(resp.error_information or "Unknown geocode error")
 
     return AppointmentValidationResponse(
-        all_valid=all_valid,
+        all_valid=(len(errors) == 0),
         errors=errors,
         address_responses=address_responses
     )
 
 
 def validate_appointments(appointments: List[Appointment]) -> AppointmentValidationResponse:
-    errors = []
-    address_responses = []
-    all_valid = True  # will be set False as soon as the first address is not valid
+    errors: list[str] = []
+    addr_args: list[tuple[str, str, str, str]] = []
 
     for appointment in appointments:
-
         try:
             start = parse_datetime(appointment.appointment_start)
             end = parse_datetime(appointment.appointment_end)
         except ValueError:
             errors.append(exceptionStrings.APPOINTMENT_START_INVALID)
-            all_valid = False
             continue
 
         if start > end:
             errors.append(exceptionStrings.APPOINTMENT_END_BEFORE_START)
-            all_valid = False
 
-        appointment_duration_hours = (end - start).total_seconds() / 3600  # duration in hours
-        appointment_duration_minutes = (end - start).total_seconds() / 60  # duration in minutes
-        appointment_max_duration = 24  # wahrscheinlich wird diese Ausnahme hauptsächlich durch Tippfehler in der Endzeit verursacht
-        if appointment_duration_hours > appointment_max_duration:
+        duration_hours = (end - start).total_seconds() / 3600
+        duration_minutes = (end - start).total_seconds() / 60
+        if duration_hours > 24:
             errors.append(exceptionStrings.APPOINTMENT_DURATION_TOO_LONG)
-            all_valid = False
-        if appointment_duration_minutes < appointment.service_time:
+        if duration_minutes < appointment.service_time:
             errors.append(exceptionStrings.SERVICETIME_EXCEEDS_APPOINTMENT_LENGTH)
-            all_valid = False
 
         if not appointment.address.street.strip():
             errors.append(exceptionStrings.APPOINTMENT_STREET_EMPTY)
-            all_valid = False
         if not appointment.address.zip_code.strip():
             errors.append(exceptionStrings.APPOINTMENT_ZIPCODE_EMPTY)
-            all_valid = False
-
         if not appointment.address.city.strip():
             errors.append(exceptionStrings.APPOINTMENT_CITY_EMPTY)
-            all_valid = False
-
         if appointment.number_of_workers < 1:
             errors.append(exceptionStrings.NUMBER_OF_VEHICLES_INVALID)
-            all_valid = False
 
-
-        address_info = validate_single_address_with_google_maps(
+        addr_args.append((
             appointment.address.street,
             appointment.address.zip_code,
-            appointment.address.city
-        )
+            appointment.address.city,
+            f"{exceptionStrings.ADDRESS_NOT_FOUND_WITH_GOOGLE}"
+        ))
 
-        address_responses.append(address_info)
+    def _validate_appt(arg):
+        street, zip_code, city, err = arg
+        if not street.strip() or not zip_code.strip() or not city.strip():
+            return EnhancedAddressResponse(
+                could_be_fully_found=False,
+                error_information=err,
+                street=street,
+                zipcode=zip_code,
+                city=city
+            )
+        resp = validate_single_address_with_google_maps(street, zip_code, city)
+        if not resp.could_be_fully_found:
+            resp.error_information = f"{err}: {resp.error_information}"
+        return resp
 
-        if not address_info.could_be_fully_found:
-            error_message = f"{exceptionStrings.ADDRESS_NOT_FOUND_WITH_GOOGLE}: {address_info.error_information}"
+    with concurrent.futures.ThreadPoolExecutor() as ex:
+        address_responses = list(ex.map(_validate_appt, addr_args))
 
-            error_message += f" Address: {address_info.street}, {address_info.zipcode}, {address_info.city}"
-
-            errors.append(error_message)
-            all_valid = False
-
-    if errors:
-        return AppointmentValidationResponse(
-            all_valid = False,
-            errors = errors,
-            address_responses = address_responses
-        )
+    for resp in address_responses:
+        if not resp.could_be_fully_found:
+            errors.append(resp.error_information or "Unknown geocode error")
 
     return AppointmentValidationResponse(
-        all_valid = all_valid,
-        errors = errors,
-        address_responses = address_responses
+        all_valid=(len(errors) == 0),
+        errors=errors,
+        address_responses=address_responses
     )
 
-def save_company_information_to_cache(company_info: CompanyInfo):
-    #TODO implement
-    print("Caching not yet implemented")
-    return {"message": "Company Information was validated but could not be saved, since caching is not implemented yet"}
-
-
-def validate_and_save_appointment_information(appointments: List[Appointment]):
-
-    is_valid, errors, address_responses = validate_appointments(appointments)
-
-    if not is_valid:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "errors": errors,
-                "address_responses": [response.__dict__ for response in address_responses]  # Umwandeln in Dictionary
-            }
-        )
-
-    return address_responses
-
-def validate_and_save_company_information(company_info: CompanyInfo):
-    validation_result = validate_company_info(company_info)
-
-    if not validation_result.all_valid:
-        raise HTTPException(status_code=400, detail={
-            "errors": validation_result["errors"],
-            "address_responses": validation_result["address_responses"]
-        })
-
-    return save_company_information_to_cache(company_info)
-
 def convert_to_locations(address_responses: list[EnhancedAddressResponse]) -> list[Location]:
-    locations = []
-
-    for address in address_responses:
-        if address.latitude is not None and address.longitude is not None:
-            location_id = f"{address.street}-{address.zipcode}-{address.city}"
-            location = Location(id=location_id, lat=address.latitude, lng=address.longitude)
-            locations.append(location)
-
+    locations: list[Location] = []
+    for addr in address_responses:
+        if addr.latitude is not None and addr.longitude is not None:
+            loc_id = f"{addr.street}-{addr.zipcode}-{addr.city}"
+            locations.append(Location(id=loc_id, lat=addr.latitude, lng=addr.longitude))
     return locations
+
 
 def convert_to_location(address_response: EnhancedAddressResponse) -> Location:
     if address_response.latitude is None or address_response.longitude is None:
         raise ValueError("Address is missing coordinates")
+    loc_id = f"{address_response.street}-{address_response.zipcode}-{address_response.city}"
+    return Location(id=loc_id, lat=address_response.latitude, lng=address_response.longitude)
 
-    location_id = f"{address_response.street}-{address_response.zipcode}-{address_response.city}"
-    return Location(id=location_id, lat=address_response.latitude, lng=address_response.longitude)
 
-
-def convert_to_enhanced_appointment(appointment: Appointment,location:Location) -> EnhancedAppointment:
-
-    enhanced_appointment = EnhancedAppointment(
+def convert_to_enhanced_appointment(appointment: Appointment, location: Location) -> EnhancedAppointment:
+    return EnhancedAppointment(
         appointment_start=appointment.appointment_start,
         appointment_end=appointment.appointment_end,
         address=appointment.address,
-        service_time = appointment.service_time,
-        skills_needed= appointment.skills_needed,
+        service_time=appointment.service_time,
+        skills_needed=appointment.skills_needed,
         location=location,
         number_of_workers=appointment.number_of_workers,
         appointment_type=AppointmentType.REAL_APPOINTMENT.value
     )
 
-    return enhanced_appointment
 
 def enhance_vehicles(
     vehicles: List[FilledVehicle],
     vehicle_address_responses: List[EnhancedAddressResponse]
 ) -> List[EnhancedFilledVehicle]:
-    # vehicle_address_responses: [start1, finish1, start2, finish2, ...]
     if len(vehicle_address_responses) != 2 * len(vehicles):
         raise ValueError("Mismatch between number of vehicles and vehicle address responses")
 
-    enhanced_vehicles = []
-    for i, vehicle in enumerate(vehicles):
-        start_index = 2 * i
-        finish_index = start_index + 1
-
-        start_location = convert_to_location(vehicle_address_responses[start_index])
-        finish_location = convert_to_location(vehicle_address_responses[finish_index])
-
-        enhanced_vehicle = EnhancedFilledVehicle(
-            vehicle_id=vehicle.vehicle_id,
-            skills=vehicle.skills,
-            worker_amount=vehicle.worker_amount,
-            operation_hours=vehicle.operation_hours,
-            start_address=vehicle.start_address,
-            start_location=start_location,
-            finish_address=vehicle.finish_address,
-            finish_location=finish_location,
-            cost_per_km=vehicle.cost_per_km,
-            cost_per_hour=vehicle.cost_per_hour,
-            vehicle_break=vehicle.vehicle_break
-        )
-        enhanced_vehicles.append(enhanced_vehicle)
-
-    return enhanced_vehicles
+    enhanced_list: list[EnhancedFilledVehicle] = []
+    for i, veh in enumerate(vehicles):
+        start_resp = vehicle_address_responses[2*i]
+        end_resp = vehicle_address_responses[2*i + 1]
+        start_loc = convert_to_location(start_resp)
+        end_loc = convert_to_location(end_resp)
+        enhanced_list.append(EnhancedFilledVehicle(
+            vehicle_id=veh.vehicle_id,
+            skills=veh.skills,
+            worker_amount=veh.worker_amount,
+            operation_hours=veh.operation_hours,
+            start_address=veh.start_address,
+            start_location=start_loc,
+            finish_address=veh.finish_address,
+            finish_location=end_loc,
+            cost_per_km=veh.cost_per_km,
+            cost_per_hour=veh.cost_per_hour,
+            vehicle_break=veh.vehicle_break
+        ))
+    return enhanced_list
 
 
-def check_and_enhance_optimization_request(opti_request:OptimizationRequest) -> EnhancedOptimizationRequest:
-    # Start time of the operation
+def check_and_enhance_optimization_request(opti_request: OptimizationRequest) -> EnhancedOptimizationRequest:
     start_time = time.time()
 
-    company_info = opti_request.company_info
-    appointments = opti_request.appointments
+    # Validate
+    app_val = validate_appointments(opti_request.appointments)
+    comp_val = validate_company_info(opti_request.company_info)
 
-    appointment_validation_response = validate_appointments(appointments)
-    company_info_validation_response = validate_company_info(company_info)
+    if not comp_val.all_valid:
+        raise HTTPException(status_code=400, detail={"errors": "Company Info could not be validated"})
+    if not app_val.all_valid:
+        raise HTTPException(status_code=400, detail={"errors": app_val.errors})
 
-    company_and_vehicle_locations = convert_to_locations(company_info_validation_response.address_responses)
+    # Convert locations
+    all_comp_locs = convert_to_locations(comp_val.address_responses)
+    depot_start, depot_end = all_comp_locs[0], all_comp_locs[1]
+    vehicle_addrs = comp_val.address_responses[2:]
+    enhanced_vehicles = enhance_vehicles(opti_request.company_info.vehicles, vehicle_addrs)
 
-    start_location = company_and_vehicle_locations[0]
-    end_location = company_and_vehicle_locations[1]
-
-    vehicle_address_responses = company_info_validation_response.address_responses[2:]
-    enhanced_vehicles = enhance_vehicles(company_info.vehicles, vehicle_address_responses)
-
-    enhanced_company_info = EnhancedCompanyInfo(
-        start_address=company_info.start_address,
-        start_location=start_location,
-        finish_address=company_info.finish_address,
-        finish_location=end_location,
-        vehicles = enhanced_vehicles
+    enhanced_company = EnhancedCompanyInfo(
+        start_address=opti_request.company_info.start_address,
+        start_location=depot_start,
+        finish_address=opti_request.company_info.finish_address,
+        finish_location=depot_end,
+        vehicles=enhanced_vehicles
     )
 
-    if not company_info_validation_response.all_valid:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "errors": "Company Info could not be validated"
-            }
-        )
-
-    all_valid = appointment_validation_response.all_valid
-    errors = appointment_validation_response.errors
-    appointment_address_responses = appointment_validation_response.address_responses
-
-    if not all_valid:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "errors": errors
-            }
-        )
-    #now all addresses are valid, therefore we have lat, long
-    depot_location = convert_to_locations(company_info_validation_response.address_responses)
-    appointment_locations = convert_to_locations(appointment_address_responses)
-
-    enhanced_appointments = [
-        convert_to_enhanced_appointment(appointments[i], appointment_locations[i])
-        for i in range(len(appointments))
+    appt_locs = convert_to_locations(app_val.address_responses)
+    enhanced_appts = [
+        convert_to_enhanced_appointment(opti_request.appointments[i], appt_locs[i])
+        for i in range(len(opti_request.appointments))
     ]
 
-    num_vehicle_locations = len(company_info.vehicles) * 2
-    vehicle_locations = company_and_vehicle_locations[2:num_vehicle_locations+2]
-    all_locations = [depot_location[0]] + appointment_locations + vehicle_locations
+    all_locations = [depot_start] + appt_locs + [loc for veh in enhanced_vehicles for loc in (veh.start_location, veh.finish_location)]
 
-    """
-    distance matrix will be off size (1+ appointments + 2*vehicles)^2
-    """
+    elapsed = time.time() - start_time
+    logger.info(f"Enhancing optimization request completed in {elapsed:.2f} seconds.")
 
-    # Log total time taken for the operation
-    elapsed_time = time.time() - start_time
-    logger.info(f"Enhancing optimization request completed in {elapsed_time:.2f} seconds.")
-
-
-    distance_matrix_response = get_distance_matrix_with_cache(all_locations)
-    location_ids = distance_matrix_response.location_ids
-    duration_matrix = distance_matrix_response.duration_matrix
-    distance_matrix = distance_matrix_response.distance_matrix
-
-    enhanced_opti_request = EnhancedOptimizationRequest(
-        company_info = enhanced_company_info,
-        appointments = enhanced_appointments,
-        location_ids = location_ids,
-        time_matrix = duration_matrix,
-        distance_matrix = distance_matrix
+    dist_resp = get_distance_matrix_with_cache(all_locations)
+    return EnhancedOptimizationRequest(
+        company_info=enhanced_company,
+        appointments=enhanced_appts,
+        location_ids=dist_resp.location_ids,
+        time_matrix=dist_resp.duration_matrix,
+        distance_matrix=dist_resp.distance_matrix
     )
-
-    return enhanced_opti_request
-
-
-
-
