@@ -53,7 +53,7 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
   return (
     <TabsContent value="vehicles">
       <div className="p-4 space-y-4 border rounded-lg bg-background h-full">
-        <div className="overflow-y-auto h-[450px] space-y-4">
+        <div className=" space-y-4">
           {fields.map((field, index) => {
             const hasDepot = Boolean(vehicles[index]?.depot);
             const hasCost =

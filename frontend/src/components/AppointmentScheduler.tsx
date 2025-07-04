@@ -70,7 +70,6 @@ export function AppointmentScheduler({
     (state: RootState) => state.excludedAppointments,
   );
 
-
   // Week navigation state
   const currentWeekInfo = useMemo(() => {
     if (!showWeekNavigation || dates.length === 0) return null;
@@ -210,11 +209,11 @@ export function AppointmentScheduler({
     mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
       // Check for required data presence
-      const companyInfoByDate = companyInfo[scenario.date];
-      if (!companyInfoByDate) {
-        console.error(`Missing companyInfo for date: ${date}`);
-        throw new Error(`Missing company info for date: ${date}`);
-      }
+      // const companyInfoByDate = companyInfo[scenario.date];
+      // if (!companyInfoByDate) {
+      //   console.error(`Missing companyInfo for date: ${date}`);
+      //   throw new Error(`Missing company info for date: ${date}`);
+      // }
 
       const excludedVehiclesByDate = excludedVehicles[date] ?? [];
 
@@ -252,20 +251,20 @@ export function AppointmentScheduler({
       //   })),
       // };
 
-      const { start_address, finish_address, vehicles } = companyInfo[scenario.date]
+      // const { start_address, finish_address, vehicles } = companyInfo[scenario.date]
 
       const companyPayload = {
-        start_address,
-        finish_address,
-        vehicles: vehicles
+        start_address: companyInfo.start_address,
+        finish_address: companyInfo.finish_address,
+        vehicles: companyInfo.vehicles
           .filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id))
           .map((v) => ({
             vehicle_id: v.vehicle_id,
             skills: v.skills ? [...v.skills] : [],
             worker_amount: v.worker_amount,
             operation_hours: v.operation_hours,
-            start_address: v.depot?.start || start_address,
-            finish_address: v.depot?.finish || finish_address,
+            start_address: v.depot?.start || companyInfo.start_address,
+            finish_address: v.depot?.finish || companyInfo.finish_address,
             cost_per_km: v.cost_per_km,
             cost_per_hour: v.cost_per_hour,
             vehicle_break: v.vehicle_break || null,
@@ -301,7 +300,8 @@ export function AppointmentScheduler({
 
   const finalVehicles = (date: string) => {
     const dateWithQuotes = `"${date}"`;
-    const vehicles = companyInfo[date]?.vehicles || [];
+    // const vehicles = companyInfo[date]?.vehicles || [];
+    const vehicles = companyInfo?.vehicles || [];
     const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
     return vehicles.filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id));
   }

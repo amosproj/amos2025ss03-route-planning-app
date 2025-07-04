@@ -31,17 +31,15 @@ export default function VehicleList({ date }: VehicleListProps) {
   // Get the current date
   const currentDate = date;
 
-  // Get company info for the current date
-  const companyInfo = useSelector(
-    (s: RootState) => s.companyInfo[currentDate.split('"')[1]] ?? null,
-  );
+  // Get company info from the store
+  const companyInfo = useSelector((s: RootState) => s.companyInfo);
 
   // Get excluded vehicles for this date
   const excludedVehicles = useSelector(
     (s: RootState) => s.excludedVehicles[currentDate] ?? [],
   );
 
-  if (!companyInfo || !companyInfo.vehicles.length) {
+  if (!companyInfo.vehicles.length) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center p-4">
         <Truck className="h-12 w-12 text-gray-400 mb-4" />
