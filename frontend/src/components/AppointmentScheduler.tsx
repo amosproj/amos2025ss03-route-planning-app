@@ -208,13 +208,6 @@ export function AppointmentScheduler({
   const optimizeMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
-      // Check for required data presence
-      // const companyInfoByDate = companyInfo[scenario.date];
-      // if (!companyInfoByDate) {
-      //   console.error(`Missing companyInfo for date: ${date}`);
-      //   throw new Error(`Missing company info for date: ${date}`);
-      // }
-
       const excludedVehiclesByDate = excludedVehicles[date] ?? [];
 
       const appointments = scenario.jobs
@@ -235,23 +228,6 @@ export function AppointmentScheduler({
               .split('.')[0] + '.000',
           appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
         }));
-
-      // const companyPayload = {
-      //   start_address: companyInfo.start_address,
-      //   finish_address: companyInfo.finish_address,
-      //   vehicles: companyInfo.vehicles.map((v) => ({
-      //     vehicle_id: v.vehicle_id,
-      //     skills: v.skills ? [...v.skills] : [],
-      //     worker_amount: v.worker_amount,
-      //     operation_hours: v.operation_hours,
-      //     start_address: v.depot?.start || companyInfo.start_address,
-      //     finish_address: v.depot?.finish || companyInfo.finish_address,
-      //     cost_per_km: v.cost_per_km,
-      //     cost_per_hour: v.cost_per_hour,
-      //   })),
-      // };
-
-      // const { start_address, finish_address, vehicles } = companyInfo[scenario.date]
 
       const companyPayload = {
         start_address: companyInfo.start_address,
@@ -300,7 +276,6 @@ export function AppointmentScheduler({
 
   const finalVehicles = (date: string) => {
     const dateWithQuotes = `"${date}"`;
-    // const vehicles = companyInfo[date]?.vehicles || [];
     const vehicles = companyInfo?.vehicles || [];
     const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
     return vehicles.filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id));
@@ -342,11 +317,6 @@ export function AppointmentScheduler({
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      // const enriched = enrichedByDate[date] || [];
-      // const excludedAppointmentsByDate = excludedAppointments[date] || [];
-      // const finalEnrichedAppointments = enriched.filter((_, idx) => {
-      //   return !excludedAppointmentsByDate.includes(idx);
-      // })
       const alreadySolved = solutionByDate[date];
       return !alreadySolved && finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
     });
