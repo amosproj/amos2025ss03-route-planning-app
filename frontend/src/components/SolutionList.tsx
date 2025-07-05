@@ -81,9 +81,37 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
           <AccordionItem
             key={route.route_id}
             value={`route-${route.route_id}`}
-            className="border-l-4"
+            className="border-l-4 relative py-0.5"
             style={{ borderLeftColor: color }}
           >
+            <div className='absolute top-2 right-8 flex items-center gap-2'>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadRoute(route);
+                }}
+              >
+                <Download />
+              </Button>
+              <Switch
+                checked={isVisible}
+                onClick={(e) => e.stopPropagation()}
+                onCheckedChange={(checked) =>
+                  dispatch(
+                    setRouteVisibility({
+                      date,
+                      routeId: route.route_id,
+                      isVisible: checked,
+                    }),
+                  )
+                }
+                className="ml-2"
+              >
+                Show
+              </Switch>
+            </div>
             <AccordionTrigger>
               <div className="flex justify-between items-center w-full">
                 <div className="flex items-center">
@@ -91,34 +119,7 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                     Vehicle {route.route_id + 1}
                   </span>
                 </div>
-                <div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadRoute(route);
-                    }}
-                  >
-                    <Download />
-                  </Button>
-                  <Switch
-                    checked={isVisible}
-                    onClick={(e) => e.stopPropagation()}
-                    onCheckedChange={(checked) =>
-                      dispatch(
-                        setRouteVisibility({
-                          date,
-                          routeId: route.route_id,
-                          isVisible: checked,
-                        }),
-                      )
-                    }
-                    className="ml-2"
-                  >
-                    Show
-                  </Switch>
-                </div>
+
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 ">
