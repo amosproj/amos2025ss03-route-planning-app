@@ -106,7 +106,6 @@ export default function AppointmentList({
                   <Checkbox
                     checked={!isExcluded}
                     className='cursor-pointer'
-                    // onClick={() => onToggleExclude(idx)}
                     color={hasError ? 'destructive' : 'primary'}
                     aria-label={
                       isExcluded ? 'Include appointment' : 'Exclude appointment'
