@@ -13,18 +13,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { addSolution } from '../../store/solutionsSlice';
-import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
-import { Solution } from '../../types/Solution';
-import { OptimizationRequest } from '../../types/OptimizationRequest';
-import apiClient from '../../utils/apiClient';
 import {
   toggleExcludedAppointment,
   setExcludedAppointments,
 } from '../../store/excludedAppointmentsSlice';
+import { setRouteVisibility } from '@/store/routeVisibilitySlice';
+import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
+import { Solution } from '../../types/Solution';
+import { OptimizationRequest } from '../../types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
+import apiClient from '../../utils/apiClient';
 import { createDepotMarkerIcon } from '@/utils/helper';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
@@ -146,6 +147,17 @@ function MapView() {
         .then((res) => res.data),
     onSuccess: (data) => {
       dispatch(addSolution({ date, solution: data }));
+
+      // Set route visibility for the new solution
+      data.routes.forEach((route) => {
+        dispatch(
+          setRouteVisibility({
+            date,
+            routeId: route.route_id,
+            isVisible: true,
+          }),
+        );
+      });
       console.log('Received solution:', data);
     },
     onError: (error) => console.error('Failed to get solution:', error),
