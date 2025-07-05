@@ -59,9 +59,7 @@ export function AppointmentScheduler({
   const solutionByDate = useSelector(
     (state: RootState) => state.solutions.byDate,
   );
-  const companyInfo = useSelector(
-    (s: RootState) => Object.values(s.companyInfo)[0],
-  );
+  const companyInfo = useSelector((s: RootState) => s.companyInfo);
 
   // Week navigation state
   const currentWeekInfo = useMemo(() => {

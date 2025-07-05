@@ -121,9 +121,7 @@ function MapView() {
   );
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const companyInfo = useSelector(
-    (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
-  );
+  const companyInfo = useSelector((s: RootState) => s.companyInfo);
   console.log('MapView companyInfo', companyInfo);
   const solution = useSelector((s: RootState) => s.solutions.byDate[date]);
 
@@ -154,7 +152,7 @@ function MapView() {
   });
 
   const handleOptimize = () => {
-    if (!scenario || !companyInfo) {
+    if (!scenario) {
       alert('Please ensure scenario and company information are configured.');
       return;
     }
@@ -217,7 +215,7 @@ function MapView() {
       (v) => !excludedVehicles.includes(v.vehicle_id),
     ).length
     : 0;
-  const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
+  const canOptimize = !!scenario && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
   const isSameLocation = useMemo(() => {
@@ -230,7 +228,7 @@ function MapView() {
   }, [startLoc, finishLoc]);
 
   useEffect(() => {
-    if (isLoaded && companyInfo) {
+    if (isLoaded) {
       const geocoder = new window.google.maps.Geocoder();
       const formatAddr = (addr: {
         street: string;

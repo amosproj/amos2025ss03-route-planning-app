@@ -115,13 +115,8 @@ function TestDataGeneratePage() {
           ],
         };
         newScenarios.push(scenario);
-        // companyInfoByDate[timestamp] = company_info;
-        dispatch(
-          setCompanyInfo({
-            date: timestamp.toString(),
-            companyInfo: company_info,
-          }),
-        );
+        // Set company info once for all scenarios
+        dispatch(setCompanyInfo(company_info));
         console.log(`📦 Scenario for ${d.format('YYYY-MM-DD')}:`, scenario);
       } catch {
         setErrorMessages((prev) => [

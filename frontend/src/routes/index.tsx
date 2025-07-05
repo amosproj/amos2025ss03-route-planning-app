@@ -4,11 +4,10 @@ import FileDropzone from '../components/FileDropzone';
 import { setScenarios } from '../store/scenariosSlice';
 import { setCompanyInfo } from '../store/companyInfoSlice';
 import { parseScenarioFromCsv, parseCompanyInfoFromCsv } from '../utils/helper';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
 
 import { useCallback, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../store';
 import { CompanyInfo } from '../types/CompanyInfo';
 import { Button } from '@/components/ui/button';
 import { CalendarDays } from 'lucide-react';
@@ -18,12 +17,12 @@ export const Route = createFileRoute('/')({
 });
 
 function Index() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  return <LandingPage />;
+}
 
-  const scenarios = useSelector(
-    (state: RootState) => state.scenarios.scenarios,
-  );
+function LandingPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   const [defaultCompanyInfo, setDefaultCompanyInfo] =
     useState<CompanyInfo | null>(null);
@@ -34,16 +33,9 @@ function Index() {
 
   useEffect(() => {
     if (defaultCompanyInfo) {
-      scenarios.forEach((scenario) => {
-        dispatch(
-          setCompanyInfo({
-            date: scenario.date.toString(),
-            companyInfo: defaultCompanyInfo,
-          }),
-        );
-      });
+      dispatch(setCompanyInfo(defaultCompanyInfo));
     }
-  }, [scenarios, defaultCompanyInfo, dispatch]);
+  }, [defaultCompanyInfo, dispatch]);
 
   const handleAppointmentsDrop = useCallback(
     async (acceptedFiles: File[]) => {
