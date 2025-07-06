@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { setRouteVisibility } from '@/store/routeVisibilitySlice';
+import { Route } from '@/types/Solution';
 
 interface AppointmentSchedulerProps {
   dates: dayjs.Dayjs[];
@@ -255,6 +257,16 @@ export function AppointmentScheduler({
     },
     onSuccess: ({ date, solution }) => {
       dispatch(addSolution({ date, solution }));
+      // Set route visibility for the new solution
+      solution.routes.forEach((route: Route) => {
+        dispatch(
+          setRouteVisibility({
+            date,
+            routeId: route.route_id,
+            isVisible: true,
+          }),
+        );
+      });
     },
     onError: (error) => {
       console.error('Optimization failed:', error);
