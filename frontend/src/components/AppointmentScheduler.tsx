@@ -25,6 +25,7 @@ import {
   MapPin,
   History,
   Waypoints,
+  Truck,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -51,7 +52,7 @@ export function AppointmentScheduler({
   const dispatch = useDispatch<AppDispatch>();
 
   // Redux selectors
-  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
+  const scenarios = useSelector((state: RootState) => state.scenarios.scenarios);
   const solutions = useSelector((state: RootState) => state.solutions.byDate);
   const enrichedByDate = useSelector(
     (state: RootState) => state.enrichedAppointments,
@@ -60,7 +61,13 @@ export function AppointmentScheduler({
     (state: RootState) => state.solutions.byDate,
   );
   const companyInfo = useSelector(
-    (s: RootState) => Object.values(s.companyInfo)[0],
+    (state: RootState) => state.companyInfo,
+  );
+  const excludedVehicles = useSelector(
+    (state: RootState) => state.excludedVehicles,
+  );
+  const excludedAppointments = useSelector(
+    (state: RootState) => state.excludedAppointments,
   );
 
   // Week navigation state
@@ -201,40 +208,44 @@ export function AppointmentScheduler({
   const optimizeMutation = useMutation({
     mutationFn: async (scenario: ScenarioDateString) => {
       const date = `"${scenario.date}"`;
+      const excludedVehiclesByDate = excludedVehicles[date] ?? [];
 
-      const appointments = scenario.jobs.map((job) => ({
-        address: job.address,
-        number_of_workers: job.number_of_workers,
-        service_time: 15,
-        appointment_start:
-          new Date(job.appointment_start)
-            .toISOString()
-            .replace('T', ' ')
-            .split('.')[0] + '.000',
-        appointment_end:
-          new Date(job.appointment_end)
-            .toISOString()
-            .replace('T', ' ')
-            .split('.')[0] + '.000',
-        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
-      }));
+      const appointments = scenario.jobs
+        .filter((_, idx) => !excludedAppointments[date]?.includes(idx))
+        .map((job) => ({
+          address: job.address,
+          number_of_workers: job.number_of_workers,
+          service_time: 15,
+          appointment_start:
+            new Date(job.appointment_start)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0] + '.000',
+          appointment_end:
+            new Date(job.appointment_end)
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0] + '.000',
+          appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
+        }));
 
       const companyPayload = {
         start_address: companyInfo.start_address,
         finish_address: companyInfo.finish_address,
-        vehicles: companyInfo.vehicles.map((v) => ({
-          vehicle_id: v.vehicle_id,
-          skills: v.skills ? [...v.skills] : [],
-          worker_amount: v.worker_amount,
-          operation_hours: v.operation_hours,
-          start_address: v.depot?.start || companyInfo.start_address,
-          finish_address: v.depot?.finish || companyInfo.finish_address,
-          cost_per_km: v.cost_per_km,
-          cost_per_hour: v.cost_per_hour,
-          vehicle_break: v.vehicle_break || null,
-        })),
+        vehicles: companyInfo.vehicles
+          .filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id))
+          .map((v) => ({
+            vehicle_id: v.vehicle_id,
+            skills: v.skills ? [...v.skills] : [],
+            worker_amount: v.worker_amount,
+            operation_hours: v.operation_hours,
+            start_address: v.depot?.start || companyInfo.start_address,
+            finish_address: v.depot?.finish || companyInfo.finish_address,
+            cost_per_km: v.cost_per_km,
+            cost_per_hour: v.cost_per_hour,
+            vehicle_break: v.vehicle_break || null,
+          })),
       };
-
       const res = await apiClient.post('/api/check-and-solve', {
         company_info: companyPayload,
         appointments,
@@ -245,12 +256,30 @@ export function AppointmentScheduler({
     onSuccess: ({ date, solution }) => {
       dispatch(addSolution({ date, solution }));
     },
+    onError: (error) => {
+      console.error('Optimization failed:', error);
+    },
   });
 
   // Helper functions
   const allLocationsFullyFound = (
     locations: { could_be_fully_found: boolean }[] = [],
   ) => locations.every((loc) => loc.could_be_fully_found);
+
+  const finalEnrichedAppointments = (date: string) => {
+    const dateWithQuotes = date.startsWith('"') ? date : `"${date}"`;
+    const enriched = enrichedByDate[dateWithQuotes] || [];
+    const excludedAppointmentsByDate = excludedAppointments[dateWithQuotes] || [];
+    return enriched.filter((_, idx) => !excludedAppointmentsByDate?.includes(idx));
+
+  }
+
+  const finalVehicles = (date: string) => {
+    const dateWithQuotes = `"${date}"`;
+    const vehicles = companyInfo?.vehicles || [];
+    const excludedVehiclesByDate = excludedVehicles[dateWithQuotes] || [];
+    return vehicles.filter((v) => !excludedVehiclesByDate?.includes(v.vehicle_id));
+  }
 
   // Action handlers
   const handleEnrichAppointments = async () => {
@@ -288,9 +317,8 @@ export function AppointmentScheduler({
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
       const date = `"${scenario.date}"`;
-      const enriched = enrichedByDate[date];
       const alreadySolved = solutionByDate[date];
-      return !alreadySolved && enriched && allLocationsFullyFound(enriched);
+      return !alreadySolved && finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
     });
 
     if (tasksToRun.length === 0) {
@@ -328,9 +356,8 @@ export function AppointmentScheduler({
       return <CircleX className="h-4 w-4 text-red-500" />;
     }
 
-    const enriched = enrichedByDate[date];
-    if (enriched) {
-      if (allLocationsFullyFound(enriched)) {
+    if (finalEnrichedAppointments(date).length > 0) {
+      if (allLocationsFullyFound(finalEnrichedAppointments(date))) {
         return <CircleCheck className="h-4 w-4 text-green-600" />;
       } else {
         return <CircleX className="h-4 w-4 text-red-500" />;
@@ -517,15 +544,28 @@ export function AppointmentScheduler({
                 </div>
 
                 {sc && (
-                  <div className="text-sm text-gray-700">
+                  <div className="flex justify-start items-center divide-x divide-gray-200 gap-2 text-sm text-gray-700">
                     {!so ? (
                       <>
-                        {sc.jobs.length > 0 && (
-                          <li className="flex items-center gap-1">
+                        {finalEnrichedAppointments(sc.date).length > 0 ? (
+                          <div className="flex items-center gap-1 pr-2">
+                            <MapPin className="h-4 w-4" />
+                            <span className="font-semibold">Jobs:</span>{' '}
+                            {finalEnrichedAppointments(sc.date).length}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 pr-2">
                             <MapPin className="h-4 w-4" />
                             <span className="font-semibold">Jobs:</span>{' '}
                             {sc.jobs.length}
-                          </li>
+                          </div>
+                        )}
+                        {finalVehicles(sc.date).length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Truck className="h-4 w-4" />
+                            <span className="font-semibold">Vehicles:</span>{' '}
+                            {finalVehicles(sc.date).length}
+                          </div>
                         )}
                       </>
                     ) : (
@@ -611,12 +651,11 @@ export function AppointmentScheduler({
                                       Total Service Time:
                                     </span>{' '}
                                     {routeMetrics
-                                      ? `${routeMetrics.total_service_time_min} ${
-                                          routeMetrics.total_service_time_min <=
-                                          1
-                                            ? 'min'
-                                            : 'mins'
-                                        }`
+                                      ? `${routeMetrics.total_service_time_min} ${routeMetrics.total_service_time_min <=
+                                        1
+                                        ? 'min'
+                                        : 'mins'
+                                      }`
                                       : '-'}
                                   </li>
                                   <li className="flex items-center gap-1">

@@ -13,18 +13,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { addSolution } from '../../store/solutionsSlice';
-import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
-import { Solution } from '../../types/Solution';
-import { OptimizationRequest } from '../../types/OptimizationRequest';
-import apiClient from '../../utils/apiClient';
 import {
   toggleExcludedAppointment,
   setExcludedAppointments,
 } from '../../store/excludedAppointmentsSlice';
+import { setRouteVisibility } from '@/store/routeVisibilitySlice';
+import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
+import { Solution } from '../../types/Solution';
+import { OptimizationRequest } from '../../types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
+import apiClient from '../../utils/apiClient';
 import { createDepotMarkerIcon } from '@/utils/helper';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
@@ -121,9 +122,7 @@ function MapView() {
   );
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const companyInfo = useSelector(
-    (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
-  );
+  const companyInfo = useSelector((s: RootState) => s.companyInfo);
   console.log('MapView companyInfo', companyInfo);
   const solution = useSelector((s: RootState) => s.solutions.byDate[date]);
 
@@ -148,13 +147,24 @@ function MapView() {
         .then((res) => res.data),
     onSuccess: (data) => {
       dispatch(addSolution({ date, solution: data }));
+
+      // Set route visibility for the new solution
+      data.routes.forEach((route) => {
+        dispatch(
+          setRouteVisibility({
+            date,
+            routeId: route.route_id,
+            isVisible: true,
+          }),
+        );
+      });
       console.log('Received solution:', data);
     },
     onError: (error) => console.error('Failed to get solution:', error),
   });
 
   const handleOptimize = () => {
-    if (!scenario || !companyInfo) {
+    if (!scenario) {
       alert('Please ensure scenario and company information are configured.');
       return;
     }
@@ -217,7 +227,7 @@ function MapView() {
       (v) => !excludedVehicles.includes(v.vehicle_id),
     ).length
     : 0;
-  const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
+  const canOptimize = !!scenario && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
   const isSameLocation = useMemo(() => {
@@ -230,7 +240,7 @@ function MapView() {
   }, [startLoc, finishLoc]);
 
   useEffect(() => {
-    if (isLoaded && companyInfo) {
+    if (isLoaded) {
       const geocoder = new window.google.maps.Geocoder();
       const formatAddr = (addr: {
         street: string;

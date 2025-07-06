@@ -29,13 +29,8 @@ const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 export function CompanyConfigForm() {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get default company info for all scenarios
-  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
-  const firstScenarioDate =
-    scenarios.length > 0 ? scenarios[0].date.toString() : null;
-  const existingCompany = useSelector((state: RootState) =>
-    firstScenarioDate ? state.companyInfo[firstScenarioDate] : null,
-  );
+  // Get company info from the store
+  const existingCompany = useSelector((state: RootState) => state.companyInfo);
 
   const [startAddrObj, setStartAddrObj] = useState<Address>(defaultAddr);
   const [finishAddrObj, setFinishAddrObj] = useState<Address>(defaultAddr);
@@ -197,15 +192,8 @@ export function CompanyConfigForm() {
       vehicles: values.vehicles,
     };
 
-    // Apply to all scenarios
-    scenarios.forEach((scenario) => {
-      dispatch(
-        setCompanyInfo({
-          date: scenario.date.toString(),
-          companyInfo,
-        }),
-      );
-    });
+    // Save company info to store
+    dispatch(setCompanyInfo(companyInfo));
 
     toast('Company configuration saved successfully!');
   };
@@ -220,11 +208,6 @@ export function CompanyConfigForm() {
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
       cost_per_km: 0.5,
       cost_per_hour: 45.0,
-      vehicle_break: {
-        duration: 30,
-        start_min: 720,
-        start_max: 840,
-      },
     });
   };
 
