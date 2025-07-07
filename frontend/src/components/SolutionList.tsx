@@ -11,8 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
-import { Download, NotepadText } from 'lucide-react';
+import { Download, NotepadText, AlertTriangle } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
+import ValidationReportDialog from '@/components/ValidationReportDialog';
+import { useState } from 'react';
 
 interface SolutionListProps {
   solution: Solution;
@@ -59,6 +61,9 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
       dispatch(setRouteVisibility({ date, routeId, isVisible: checked })),
     );
   };
+
+  const [showValidationReport, setShowValidationReport] = useState(false);
+
   return (
     <Accordion type="single" collapsible className="space-y-2">
       {/* Master toggle to show/hide all routes */}
@@ -84,7 +89,7 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
             className="border-l-4 relative py-0.5"
             style={{ borderLeftColor: color }}
           >
-            <div className='absolute top-2 right-8 flex items-center gap-2'>
+            <div className="absolute top-2 right-8 flex items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -119,7 +124,6 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                     Vehicle {route.route_id + 1}
                   </span>
                 </div>
-
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-2 ">
@@ -186,6 +190,18 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
           </AccordionItem>
         );
       })}
+
+      {!solution?.validation_report?.is_valid && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full bg-red-100 text-red-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-red-200 hover:text-red-900 hover:border-red-300"
+          onClick={() => setShowValidationReport(true)}
+        >
+          <AlertTriangle /> Validation Report
+        </Button>
+      )}
+
       <Button
         size="lg"
         variant="outline"
@@ -207,6 +223,13 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
       >
         <NotepadText /> Show Daily Plan
       </Button>
+
+      {/* Validation report dialog */}
+      <ValidationReportDialog
+        open={showValidationReport}
+        report={solution.validation_report}
+        onClose={() => setShowValidationReport(false)}
+      />
     </Accordion>
   );
 }

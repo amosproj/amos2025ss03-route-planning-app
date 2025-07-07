@@ -39,7 +39,7 @@ interface RouteValidationError {
   errors: string[];
 }
 
-interface SolutionValidationReport {
+export interface SolutionValidationReport {
   is_valid: boolean;
   errors: string[];
   missing_appointments: string[];
