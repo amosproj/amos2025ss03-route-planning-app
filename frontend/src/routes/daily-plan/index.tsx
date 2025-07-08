@@ -6,7 +6,9 @@ import { Solution } from '@/types/Solution';
 import { RouteCard } from '@/components/RouteCard';
 import { getRouteColor } from '@/utils/routeColors';
 import { Button } from '@/components/ui/button';
-import { Download, Map } from 'lucide-react';
+import { Download, Map, AlertTriangle } from 'lucide-react';
+import ValidationReportDialog from '@/components/ValidationReportDialog';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
@@ -18,6 +20,7 @@ function DailyPlan() {
   const navigate = useNavigate();
   const solutions = useSelector((state: RootState) => state.solutions);
   const solution: Solution = solutions.byDate[date];
+  const [showValidationReport, setShowValidationReport] = useState(false);
 
   useEffect(() => {
     if (!solution) {
@@ -97,7 +100,16 @@ function DailyPlan() {
         </h2>
 
         <div className="flex gap-3">
-          {' '}
+          {!solution?.validation_report?.is_valid && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-red-100 text-red-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-red-200 hover:text-red-900 hover:border-red-300"
+              onClick={() => setShowValidationReport(true)}
+            >
+              <AlertTriangle /> Validation Report
+            </Button>
+          )}
           <Button
             variant="outline"
             className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200 hover:text-orange-900 hover:border-orange-300"
@@ -127,11 +139,12 @@ function DailyPlan() {
         />
       ))}
 
-      {/* <div className="flex justify-end">
-        <Button className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200">
-          View Metrics & Errors
-        </Button>
-      </div> */}
+      {/* Validation report dialog */}
+      <ValidationReportDialog
+        open={showValidationReport}
+        report={solution.validation_report}
+        onClose={() => setShowValidationReport(false)}
+      />
     </div>
   );
 }

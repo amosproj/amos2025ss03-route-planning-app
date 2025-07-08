@@ -44,6 +44,7 @@ class EnhancedAppointment(BaseModel):
     appointment_type: AppointmentType = Field(default_factory=AppointmentType)
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
+    arrival_time: Optional[int] = None
 
 class VehicleBreak(BaseModel):
     duration: int  # in minutes
@@ -166,6 +167,7 @@ class SolutionValidationReport(BaseModel):
     missing_appointments: List[str]
     duplicate_appointments: List[str]
     route_level_errors: List[RouteValidationError]
+    impossible_appointments: List[str]
 
 class Solution(BaseModel):
     total_distance_traveled: float

@@ -11,8 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import type { Solution } from '@/types/Solution';
 import { getRouteColor } from '@/utils/routeColors';
-import { Download, NotepadText } from 'lucide-react';
+import { Download, NotepadText, AlertTriangle } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
+import ValidationReportDialog from '@/components/ValidationReportDialog';
+import { useState } from 'react';
+import { minutesToTime } from '@/utils/helper';
 
 interface SolutionListProps {
   solution: Solution;
@@ -59,6 +62,9 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
       dispatch(setRouteVisibility({ date, routeId, isVisible: checked })),
     );
   };
+
+  const [showValidationReport, setShowValidationReport] = useState(false);
+
   return (
     <Accordion type="single" collapsible className="space-y-2">
       {/* Master toggle to show/hide all routes */}
@@ -81,43 +87,43 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
           <AccordionItem
             key={route.route_id}
             value={`route-${route.route_id}`}
-            className="border-l-4"
+            className="border-l-4 relative py-0.5"
             style={{ borderLeftColor: color }}
           >
+            <div className="absolute top-2 right-8 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadRoute(route);
+                }}
+              >
+                <Download />
+              </Button>
+              <Switch
+                checked={isVisible}
+                onClick={(e) => e.stopPropagation()}
+                onCheckedChange={(checked) =>
+                  dispatch(
+                    setRouteVisibility({
+                      date,
+                      routeId: route.route_id,
+                      isVisible: checked,
+                    }),
+                  )
+                }
+                className="ml-2"
+              >
+                Show
+              </Switch>
+            </div>
             <AccordionTrigger>
               <div className="flex justify-between items-center w-full">
                 <div className="flex items-center">
                   <span className="font-medium text-xl mx-2">
                     Vehicle {route.route_id + 1}
                   </span>
-                </div>
-                <div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadRoute(route);
-                    }}
-                  >
-                    <Download />
-                  </Button>
-                  <Switch
-                    checked={isVisible}
-                    onClick={(e) => e.stopPropagation()}
-                    onCheckedChange={(checked) =>
-                      dispatch(
-                        setRouteVisibility({
-                          date,
-                          routeId: route.route_id,
-                          isVisible: checked,
-                        }),
-                      )
-                    }
-                    className="ml-2"
-                  >
-                    Show
-                  </Switch>
                 </div>
               </div>
             </AccordionTrigger>
@@ -137,14 +143,14 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                       hour: '2-digit',
                       minute: '2-digit',
                     });
+                    const arrivalTime = appt.arrival_time
+                      ? minutesToTime(appt.arrival_time)
+                      : null;
+                    const departureTime = appt.arrival_time
+                      ? minutesToTime(appt.arrival_time + appt.service_time)
+                      : null;
                     const next = route.appointments[idx + 1];
-                    // const diffMin = next
-                    //   ? Math.round(
-                    //       (new Date(next.appointment_start).getTime() -
-                    //         new Date(appt.appointment_end).getTime()) /
-                    //         60000,
-                    //     )
-                    //   : null;
+                    const isDepot = appt.appointment_type === 'DEPOT';
                     return (
                       <li key={idx} className="relative  pb-4 pl-6">
                         {/* Bullet */}
@@ -159,23 +165,46 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
                             style={{ borderColor: color }}
                           />
                         )}
-                        <time className="block mb-1 text-xs text-gray-500">
-                          {start} - {end}
+                        <time className="block mb-2 text-xs text-gray-500">
+                          {isDepot ? (
+                            <span className="font-medium">
+                              Depot Hours: {start} - {end}
+                            </span>
+                          ) : (
+                            <div className="space-y-1">
+                              <div className="text-gray-600">
+                                Scheduled: {start} - {end}
+                              </div>
+                              {arrivalTime && departureTime && (
+                                <div className="flex items-center space-x-1 text-blue-600 font-medium">
+                                  <span>
+                                    Actual: {arrivalTime} - {departureTime}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </time>
-                        <p className=" flex text-sm text-gray-700">
-                          {appt.address.street}, {appt.address.zip_code}{' '}
-                          {appt.address.city}
+                        <p className="flex text-sm text-gray-700 font-medium">
+                          {appt.address.street}, {appt.address.zip_code}
                         </p>
 
-                        {/* Interval label */}
-                        {/* {diffMin != null && (
-                          <span
-                            style={{ color: color }}
-                            className="absolute opacity-40 left-3 bottom-0 bg-white italic font-semibold px-1 text-xs text-gray-500 -translate-y-1/2"
-                          >
-                            {diffMin} min
-                          </span>
-                        )} */}
+                        {/* Service Time and Worker Info */}
+                        {!isDepot && (
+                          <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                            <div>Service time: {appt.service_time} mins</div>
+                          </div>
+                        )}
+
+                        {/* Travel Information to Next Appointment */}
+                        {next && appt.travel_time_to_next_min && (
+                          <div className="mt-2 p-2 bg-blue-50 rounded text-xs border-l-2 border-blue-300">
+                            <div className="text-blue-700 font-medium">
+                              Travel to next: {appt.travel_time_to_next_min} min
+                              • {appt.travel_distance_to_next_km} km
+                            </div>
+                          </div>
+                        )}
                       </li>
                     );
                   });
@@ -185,6 +214,18 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
           </AccordionItem>
         );
       })}
+
+      {!solution?.validation_report?.is_valid && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full bg-red-100 text-red-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-red-200 hover:text-red-900 hover:border-red-300"
+          onClick={() => setShowValidationReport(true)}
+        >
+          <AlertTriangle /> Validation Report
+        </Button>
+      )}
+
       <Button
         size="lg"
         variant="outline"
@@ -206,6 +247,13 @@ export default function SolutionList({ solution, date }: SolutionListProps) {
       >
         <NotepadText /> Show Daily Plan
       </Button>
+
+      {/* Validation report dialog */}
+      <ValidationReportDialog
+        open={showValidationReport}
+        report={solution.validation_report}
+        onClose={() => setShowValidationReport(false)}
+      />
     </Accordion>
   );
 }
