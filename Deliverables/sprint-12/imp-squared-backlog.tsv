@@ -1,0 +1,19 @@
+Title	URL	Assignees	Status
+Finish all features before last sprint to avoid stress and focus on polishing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/240		In Progress
+Test that all features work	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/282		In Progress
+Assign deliverables early	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/173		In Progress
+Agree on a domain name to host the project at	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/258		Done
+Code overwrites through late PRs	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/222		Done
+receive feedback (on discord, PR's) in a timely manner	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/148		Done
+Improve communication about planned ideas and ways of implementation	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/171		Done
+Get more data from industry partner	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/123		Done
+Clear up desynchronisation/dissonance between IP requirements and actual state of the project and most pressing issues	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/143		Done
+Meetings take too long	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/53		Done
+Dependencies between Tickets resulted in bottleneck chain --> Priority labels	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/200		Done
+Make issues more specific	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/55		Done
+Set up communication channel with industry partner	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/20		Done
+Have PO/SD discussion about new issues prior to the team meeting	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/18		Done
+Have separate SD discussion on core features	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/19		Done
+PO/SD discussion meeting needs SD participation	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/54		Done
+Unclear responsibilities for deliverables	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/56		Done
+"Redis" component made other code disfunctional --> make it run optionally only if installed (so that the code can also work without it)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/239		Done
