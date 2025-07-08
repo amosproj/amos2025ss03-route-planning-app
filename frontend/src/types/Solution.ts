@@ -45,4 +45,5 @@ export interface SolutionValidationReport {
   missing_appointments: string[];
   duplicate_appointments: string[];
   route_level_errors: RouteValidationError[];
+  impossible_appointments: string[];
 }
