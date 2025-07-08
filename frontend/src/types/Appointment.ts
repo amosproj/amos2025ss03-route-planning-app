@@ -18,6 +18,7 @@ export interface EnhancedAppointment extends Appointment {
     lat: number;
     lng: number;
   };
+  arrival_time?: number
 }
 
 export interface EnhancedAddressResponse {
