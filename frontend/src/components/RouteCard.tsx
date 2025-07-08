@@ -9,6 +9,47 @@ interface RouteCardProps {
   download: () => void;
 }
 export function RouteCard({ route, color, download }: RouteCardProps) {
+  // Calculate buffer time statistics for the route (slack time between appointments)
+  const bufferStats = route.appointments.reduce(
+    (stats, appointment, idx) => {
+      const nextAppointment = route.appointments[idx + 1];
+      if (appointment?.arrival_time !== undefined && 
+          appointment?.appointment_type !== 'DEPOT' &&
+          nextAppointment && 
+          nextAppointment?.arrival_time !== undefined &&
+          nextAppointment?.appointment_type !== 'DEPOT' &&
+          appointment?.travel_time_to_next_min !== undefined) {
+        
+        // Calculate when current appointment finishes
+        const currentFinishTime = appointment.arrival_time + appointment.service_time;
+        
+        // Calculate when we're scheduled to arrive at next appointment (finish + travel)
+        const scheduledNextArrival = currentFinishTime + appointment.travel_time_to_next_min;
+        
+        // When we actually arrive at next appointment
+        const actualNextArrival = nextAppointment.arrival_time;
+        
+        // Buffer time is the difference between actual and scheduled arrival
+        const bufferTime = actualNextArrival - scheduledNextArrival;
+        
+        if (bufferTime > 0) {
+          stats.total += bufferTime;
+          stats.count++;
+          if (bufferTime > 10) stats.early++;
+          else stats.onTime++;
+        } else if (bufferTime < 0) {
+          stats.total += Math.abs(bufferTime);
+          stats.count++;
+          stats.late++;
+        }
+      }
+      return stats;
+    },
+    { total: 0, count: 0, early: 0, late: 0, onTime: 0 }
+  );
+  
+  const avgBuffer = bufferStats.count > 0 ? Math.round(bufferStats.total / bufferStats.count) : 0;
+  
   return (
     <div className="mb-6 border shadow-md p-6 rounded-md bg-neutral-50/10">
       <div className="flex justify-between items-center mb-2">
@@ -35,6 +76,16 @@ export function RouteCard({ route, color, download }: RouteCardProps) {
           <span className="text-sm bg-gray-100 px-3 py-1.5 rounded">
             Waiting: {route?.route_metrics?.total_idle_time_min} mins
           </span>
+          {/* Buffer Time Summary */}
+          {bufferStats.count > 0 && (
+            <span className={`text-sm px-3 py-1.5 rounded font-medium ${
+              bufferStats.early > bufferStats.late ? 'bg-green-100 text-green-800' :
+              bufferStats.late > 0 ? 'bg-red-100 text-red-800' :
+              'bg-yellow-100 text-yellow-800'
+            }`}>
+              Slack: {avgBuffer}min avg
+            </span>
+          )}
           <Button
             size={'sm'}
             className="text-sm px-3 rounded "
@@ -51,6 +102,39 @@ export function RouteCard({ route, color, download }: RouteCardProps) {
         {route.appointments.map((appointment, idx) => {
           const next = route.appointments[idx + 1];
           const isDepot = appointment?.appointment_type === 'DEPOT';
+          
+          // Calculate buffer time (slack time between scheduled and actual arrival at next appointment)
+          let bufferTimeMinutes = null;
+          let bufferType = null; // 'buffer', 'tight', or 'rushed'
+          
+          if (appointment?.arrival_time !== undefined && 
+              !isDepot &&
+              next && 
+              next?.arrival_time !== undefined &&
+              next?.appointment_type !== 'DEPOT' &&
+              appointment?.travel_time_to_next_min !== undefined) {
+            
+            // When current appointment finishes
+            const currentFinishTime = appointment.arrival_time + appointment.service_time;
+            
+            // When we're scheduled to arrive at next appointment (finish + travel)
+            const scheduledNextArrival = currentFinishTime + appointment.travel_time_to_next_min;
+            
+            // When we actually arrive at next appointment
+            const actualNextArrival = next.arrival_time;
+            
+            // Buffer time is the difference (positive = waiting time, negative = behind schedule)
+            bufferTimeMinutes = actualNextArrival - scheduledNextArrival;
+            
+            if (bufferTimeMinutes > 10) {
+              bufferType = 'buffer';
+            } else if (bufferTimeMinutes >= 0) {
+              bufferType = 'tight';
+            } else {
+              bufferType = 'rushed';
+            }
+          }
+          
           return (
             <li key={idx} className="relative pl-6 pb-6 pt-2 ">
               {/* Bullet */}
@@ -86,7 +170,7 @@ export function RouteCard({ route, color, download }: RouteCardProps) {
                 </div>
 
                 {/* Timing Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                   {/* Scheduled Time */}
                   <div className="bg-gray-50 p-2 rounded-md">
                     <div className="text-xs text-gray-600 font-medium mb-1">
@@ -122,6 +206,34 @@ export function RouteCard({ route, color, download }: RouteCardProps) {
                       </div>
                       <div className="text-sm font-semibold" style={{ color: color }}>
                         {minutesToTime(appointment.arrival_time)} - {minutesToTime(appointment.arrival_time + appointment.service_time)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Buffer/Slack Time */}
+                  {bufferTimeMinutes !== null && next && next?.appointment_type !== 'DEPOT' && (
+                    <div className={`p-2 rounded-md ${
+                      bufferType === 'buffer' ? 'bg-green-50 border border-green-200' :
+                      bufferType === 'tight' ? 'bg-yellow-50 border border-yellow-200' :
+                      'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className={`text-xs font-medium mb-1 ${
+                        bufferType === 'buffer' ? 'text-green-700' :
+                        bufferType === 'tight' ? 'text-yellow-700' :
+                        'text-red-700'
+                      }`}>
+                        {bufferType === 'buffer' ? '⏱️ Buffer Time' :
+                         bufferType === 'tight' ? '🎯 Tight Schedule' :
+                         '🚨 Time Conflict'}
+                      </div>
+                      <div className={`text-sm font-semibold ${
+                        bufferType === 'buffer' ? 'text-green-800' :
+                        bufferType === 'tight' ? 'text-yellow-800' :
+                        'text-red-800'
+                      }`}>
+                        {bufferType === 'buffer' ? `${bufferTimeMinutes} min waiting` :
+                         bufferType === 'tight' ? `${bufferTimeMinutes} min slack` :
+                         `${Math.abs(bufferTimeMinutes)} min behind`}
                       </div>
                     </div>
                   )}
