@@ -113,7 +113,12 @@ def validate_solution_and_report(
     print(f"DEPOTSET: {depot_set}")
     missed = list(all_ids - visited_set- depot_set)
     if missed:
-        global_errors.append(f"Appointments not visited: {missed}")
+        # Loop through missed appointments and add to global errors if they are impossible or dropped by the solver
+        for missed_id in missed:
+            if missed_id in imp_app_location_ids:
+                global_errors.append(f"Appointment {missed_id} is incompatible.")
+            else:
+                global_errors.append(f"Appointment {missed_id} was not scheduled.")
 
     is_valid = not global_errors and not route_level_errors
 
