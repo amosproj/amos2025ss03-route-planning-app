@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { SolutionValidationReport } from '@/types/Solution';
+import { Ban, AlertTriangle } from 'lucide-react';
 
 interface ValidationReportDialogProps {
   open: boolean;
@@ -32,18 +33,49 @@ const ValidationReportDialog: React.FC<ValidationReportDialogProps> = ({
 
         {/* Appointment Errors */}
         {report.errors.length > 0 && (
-          <div className="grid gap-y-2 py-4 max-h-[400px] overflow-y-auto">
+          <div className="grid gap-y-4 py-4 max-h-[400px] overflow-y-auto">
             <h6 className="text-sm underline font-semibold">
               Appointment Errors:
             </h6>
 
-            <ul className="list-disc list-outside pl-5 text-sm text-red-600">
-              {report.errors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
+            {/* Impossible Appointments */}
+            {report.impossible_appointments?.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-red-700 font-semibold text-sm mb-1">
+                  <Ban className="w-4 h-4" />
+                  <span>Impossible Appointments</span>
+                </div>
+                <ul className="list-disc list-outside pl-5 text-sm text-red-600">
+                  {report.impossible_appointments.map((address, idx) => (
+                    <li key={`impossible-${idx}`}>{address}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Missing Appointments (excluding impossible) */}
+            {report.missing_appointments?.filter(
+              (addr) => !report.impossible_appointments.includes(addr),
+            ).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 text-orange-700 font-semibold text-sm mb-1">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Missing Appointments</span>
+                </div>
+                <ul className="list-disc list-outside pl-5 text-sm text-orange-600">
+                  {report.missing_appointments
+                    .filter(
+                      (addr) => !report.impossible_appointments.includes(addr),
+                    )
+                    .map((address, idx) => (
+                      <li key={`missing-${idx}`}>{address}</li>
+                    ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
+
         {/* Route Errors*/}
         {report.route_level_errors.length > 0 && (
           <div className="grid gap-y-2 py-4 max-h-[400px] overflow-y-auto">
