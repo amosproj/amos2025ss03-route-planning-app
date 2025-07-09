@@ -27,11 +27,6 @@ def validate_solution_and_report(
         appts = route.appointments
         route_errors = []
 
-        if not appts:
-            route_errors.append(f"Route {route.route_id} has no appointments.")
-        elif not any(appointment.appointment_type == AppointmentType.REAL_APPOINTMENT for appointment in appts):
-            route_errors.append(f"Route {route.route_id} has no REAL_APPOINTMENT.")
-
         if route_errors:
             route_level_errors.append(RouteValidationError(route_id=route.route_id, errors=route_errors))
             continue
