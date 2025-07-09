@@ -87,6 +87,7 @@ class EnhancedCompanyInfo(BaseModel):
     vehicles: List[EnhancedFilledVehicle]
 
 class OptimizationRequest(BaseModel):
+    solver_time:int = 15
     company_info: CompanyInfo
     appointments: List[Appointment]
 
