@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Map, AlertTriangle } from 'lucide-react';
 import ValidationReportDialog from '@/components/ValidationReportDialog';
 import { useState } from 'react';
+import { BackButton } from '@/components/BackButton';
 
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
@@ -70,33 +71,14 @@ function DailyPlan() {
     document.body.removeChild(a);
   };
 
-  const handleBackButtonClick = () => {
-    const sanitizedDate = date.replace(/"/g, '').trim();
-    const dateObj = new Date(Number(sanitizedDate));
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth();
-    navigate({
-      to: '/scenarios',
-      search: {
-        year: year,
-        month: month,
-      },
-    });
-  };
-
   return (
-    <div className="container my-8">
-      <div className="flex flex-wrap gap-3 my-5 w-full justify-between items-center">
+    <div className="max-w-6xl mx-auto my-6 bg-white rounded-lg border shadow p-4">
+      <div className="flex flex-wrap gap-3 w-full justify-between items-center">
         <h2 className="text-xl text-center text-blue-900 font-semibold my-5">
-          <span className="flex items-center ">
-            <button
-              onClick={handleBackButtonClick}
-              className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
-            >
-              ←
-            </button>
-            Daily Plan for {formatDateString(date)}
-          </span>{' '}
+          <div className="flex items-center ">
+            <BackButton />
+            <span className='pl-4'>Daily Plan for {formatDateString(date)}</span>
+          </div>{' '}
         </h2>
 
         <div className="flex gap-3">
@@ -130,14 +112,16 @@ function DailyPlan() {
           </Button>
         </div>
       </div>
-      {solution.routes.map((route, idx) => (
-        <RouteCard
-          key={route.route_id}
-          route={route}
-          download={() => downloadRoute(route.route_id)}
-          color={getRouteColor(idx)}
-        />
-      ))}
+      {solution.routes
+        .filter((route) => route.appointments.length > 2)
+        .map((route, idx) => (
+          <RouteCard
+            key={route.route_id}
+            route={route}
+            download={() => downloadRoute(route.route_id)}
+            color={getRouteColor(idx)}
+          />
+        ))}
 
       {/* Validation report dialog */}
       <ValidationReportDialog
