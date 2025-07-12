@@ -93,14 +93,14 @@ function LandingPage() {
   const canViewScenarios = appointmentsUploaded && companyInfoUploaded;
 
   return (
-    <div className="container mt-8">
+    <div className="max-w-5xl mx-auto mt-6 bg-white rounded-lg border shadow p-4">
       <div>
-        <h3 className="font-bold text-2xl p-1">Upload Appointment Data</h3>
+        <h3 className="font-bold text-2xl p-1 mb-2">Upload Appointment Data</h3>
         <FileDropzone onDrop={handleAppointmentsDrop} />
       </div>
 
       <div className="mt-8">
-        <h3 className="font-bold text-2xl p-1">Upload Company Info</h3>
+        <h3 className="font-bold text-2xl p-1 mb-2">Upload Company Info</h3>
         <FileDropzone onDrop={handleWorkersDrop} />
       </div>
 
