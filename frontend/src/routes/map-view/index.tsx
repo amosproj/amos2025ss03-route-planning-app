@@ -46,6 +46,7 @@ function MapView() {
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
+  const solverTime = useSelector((s: RootState) => s.companyInfo.solver_time);
 
   // Prepare appointments payload
   const appointmentsPayload =
@@ -65,16 +66,14 @@ function MapView() {
         appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
-  // console.log('MapView appointmentsPayload', appointmentsPayload);
-
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
   );
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -212,7 +211,9 @@ function MapView() {
 
     // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
+      //@ts-expect-error - type mismatch due to optional fields
       company_info: alteredCompanyInfo,
+      solver_time: companyInfo.solver_time,
       appointments: enhancedAppointments,
     };
 
@@ -224,8 +225,8 @@ function MapView() {
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
   const totalWorkers = companyInfo
     ? companyInfo.vehicles.filter(
-      (v) => !excludedVehicles.includes(v.vehicle_id),
-    ).length
+        (v) => !excludedVehicles.includes(v.vehicle_id),
+      ).length
     : 0;
   const canOptimize = !!scenario && includedJobs > 0;
 
@@ -363,10 +364,11 @@ function MapView() {
               <OptimizationBar
                 includedJobs={includedJobs}
                 totalWorkers={totalWorkers}
-                isOptimizing={optimizationMutation.isPending}
+                isOptimizing={optimizationMutation.status === 'pending'}
                 canOptimize={canOptimize}
                 onOptimize={handleOptimize}
                 scenarioDate={scenario ? new Date(scenario.date) : undefined}
+                solverTime={solverTime}
               />
 
               <h2 className="text-lg font-semibold text-primary">
@@ -395,8 +397,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}

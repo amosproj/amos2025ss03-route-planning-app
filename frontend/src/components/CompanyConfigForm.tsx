@@ -37,6 +37,7 @@ export function CompanyConfigForm() {
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
+    defaultValues: { solverTime: 15 },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -156,6 +157,7 @@ export function CompanyConfigForm() {
       form.reset({
         startAddress: displayStart,
         finishAddress: displayFinish,
+        solverTime: existingCompany.solver_time ?? 15,
         vehicles:
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
@@ -190,6 +192,7 @@ export function CompanyConfigForm() {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
       vehicles: values.vehicles,
+      solver_time: values.solverTime,
     };
 
     // Save company info to store
@@ -239,6 +242,7 @@ export function CompanyConfigForm() {
           <AddressSection
             initialStartValue={form.watch('startAddress')}
             initialFinishValue={form.watch('finishAddress')}
+            initialSolverTime={form.watch('solverTime')}
             onChangeStart={(addr, value) => {
               setStartAddrObj(addr);
               form.setValue('startAddress', value);
@@ -247,6 +251,7 @@ export function CompanyConfigForm() {
               setFinishAddrObj(addr);
               form.setValue('finishAddress', value);
             }}
+            onChangeSolverTime={(value) => form.setValue('solverTime', value)}
           />
           <VehiclesSection
             fields={fields}
