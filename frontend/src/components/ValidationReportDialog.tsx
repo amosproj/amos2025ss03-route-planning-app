@@ -49,7 +49,7 @@ const ValidationReportDialog: React.FC<ValidationReportDialogProps> = ({
                 <div className="flex items-center gap-2 text-red-700 font-semibold text-sm mb-1">
                   <Ban className="w-4 h-4" />
                   <span>
-                    Impossible Appointments{' '}
+                    Incompatible Appointments{' '}
                     <sup className="text-xs align-super">
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -57,8 +57,7 @@ const ValidationReportDialog: React.FC<ValidationReportDialogProps> = ({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            These appointments couldn’t be scheduled due to
-                            conflicts or constraints.
+                            {`Appointments that couldn’t be scheduled due to a lack of suitable vehicle-worker combinations.`}
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -89,8 +88,8 @@ const ValidationReportDialog: React.FC<ValidationReportDialogProps> = ({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Appointments that were not assigned to any route
-                            after optimization.
+                            {`Appointments that weren’t included in any route
+                            after optimization.`}
                           </p>
                         </TooltipContent>
                       </Tooltip>
