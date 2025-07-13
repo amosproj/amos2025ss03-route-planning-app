@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { TabsContent } from '@/components/ui/tabs';
@@ -14,8 +15,10 @@ export interface Address {
 interface AddressSectionProps {
   initialStartValue: string;
   initialFinishValue: string;
+  initialSolverTime: number;
   onChangeStart: (addr: Address, value: string) => void;
   onChangeFinish: (addr: Address, value: string) => void;
+  onChangeSolverTime: (value: number) => void;
 }
 
 const parseAddress = (place: google.maps.places.PlaceResult): Address => {
@@ -33,8 +36,10 @@ const parseAddress = (place: google.maps.places.PlaceResult): Address => {
 export const AddressSection: React.FC<AddressSectionProps> = ({
   initialStartValue,
   initialFinishValue,
+  initialSolverTime,
   onChangeStart,
   onChangeFinish,
+  onChangeSolverTime,
 }) => {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
@@ -108,6 +113,27 @@ export const AddressSection: React.FC<AddressSectionProps> = ({
                       onChange={(e) => onChangeFinish({ street: '', zip_code: '', city: '' }, e.target.value)}
                     />
                   </Autocomplete>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="solverTime"
+            render={() => (
+              <FormItem>
+                <FormLabel>Solver Time</FormLabel>
+                <FormControl>
+                  <div className="flex flex-col">
+                    <Slider
+                      value={[initialSolverTime]}
+                      min={5}
+                      max={120}
+                      step={1}
+                      onValueChange={(vals) => onChangeSolverTime(vals[0])}
+                    />
+                    <div className="mt-2 text-sm">{initialSolverTime} seconds</div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
