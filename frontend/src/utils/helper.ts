@@ -1,5 +1,4 @@
 import { Scenario } from '../types/Scenario';
-import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
 import { Address } from '../types/Address';
 import { createElement } from 'react';
@@ -12,9 +11,10 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
   lines.shift();
   const jobs: Appointment[] = lines.filter(Boolean).map((line) => {
     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-    const [start, end, streetRaw, zip, city, workers] = values.map((v) =>
+    const [start, end, streetRaw, zip, city, workers, skills] = values.map((v) =>
       v.replace(/^"|"$/g, ''),
     );
+    const skillsArray = skills && skills.trim() ? skills.split(';').map(s => s.trim()).filter(Boolean) : [];
     return {
       appointment_start: new Date(start).toISOString(),
       appointment_end: new Date(end).toISOString(),
@@ -25,7 +25,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
       } as Address,
       number_of_workers: parseInt(workers, 10),
       service_time: 0,
-      skills: null,
+      skills: skillsArray,
       appointment_type: 'REAL_APPOINTMENT',
     };
   });
@@ -35,17 +35,9 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     if (!groups[day]) groups[day] = [];
     groups[day].push(job);
   });
-  const defaultVehicle = {
-    vehicle_id: 0,
-    skills: [],
-    worker_amount: 1,
-    operation_hours: { start_minutes: 480, end_minutes: 960 },
-    cost_per_km: 0.5,
-    cost_per_hour: 45.0,
-  } as Vehicle;
   return Object.entries(groups).map(
     ([date, jobs]) =>
-      ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
+      ({ date: Number(date), jobs } as Scenario),
   );
 }
 export function parseScenariofromJson(jsonData: string): Scenario {
@@ -72,18 +64,6 @@ export function parseScenariofromJson(jsonData: string): Scenario {
         }),
       ),
       date: new Date('2025-05-01').getTime(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicles: data.number_of_workers.map((veh: any) => ({
-        vehicle_id: veh.vehicle_id,
-        skills: veh.skills || '',
-        worker_amount: veh.worker_amount || 1,
-        operation_hours: {
-          start_minutes: 480,
-          end_minutes: 960,
-        },
-        cost_per_km: 0.5,
-        cost_per_hour: 45.0,
-      })),
     };
     return scenario;
   } catch (error) {
@@ -91,7 +71,6 @@ export function parseScenariofromJson(jsonData: string): Scenario {
     return {
       jobs: [],
       date: new Date('2025-05-01').getTime(),
-      vehicles: [],
     };
   }
 }
