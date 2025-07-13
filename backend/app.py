@@ -85,7 +85,7 @@ def full_matrix(request:EnhancedOptimizationRequest):
 def check_and_solve(request: OptimizationRequest):
     try:
         enh =  check_and_enhance_optimization_request(request)
-        return solve_appointment_routing(enh)
+        return solve_appointment_routing(optimization_request= enh,optimization_time_limit=request.solver_time)
     except Exception as e:
        raise HTTPException(status_code=500, detail=str(e))
 

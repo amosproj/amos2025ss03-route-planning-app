@@ -7,7 +7,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -22,16 +22,16 @@ import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import { Solution } from '../../types/Solution';
 import { OptimizationRequest } from '../../types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Fullscreen } from 'lucide-react';
+import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
 import apiClient from '../../utils/apiClient';
 import { createDepotMarkerIcon } from '@/utils/helper';
+import { BackButton } from '@/components/BackButton';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
-  const { history } = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
 
@@ -352,13 +352,7 @@ function MapView() {
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
             <div className="p-2 flex items-center justify-between border-b ">
-              <Button
-                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
-                onClick={() => history.go(-1)}
-              >
-                <ArrowLeft />
-                <span className="ml-2">Back</span>
-              </Button>
+              <BackButton />
 
               <OptimizationBar
                 includedJobs={includedJobs}
@@ -503,13 +497,7 @@ function MapView() {
         ) : (
           <Skeleton className="flex-1 flex flex-col">
             <div className="p-2 bg-white shadow-md flex items-center justify-between">
-              <Button
-                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
-                onClick={() => history.go(-1)}
-              >
-                <ArrowLeft />
-                <span className="ml-2">Back</span>
-              </Button>
+              <BackButton />
               <span>Loading Locations for map view...</span>
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
