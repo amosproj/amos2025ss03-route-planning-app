@@ -1,25 +1,21 @@
 import { Appointment } from "./Appointment";
-import { Vehicle } from "./Vehicle";
 
 export interface Scenario {
     jobs: Appointment[];
     date: number;
-    vehicles: Vehicle[];
 
 }
 
 export interface ScenarioDateString {
     jobs: Appointment[];
     date: string;
-    vehicles: Vehicle[];
 
 }
 
 export interface ScenarioByDate {
-    date: number // timestamp
-    jobs: Appointment[]
-    vehicles: Vehicle[]
-    solution: boolean
+    date: number; // timestamp
+    jobs: Appointment[];
+    solution: boolean;
 }
 
 export interface Worker {

@@ -97,22 +97,8 @@ function TestDataGeneratePage() {
         const timestamp = d.toDate().getTime();
 
         const scenario = {
-          // date: new Date(2025, d.month(), d.day() + 1).getTime(), // timestamp
           date: timestamp,
           jobs: appointments,
-          vehicles: [
-            {
-              vehicle_id: 0,
-              skills: [],
-              worker_amount: 1,
-              operation_hours: {
-                start_minutes: 480,
-                end_minutes: 960,
-              },
-              cost_per_km: 0.5,
-              cost_per_hour: 45,
-            },
-          ],
         };
         newScenarios.push(scenario);
         // Set company info once for all scenarios

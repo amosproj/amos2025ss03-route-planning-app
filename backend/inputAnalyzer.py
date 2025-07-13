@@ -116,23 +116,8 @@ def validate_addresses_parallel(addresses_to_validate: List[tuple]) -> List[Enha
 
     # Use ThreadPoolExecutor with max 10 workers (same as distance matrix)
     with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(validate_single_address, addr) for addr in addresses_to_validate]
-        results = []
-        
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-                results.append(result)
-            except Exception as e:
-                logger.error(f"Address validation failed: {e}")
-                # Create error response for failed validation
-                results.append(EnhancedAddressResponse(
-                    could_be_fully_found=False,
-                    error_information=f"Validation failed: {str(e)}",
-                    street="",
-                    zipcode="",
-                    city=""
-                ))
+        results = list(executor.map(validate_single_address, addresses_to_validate))
+
     
     return results
 

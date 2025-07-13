@@ -37,6 +37,7 @@ export function CompanyConfigForm() {
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
+    defaultValues: { solverTime: 15 },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -78,11 +79,11 @@ export function CompanyConfigForm() {
   const initialCost =
     currentCostIdx !== null
       ? {
-          cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
-          cost_per_hour: form.getValues(
-            `vehicles.${currentCostIdx}.cost_per_hour`,
-          ),
-        }
+        cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
+        cost_per_hour: form.getValues(
+          `vehicles.${currentCostIdx}.cost_per_hour`,
+        ),
+      }
       : null;
   const openCostDialog = (idx: number) => {
     setCurrentCostIdx(idx);
@@ -156,27 +157,28 @@ export function CompanyConfigForm() {
       form.reset({
         startAddress: displayStart,
         finishAddress: displayFinish,
+        solverTime: existingCompany.solver_time ?? 15,
         vehicles:
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
-                ...vehicle,
-                operation_hours: vehicle.operation_hours || {
-                  start_minutes: 480,
-                  end_minutes: 960,
-                },
-                cost_per_km: vehicle.cost_per_km ?? 0.5,
-                cost_per_hour: vehicle.cost_per_hour ?? 45.0,
-              }))
+              ...vehicle,
+              operation_hours: vehicle.operation_hours || {
+                start_minutes: 480,
+                end_minutes: 960,
+              },
+              cost_per_km: vehicle.cost_per_km ?? 0.5,
+              cost_per_hour: vehicle.cost_per_hour ?? 45.0,
+            }))
             : [
-                {
-                  vehicle_id: 0,
-                  skills: [],
-                  worker_amount: 1,
-                  operation_hours: { start_minutes: 480, end_minutes: 960 },
-                  cost_per_km: 0.5,
-                  cost_per_hour: 45.0,
-                },
-              ],
+              {
+                vehicle_id: 0,
+                skills: [],
+                worker_amount: 1,
+                operation_hours: { start_minutes: 480, end_minutes: 960 },
+                cost_per_km: 0.5,
+                cost_per_hour: 45.0,
+              },
+            ],
       });
 
       setStartAddrObj(existingCompany.start_address);
@@ -190,6 +192,7 @@ export function CompanyConfigForm() {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
       vehicles: values.vehicles,
+      solver_time: values.solverTime,
     };
 
     // Save company info to store
@@ -239,6 +242,7 @@ export function CompanyConfigForm() {
           <AddressSection
             initialStartValue={form.watch('startAddress')}
             initialFinishValue={form.watch('finishAddress')}
+            initialSolverTime={form.watch('solverTime')}
             onChangeStart={(addr, value) => {
               setStartAddrObj(addr);
               form.setValue('startAddress', value);
@@ -247,6 +251,7 @@ export function CompanyConfigForm() {
               setFinishAddrObj(addr);
               form.setValue('finishAddress', value);
             }}
+            onChangeSolverTime={(value) => form.setValue('solverTime', value)}
           />
           <VehiclesSection
             fields={fields}

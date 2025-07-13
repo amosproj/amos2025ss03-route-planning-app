@@ -7,7 +7,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -22,16 +22,16 @@ import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
 import { Solution } from '../../types/Solution';
 import { OptimizationRequest } from '../../types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Fullscreen } from 'lucide-react';
+import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
 import apiClient from '../../utils/apiClient';
 import { createDepotMarkerIcon } from '@/utils/helper';
+import { BackButton } from '@/components/BackButton';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
-  const { history } = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
 
@@ -46,6 +46,7 @@ function MapView() {
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
+  const solverTime = useSelector((s: RootState) => s.companyInfo.solver_time);
 
   // Prepare appointments payload
   const appointmentsPayload =
@@ -65,16 +66,14 @@ function MapView() {
         appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
       }));
 
-  // console.log('MapView appointmentsPayload', appointmentsPayload);
-
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
   );
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -212,7 +211,9 @@ function MapView() {
 
     // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
+      //@ts-expect-error - type mismatch due to optional fields
       company_info: alteredCompanyInfo,
+      solver_time: companyInfo.solver_time,
       appointments: enhancedAppointments,
     };
 
@@ -224,8 +225,8 @@ function MapView() {
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
   const totalWorkers = companyInfo
     ? companyInfo.vehicles.filter(
-      (v) => !excludedVehicles.includes(v.vehicle_id),
-    ).length
+        (v) => !excludedVehicles.includes(v.vehicle_id),
+      ).length
     : 0;
   const canOptimize = !!scenario && includedJobs > 0;
 
@@ -352,21 +353,16 @@ function MapView() {
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
             <div className="p-2 flex items-center justify-between border-b ">
-              <Button
-                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
-                onClick={() => history.go(-1)}
-              >
-                <ArrowLeft />
-                <span className="ml-2">Back</span>
-              </Button>
+              <BackButton />
 
               <OptimizationBar
                 includedJobs={includedJobs}
                 totalWorkers={totalWorkers}
-                isOptimizing={optimizationMutation.isPending}
+                isOptimizing={optimizationMutation.status === 'pending'}
                 canOptimize={canOptimize}
                 onOptimize={handleOptimize}
                 scenarioDate={scenario ? new Date(scenario.date) : undefined}
+                solverTime={solverTime}
               />
 
               <h2 className="text-lg font-semibold text-primary">
@@ -395,8 +391,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
@@ -503,13 +499,7 @@ function MapView() {
         ) : (
           <Skeleton className="flex-1 flex flex-col">
             <div className="p-2 bg-white shadow-md flex items-center justify-between">
-              <Button
-                className="bg-white border border-gray-100 text-gray-800 font-semibold px-4 py-1.5 rounded-sm text-sm hover:bg-gray-100"
-                onClick={() => history.go(-1)}
-              >
-                <ArrowLeft />
-                <span className="ml-2">Back</span>
-              </Button>
+              <BackButton />
               <span>Loading Locations for map view...</span>
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}
