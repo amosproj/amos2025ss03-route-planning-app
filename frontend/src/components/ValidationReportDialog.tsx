@@ -83,7 +83,7 @@ const ValidationReportDialog: React.FC<ValidationReportDialogProps> = ({
             {report.route_level_errors.map((routeError) => (
               <div key={routeError.route_id} className="mb-2">
                 <h6 className="text-sm font-medium">
-                  Vehicle ID: {routeError.route_id}
+                  Vehicle: {routeError.route_id + 1}
                 </h6>
                 <ul className="list-disc list-inside text-sm text-red-600">
                   {routeError.errors.map((error, index) => (
