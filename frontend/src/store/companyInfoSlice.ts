@@ -14,6 +14,7 @@ export const defaultCompanyInfo: CompanyInfo = {
     cost_per_km: 0.5,
     cost_per_hour: 45.0,
   }],
+  solver_time: 15,
 };
 
 const initialState: CompanyInfo = defaultCompanyInfo;

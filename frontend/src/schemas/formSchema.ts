@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const formSchema = z.object({
   startAddress: z.string().min(1, 'Start Address is required'),
   finishAddress: z.string().min(1, 'Finish Address is required'),
+  solverTime: z.number()
+    .min(5, 'Solver time must be at least 5 seconds')
+    .max(120, 'Solver time cannot exceed 120 seconds'),
   vehicles: z
     .array(
       z.object({
