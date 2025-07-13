@@ -154,6 +154,7 @@ export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
     start_address: parseAddress(startStr),
     finish_address: parseAddress(finishStr),
     vehicles: vehicles,
+    solver_time: 15
   };
   return companyInfo;
 }
