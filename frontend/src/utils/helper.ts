@@ -1,7 +1,6 @@
 import { Scenario } from '../types/Scenario';
 import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
-import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Address';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
@@ -103,59 +102,6 @@ export function timestampToDateString(timestamp: number | string): string {
     .split('.')[0]
     .concat('.000');
   return dateString;
-}
-
-export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
-  const lines = csvData.replace(/\r\n/g, '\n').split('\n');
-  let startStr = '';
-  let finishStr = '';
-  const vehicles: Vehicle[] = [];
-
-  lines.forEach((line) => {
-    if (!line.trim()) return;
-    const idx = line.indexOf(',');
-    if (idx < 0) return;
-    const key = line.slice(0, idx).trim().toLowerCase();
-    let value = line.slice(idx + 1).trim();
-    value = value.replace(/^"|"$/g, '');
-    if (key.includes('start address')) {
-      startStr = value;
-    } else if (key.includes('finish address')) {
-      finishStr = value;
-    } else if (key.includes('workers')) {
-      const num = parseInt(value, 10);
-      for (let i = 0; i < num; i++) {
-        vehicles.push({
-          vehicle_id: i,
-          skills: ['electrician'],
-          worker_amount: 1,
-          operation_hours: {
-            start_minutes: 480, // 08:00
-            end_minutes: 960, // 16:00
-          },
-          cost_per_km: 0.5,
-          cost_per_hour: 45.0,
-        });
-      }
-    }
-  });
-
-  const parseAddress = (str: string): Address => {
-    const [streetPart, rest = ''] = str.split(',').map((s) => s.trim());
-    const [zip = '', ...cityParts] = rest.split(/\s+/);
-    return {
-      street: streetPart || '',
-      zip_code: zip || '',
-      city: cityParts.join(' ') || '',
-    };
-  };
-
-  const companyInfo: CompanyInfo = {
-    start_address: parseAddress(startStr),
-    finish_address: parseAddress(finishStr),
-    vehicles: vehicles,
-  };
-  return companyInfo;
 }
 
 // Function to create a custom depot marker with warehouse icon

@@ -3,7 +3,7 @@ import FileDropzone from '../components/FileDropzone';
 
 import { setScenarios } from '../store/scenariosSlice';
 import { setCompanyInfo } from '../store/companyInfoSlice';
-import { parseScenarioFromCsv, parseCompanyInfoFromCsv } from '../utils/helper';
+import { parseScenarioFromCsv } from '../utils/helper';
 
 import { useCallback, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -24,10 +24,9 @@ function LandingPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
-  const [defaultCompanyInfo, setDefaultCompanyInfo] =
+  const [defaultCompanyInfo] =
     useState<CompanyInfo | null>(null);
   const [appointmentsUploaded, setAppointmentsUploaded] = useState(false);
-  const [companyInfoUploaded, setCompanyInfoUploaded] = useState(false);
   const [uploadedYear, setUploadedYear] = useState<number | null>(null);
   const [uploadedMonth, setUploadedMonth] = useState<number | null>(null);
 
@@ -61,19 +60,6 @@ function LandingPage() {
     [dispatch],
   );
 
-  const handleWorkersDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    try {
-      const text = await file.text();
-      const companyInfo = parseCompanyInfoFromCsv(text);
-      console.log('Parsed company info:', companyInfo);
-      setDefaultCompanyInfo(companyInfo);
-      setCompanyInfoUploaded(true);
-    } catch (error) {
-      console.error('Error reading worker file:', error);
-      alert('Failed to read worker file.');
-    }
-  }, []);
 
   const handleViewScenarios = () => {
     if (uploadedYear === null || uploadedMonth === null) {
@@ -90,18 +76,13 @@ function LandingPage() {
     });
   };
 
-  const canViewScenarios = appointmentsUploaded && companyInfoUploaded;
+  const canViewScenarios = appointmentsUploaded;
 
   return (
     <div className="max-w-5xl mx-auto mt-6 bg-white rounded-lg border shadow p-4">
       <div>
         <h3 className="font-bold text-2xl p-1 mb-2">Upload Appointment Data</h3>
         <FileDropzone onDrop={handleAppointmentsDrop} />
-      </div>
-
-      <div className="mt-8">
-        <h3 className="font-bold text-2xl p-1 mb-2">Upload Company Info</h3>
-        <FileDropzone onDrop={handleWorkersDrop} />
       </div>
 
       <div className="mt-3 text-center">
