@@ -328,9 +328,10 @@ export function AppointmentScheduler({
 
   const handleOptimization = async () => {
     const tasksToRun = filteredScenarios.filter((scenario) => {
-      const date = `"${scenario.date}"`;
-      const alreadySolved = solutionByDate[date];
-      return !alreadySolved && finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
+      // const date = `"${scenario.date}"`;
+      // const alreadySolved = solutionByDate[date];
+      // return !alreadySolved && finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
+      return finalEnrichedAppointments(scenario.date) && allLocationsFullyFound(finalEnrichedAppointments(scenario.date));
     });
 
     if (tasksToRun.length === 0) {

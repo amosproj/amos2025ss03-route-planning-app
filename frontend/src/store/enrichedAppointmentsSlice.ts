@@ -20,8 +20,13 @@ const enrichedAppointmentsSlice = createSlice({
     clearEnrichedAppointments(state, action: PayloadAction<string>) {
       delete state[action.payload];
     },
+    resetEnrichedAppointments(state) {
+      Object.keys(state).forEach(date => {
+        delete state[date];
+      });
+    }
   },
 });
 
-export const { setEnrichedAppointments, clearEnrichedAppointments } = enrichedAppointmentsSlice.actions;
+export const { setEnrichedAppointments, clearEnrichedAppointments, resetEnrichedAppointments } = enrichedAppointmentsSlice.actions;
 export default enrichedAppointmentsSlice.reducer;

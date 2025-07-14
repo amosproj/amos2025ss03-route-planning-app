@@ -18,8 +18,11 @@ const routeVisibilitySlice = createSlice({
       if (!state.byDate[date]) state.byDate[date] = {};
       state.byDate[date][routeId] = isVisible;
     },
+    resetRouteVisibility(state) {
+      state.byDate = {};
+    },
   },
 });
 
-export const { setRouteVisibility } = routeVisibilitySlice.actions;
+export const { setRouteVisibility, resetRouteVisibility } = routeVisibilitySlice.actions;
 export default routeVisibilitySlice.reducer;
