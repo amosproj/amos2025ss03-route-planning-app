@@ -19,13 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useWatch } from 'react-hook-form';
 
-const AVAILABLE_SKILLS = [
-  'Plumbing',
-  'Electrical',
-  'Painting',
-  'Roofing',
-  'Landscaping',
-];
+const AVAILABLE_SKILLS = ['electrician', 'plumber', 'carpenter'];
 
 // Props for section
 interface VehiclesSectionProps {
@@ -175,7 +169,9 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
                       control={control}
                       name={`vehicles.${index}.skills`}
                       render={({ field }) => {
-                        const selected: string[] = Array.isArray(field.value) ? field.value : [];
+                        const selected: string[] = Array.isArray(field.value)
+                          ? field.value
+                          : [];
                         const toggle = (skill: string) => {
                           const updated: string[] = selected.includes(skill)
                             ? selected.filter((s: string) => s !== skill)

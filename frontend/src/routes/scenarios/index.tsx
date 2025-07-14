@@ -32,11 +32,16 @@ const columns: ColumnDef<Appointment>[] = [
     cell: ({ getValue }) => getValue<number>(),
   },
   {
+    header: "Service Time",
+    accessorKey: "service_time",
+    cell: ({ getValue }) => getValue<number>(),
+  },
+  {
     header: "Skill Needed",
     accessorKey: "skills_needed",
     cell: ({ getValue }) => {
       const skills = getValue<string[]>();
-      return skills.length > 0 ? skills.join(', ') : 'None';
+      return skills?.length > 0 ? skills.join(', ') : 'None';
     },
   },
   {

@@ -9,6 +9,7 @@ export interface Appointment {
   travel_time_to_next_min?: number;
   travel_distance_to_next_km?: number;
   appointment_type?: string;
+  skills_needed?: string[];
 }
 
 export interface EnhancedAppointment extends Appointment {
