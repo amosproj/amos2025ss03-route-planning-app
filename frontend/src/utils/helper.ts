@@ -24,7 +24,7 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
         city,
       } as Address,
       number_of_workers: parseInt(workers, 10),
-      service_time: service_time ? parseInt(service_time, 10) : 15, // Default to 15 minutes if not provided
+      service_time: service_time ? parseInt(service_time, 10) : 30, // Default to 30 minutes if not provided
       skills_needed: skillsArray,
       appointment_type: 'REAL_APPOINTMENT',
     };

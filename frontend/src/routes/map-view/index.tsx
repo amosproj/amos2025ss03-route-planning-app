@@ -185,7 +185,7 @@ function MapView() {
               .concat('.000'),
             address: app?.address,
             number_of_workers: app?.number_of_workers,
-            service_time: app?.service_time || 15, // Default to 30 minutes if not provided
+            service_time: app?.service_time || 30, // Default to 30 minutes if not provided
             appointment_type: app?.appointment_type || 'REAL_APPOINTMENT',
             skills_needed: app?.skills_needed || [],
           };
