@@ -10,10 +10,15 @@ import apiClient from '@/utils/apiClient';
 import { useMutation } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
-import { setScenarios } from '@/store/scenariosSlice';
-import { setCompanyInfo } from '@/store/companyInfoSlice';
+import { resetScenarios, setScenarios } from '@/store/scenariosSlice';
+import { resetCompanyInfo, setCompanyInfo } from '@/store/companyInfoSlice';
 import { Scenario } from '@/types/Scenario';
 import { ProgressAnimation } from '@/components/ui/progressAnimation';
+import { resetEnrichedAppointments } from '@/store/enrichedAppointmentsSlice';
+import { resetExcludedAppointments } from '@/store/excludedAppointmentsSlice';
+import { resetExcludedVehicles } from '@/store/excludedVehiclesSlice';
+import { clearSolutions } from '@/store/solutionsSlice';
+import { resetRouteVisibility } from '@/store/routeVisibilitySlice';
 
 dayjs.extend(isSameOrBefore);
 
@@ -134,7 +139,39 @@ function TestDataGeneratePage() {
           <ProgressAnimation value={progress} className="h-2" />
         )}
       </div>
-      <h1 className="text-2xl font-bold">Test Data Generator</h1>
+      <div className='flex items-center justify-between'>
+        <h1 className="text-2xl font-bold">Test Data Generator</h1>
+        <div className='flex justify-between items-center space-x-2'>
+          <Button
+            variant="outline"
+            className="bg-gray-100 text-gray-800 hover:bg-gray-200"
+            onClick={() => {
+              dispatch(resetCompanyInfo());
+              dispatch(resetEnrichedAppointments());
+              dispatch(resetExcludedAppointments());
+              dispatch(resetExcludedVehicles());
+              dispatch(resetRouteVisibility());
+              dispatch(resetScenarios());
+              dispatch(clearSolutions());
+            }}
+          >
+            Reset All
+          </Button>
+          <Button
+            variant="outline"
+            className="bg-gray-100 text-gray-800 hover:bg-gray-200"
+            onClick={() => {
+              dispatch(resetEnrichedAppointments());
+              dispatch(resetExcludedAppointments());
+              dispatch(resetExcludedVehicles());
+              dispatch(resetRouteVisibility());
+              dispatch(clearSolutions());
+            }}
+          >
+            Reset Solution
+          </Button>
+        </div>
+      </div>
 
       <div>
         <label className="block mb-2 font-medium">Date Range</label>
