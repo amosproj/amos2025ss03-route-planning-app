@@ -25,6 +25,11 @@ const excludedVehiclesSlice = createSlice({
     clearExcludedVehicles(state, action: PayloadAction<string>) {
       delete state[action.payload];
     },
+    resetExcludedVehicles(state) {
+      Object.keys(state).forEach(date => {
+        delete state[date];
+      });
+    },
     setExcludedVehicles(
       state,
       action: PayloadAction<{ date: string; vehicleIds: number[] }>
@@ -39,5 +44,6 @@ export const {
   toggleExcludedVehicle,
   clearExcludedVehicles,
   setExcludedVehicles,
+  resetExcludedVehicles,
 } = excludedVehiclesSlice.actions;
 export default excludedVehiclesSlice.reducer;

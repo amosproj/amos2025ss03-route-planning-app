@@ -173,20 +173,21 @@ function MapView() {
         .filter((_, idx) => !excluded.includes(idx))
         .map((app) => {
           return {
-            appointment_start: new Date(app.appointment_start)
+            appointment_start: new Date(app?.appointment_start)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0]
               .concat('.000'),
-            appointment_end: new Date(app.appointment_end)
+            appointment_end: new Date(app?.appointment_end)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0]
               .concat('.000'),
-            address: app.address,
-            number_of_workers: app.number_of_workers,
-            service_time: 15,
+            address: app?.address,
+            number_of_workers: app?.number_of_workers,
+            service_time: app?.service_time || 30, // Default to 30 minutes if not provided
             appointment_type: app?.appointment_type || 'REAL_APPOINTMENT',
+            skills_needed: app?.skills_needed || [],
           };
         }) || [];
 

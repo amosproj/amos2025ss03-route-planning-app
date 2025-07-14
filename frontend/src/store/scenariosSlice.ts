@@ -17,8 +17,11 @@ const scenariosSlice = createSlice({
     setScenarios(state, action: PayloadAction<Scenario[]>) {
       state.scenarios = action.payload;
     },
+    resetScenarios: (state) => {
+      state.scenarios = [];
+    },
   },
 });
 
-export const { setScenarios } = scenariosSlice.actions;
+export const { setScenarios, resetScenarios } = scenariosSlice.actions;
 export default scenariosSlice.reducer;
