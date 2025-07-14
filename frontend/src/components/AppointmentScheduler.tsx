@@ -214,20 +214,21 @@ export function AppointmentScheduler({
       const appointments = scenario.jobs
         .filter((_, idx) => !excludedAppointments[date]?.includes(idx))
         .map((job) => ({
-          address: job.address,
-          number_of_workers: job.number_of_workers,
-          service_time: 15,
+          address: job?.address,
+          number_of_workers: job?.number_of_workers,
+          service_time: job?.service_time || 15,
           appointment_start:
-            new Date(job.appointment_start)
+            new Date(job?.appointment_start)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0] + '.000',
           appointment_end:
-            new Date(job.appointment_end)
+            new Date(job?.appointment_end)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0] + '.000',
           appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
+          skills_needed: job?.skills_needed || [],
         }));
 
       const companyPayload = {

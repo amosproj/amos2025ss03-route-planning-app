@@ -11,10 +11,10 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
   lines.shift();
   const jobs: Appointment[] = lines.filter(Boolean).map((line) => {
     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-    const [start, end, streetRaw, zip, city, workers, skills] = values.map((v) =>
+    const [start, end, streetRaw, zip, city, workers, service_time, skills] = values.map((v) =>
       v.replace(/^"|"$/g, ''),
     );
-    const skillsArray = skills && skills.trim() ? skills.split(';').map(s => s.trim()).filter(Boolean) : [];
+    const skillsArray = skills && skills.trim() ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
     return {
       appointment_start: new Date(start).toISOString(),
       appointment_end: new Date(end).toISOString(),
@@ -24,8 +24,8 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
         city,
       } as Address,
       number_of_workers: parseInt(workers, 10),
-      service_time: 0,
-      skills: skillsArray,
+      service_time: service_time ? parseInt(service_time, 10) : 30, // Default to 30 minutes if not provided
+      skills_needed: skillsArray,
       appointment_type: 'REAL_APPOINTMENT',
     };
   });
