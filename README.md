@@ -3,7 +3,8 @@
 <div>Smart Route Planning</div>
 </div>
 
-***
+---
+
 # 🧭 AMOS Project Wiki
 
 Welcome to the **AMOS (Smart Route Planning)** project wiki! This system is designed to optimize routing and scheduling for field service workers, helping organizations reduce travel time, lower costs, and increase operational efficiency.
@@ -16,7 +17,6 @@ AMOS is a route optimization platform that intelligently plans service routes ba
 - **Maximizing worker productivity and profit**
 - **Supporting both fixed and flexible scheduling**
 - **Visualizing optimized routes using Google Maps**
-
 
 ## 🎯 Key Features
 
@@ -35,8 +35,6 @@ AMOS is a route optimization platform that intelligently plans service routes ba
 - **Google Maps API**: For route and location visualization
 - **GitHub Actions**: For CI/CD (under setup)
 
-
-
 ---
 
 ## 🐳 Run with Docker (Recommended)
@@ -51,14 +49,14 @@ AMOS is a route optimization platform that intelligently plans service routes ba
 ```bash
 git clone https://github.com/amosproj/amos2025ss03-route-planning-app.git
 cd amos2025ss03-route-planning-app
-````
+```
 
 ### 3. Add environment variables
 
 Create and fill in:
 
-* `frontend/.env`
-* `backend/.env`
+- `frontend/.env`
+- `backend/.env`
 
 ### 4. Build and run containers
 
@@ -68,8 +66,8 @@ docker-compose up --build
 
 ### 5. Access the applications
 
-* Frontend: [http://localhost:3000](http://localhost:3000)
-* Backend: [http://localhost:8080](http://localhost:8080)
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend: [http://localhost:8080](http://localhost:8080)
 
 ---
 
@@ -121,6 +119,7 @@ FastAPI automatically generates interactive API documentation:
 
 - Swagger UI: `http://localhost:8080/docs`
 - ReDoc: `http://localhost:8080/redoc`
+
 ---
 
 ## 🏗️ Build Frontend for Production
@@ -153,5 +152,5 @@ GOOGLE_MAPS_API_KEY=supersecretkey
 
 ## ❗ Notes
 
-* Make sure ports **3000** (frontend) and **8080** (backend) are available.
-* `.env` files are required in both `frontend/` and `backend/` for proper configuration.
+- Make sure ports **3000** (frontend) and **8080** (backend) are available.
+- `.env` files are required in both `frontend/` and `backend/` for proper configuration.
