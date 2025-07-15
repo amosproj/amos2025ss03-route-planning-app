@@ -8,6 +8,8 @@ import argparse
 from datetime import date
 import sys
 import os
+import json
+from enum import Enum
 
 # Run this script from the root directory of the project
 if __name__ == "__main__":
@@ -276,6 +278,23 @@ def create_testdata_optimization_request(
         appointments=appointments
     )
 
+# === JSON DUMP ===
+def save_optimization_request_to_json(opt_req: OptimizationRequest, filename: str):
+    def convert_sets(obj: Any):
+        if isinstance(obj, set):
+            return list(obj)
+        if isinstance(obj, Enum):
+            return obj.value  # convert enum to its underlying value (e.g., string or int)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_folder, filename)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(opt_req.model_dump(), f, indent=2, ensure_ascii=False, default=convert_sets)
+
+    print(f"JSON File successfully saved here: {file_path}")
+
 # === CSV DUMP ===
 def export_appointments_to_csv(request: OptimizationRequest, filename: str):
     current_folder = os.path.dirname(os.path.abspath(__file__))
@@ -312,6 +331,7 @@ def create_and_save_appointments_for_date_range(
     appointment_duration_factor: float,
     start_date: date,
     end_date: date,
+    num_vehicles: int = 7,
     inject_errors: bool = False
 ):
     all_appointments = []
@@ -350,23 +370,31 @@ def create_and_save_appointments_for_date_range(
                 print(f"⚠️ Injected bad address for {current_date.strftime('%Y-%m-%d')} at index {idx}: {old_address} → {new_address}")
 
         all_appointments.extend(daily_appointments)
+    
+    start_address = generate_random_address()
+    finish_address = start_address
 
-    dummy_request = OptimizationRequest(
-        company_info=CompanyInfo(
-            start_address=generate_random_address(),
-            finish_address=generate_random_address(),
-            vehicles=[]
-        ),
+    company_info = CompanyInfo(
+        start_address=start_address,
+        finish_address=finish_address,
+        vehicles =generate_filled_vehicles(num_vehicles)
+    )
+
+    request_obj = OptimizationRequest(
+        company_info=company_info,
         appointments=all_appointments
     )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_filename = f"appointments_range_{timestamp}.csv"
+    json_filename = f"appointments_range_{timestamp}.json"
 
-    export_appointments_to_csv(dummy_request, csv_filename)
+    export_appointments_to_csv(request_obj, csv_filename)
+    save_optimization_request_to_json(request_obj, json_filename)
 
     print(f"✅ Appointments saved to:")
     print(f"   📄 {csv_filename}")
+    print(f"   🗄️ {json_filename}")
 
 
 
@@ -401,6 +429,7 @@ if __name__ == "__main__":
             appointment_duration_factor=args.duration_factor,
             start_date=start_date,
             end_date=end_date,
+            num_vehicles=args.vehicles,
             inject_errors=args.inject_errors
         )
 
@@ -417,3 +446,4 @@ if __name__ == "__main__":
         json_filename = f"testdata_{timestamp}.json"
 
         export_appointments_to_csv(request_obj, csv_filename)
+        save_optimization_request_to_json(request_obj, json_filename)

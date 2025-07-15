@@ -52,11 +52,6 @@ def redis_health_check():
     else:
         return {"status": "unhealthy", "message": "Redis client not initialized"}
 
-@app.post("/api/company-info")
-def receive_company_info(company_info: CompanyInfo):
-    return validate_and_save_company_information(company_info)
-
-
 @app.post("/api/appointments")
 def receive_appointments(appointments: List[Appointment]):
     return validate_appointments(appointments)
@@ -74,6 +69,7 @@ def full_matrix(request:OptimizationRequest):
         return check_and_enhance_optimization_request(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 @app.post("/api/solve-without-check")
 def full_matrix(request:EnhancedOptimizationRequest):
     try:
