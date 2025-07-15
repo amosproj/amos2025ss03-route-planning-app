@@ -5,9 +5,9 @@
 
 ---
 
-# 🧭 AMOS Project Wiki
+# 🧭 Smart Route Planning Project Wiki
 
-Welcome to the **AMOS (Smart Route Planning)** project wiki! This system is designed to optimize routing and scheduling for field service workers, helping organizations reduce travel time, lower costs, and increase operational efficiency.
+Welcome to the **Smart Route Planning** project wiki! This system is designed to optimize routing and scheduling for field service workers, helping organizations reduce travel time, lower costs, and increase operational efficiency.
 
 ## 🚀 Overview
 
