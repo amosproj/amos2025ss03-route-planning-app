@@ -47,7 +47,7 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
   return (
     <TabsContent value="vehicles">
       <div className="p-4 space-y-4 border rounded-lg bg-background h-full">
-        <div className=" space-y-4">
+        <div className="space-y-4 overflow-y-auto max-h-96">
           {fields.map((field, index) => {
             const hasDepot = Boolean(vehicles[index]?.depot);
             const hasCost =
@@ -198,20 +198,24 @@ export const VehiclesSection: React.FC<VehiclesSectionProps> = ({
                                     </Badge>
                                   ))}
                                 </div>
-                                <div className="border rounded-md p-2 bg-muted/30 text-xs">
-                                  {AVAILABLE_SKILLS.filter(
-                                    (s: string) => !selected.includes(s),
-                                  ).map((skill: string) => (
-                                    <Badge
-                                      key={skill}
-                                      variant="outline"
-                                      className="cursor-pointer text-xs h-6 mr-1 mb-1"
-                                      onClick={() => toggle(skill)}
-                                    >
-                                      <span>{skill}</span>
-                                    </Badge>
-                                  ))}
-                                </div>
+                                {AVAILABLE_SKILLS.filter(
+                                  (s) => !selected.includes(s),
+                                ).length > 0 && (
+                                  <div className="border rounded-md p-2 bg-muted/30 text-xs">
+                                    {AVAILABLE_SKILLS.filter(
+                                      (s: string) => !selected.includes(s),
+                                    ).map((skill: string) => (
+                                      <Badge
+                                        key={skill}
+                                        variant="outline"
+                                        className="cursor-pointer text-xs h-6 mr-1 mb-1"
+                                        onClick={() => toggle(skill)}
+                                      >
+                                        <span>{skill}</span>
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </FormControl>
                             <FormMessage />
