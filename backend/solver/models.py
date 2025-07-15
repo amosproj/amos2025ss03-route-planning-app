@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Union, Set
 from dataclasses import dataclass
+from enum import Enum
 
 class Address(BaseModel):
     street: str
@@ -16,6 +17,13 @@ class OperationHours(BaseModel):
     start_minutes: int
     end_minutes: int
 
+
+class AppointmentType(Enum):
+    REAL_APPOINTMENT = "REAL_APPOINTMENT"
+    LUNCHBREAK = "LUNCHBREAK"
+    DEPOT = "DEPOT"
+
+
 class Appointment(BaseModel):
     appointment_start: str
     appointment_end: str
@@ -23,6 +31,7 @@ class Appointment(BaseModel):
     service_time: int
     number_of_workers: int
     skills_needed: Set[str] = Field(default_factory=set)
+    appointment_type: AppointmentType = Field(default_factory=AppointmentType)
 
 class EnhancedAppointment(BaseModel):
     appointment_start: str
@@ -32,9 +41,15 @@ class EnhancedAppointment(BaseModel):
     location:Location
     number_of_workers: int
     skills_needed: Set[str] = Field(default_factory=set)
+    appointment_type: AppointmentType = Field(default_factory=AppointmentType)
     travel_time_to_next_min: Optional[int] = None
     travel_distance_to_next_km: Optional[float] = None
+    arrival_time: Optional[int] = None
 
+class VehicleBreak(BaseModel):
+    duration: int  # in minutes
+    start_min: int  # earliest start time in minutes
+    start_max: int  # latest start time in minutes
 class FilledVehicle(BaseModel):
     vehicle_id:int
     skills: Set[str] = Field(default_factory=set)
@@ -42,6 +57,9 @@ class FilledVehicle(BaseModel):
     operation_hours:OperationHours
     start_address: Address
     finish_address: Address
+    cost_per_km: float
+    cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class EnhancedFilledVehicle(BaseModel):
     vehicle_id:int
@@ -52,6 +70,9 @@ class EnhancedFilledVehicle(BaseModel):
     start_location: Location
     finish_address: Address
     finish_location: Location
+    cost_per_km: float
+    cost_per_hour: float
+    vehicle_break: Optional[VehicleBreak] = None
 
 class CompanyInfo(BaseModel):
     start_address: Address
@@ -66,6 +87,7 @@ class EnhancedCompanyInfo(BaseModel):
     vehicles: List[EnhancedFilledVehicle]
 
 class OptimizationRequest(BaseModel):
+    solver_time:int = 15
     company_info: CompanyInfo
     appointments: List[Appointment]
 
@@ -123,6 +145,8 @@ class RouteMetrics(BaseModel):
     total_travel_distance_km: float
     total_service_time_min: int
     total_idle_time_min: int
+    start_time:int
+    end_time:int
 
 class Route(BaseModel):
     route_id: int
@@ -144,6 +168,7 @@ class SolutionValidationReport(BaseModel):
     missing_appointments: List[str]
     duplicate_appointments: List[str]
     route_level_errors: List[RouteValidationError]
+    impossible_appointments: List[str]
 
 class Solution(BaseModel):
     total_distance_traveled: float
@@ -153,7 +178,14 @@ class Solution(BaseModel):
     problem_metrics: List[ProblemMetric]
     validation_report: SolutionValidationReport
 
+class RouteTimes(BaseModel):
+    route_id: int
+    start_time: int
+    end_time: int
+
 class TestdataRequest(BaseModel):
     number_of_appointments:int
     number_of_vehicles:int
-    appointment_duration_factor:float #the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min 
+    appointment_duration_factor:float#the relation between service time and appointment duration e.g. service time 30 min, appointment_duration_factor 2.0 -> appointment end = appointment start +60min
+    month:int
+    day:int

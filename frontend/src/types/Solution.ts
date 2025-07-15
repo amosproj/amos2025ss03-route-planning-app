@@ -30,6 +30,8 @@ interface RouteMetrics {
   total_travel_distance_km: number;
   total_service_time_min: number;
   total_idle_time_min: number;
+  start_time: number;
+  end_time: number; 
 }
 
 interface RouteValidationError {
@@ -37,10 +39,11 @@ interface RouteValidationError {
   errors: string[];
 }
 
-interface SolutionValidationReport {
+export interface SolutionValidationReport {
   is_valid: boolean;
   errors: string[];
   missing_appointments: string[];
   duplicate_appointments: string[];
   route_level_errors: RouteValidationError[];
+  impossible_appointments: string[];
 }

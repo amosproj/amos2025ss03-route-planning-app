@@ -1,4 +1,6 @@
 # backend/app.py
+from calendar import month
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,7 +85,7 @@ def full_matrix(request:EnhancedOptimizationRequest):
 def check_and_solve(request: OptimizationRequest):
     try:
         enh =  check_and_enhance_optimization_request(request)
-        return solve_appointment_routing(enh)
+        return solve_appointment_routing(optimization_request= enh,optimization_time_limit=request.solver_time)
     except Exception as e:
        raise HTTPException(status_code=500, detail=str(e))
 
@@ -93,7 +95,9 @@ def get_testdata_optimization_request(request:TestdataRequest):
         opti_request = create_testdata_optimization_request(
             num_vehicles = request.number_of_vehicles,
             num_appointments = request.number_of_appointments,
-            appointment_duration_factor= request.appointment_duration_factor
+            appointment_duration_factor= request.appointment_duration_factor,
+            month = request.month,
+            day = request.day
         )
         return opti_request
     except Exception as e:

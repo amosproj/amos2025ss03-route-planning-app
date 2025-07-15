@@ -7,30 +7,31 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { setEnrichedAppointments } from '../../store/enrichedAppointmentsSlice';
 import { addSolution } from '../../store/solutionsSlice';
-import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
-import { Solution } from '../../types/Solution';
-import { OptimizationRequest } from '../../types/OptimizationRequest';
-import apiClient from '../../utils/apiClient';
 import {
   toggleExcludedAppointment,
   setExcludedAppointments,
 } from '../../store/excludedAppointmentsSlice';
+import { setRouteVisibility } from '@/store/routeVisibilitySlice';
+import { EnhancedAddressResponse } from '../../types/EnhancedAddressResponse';
+import { Solution } from '../../types/Solution';
+import { OptimizationRequest } from '../../types/OptimizationRequest';
 import { Button } from '@/components/ui/button';
 import { Fullscreen } from 'lucide-react';
 import { RouteOverlay } from '@/components/RouteOverlay';
 import Panel from '@/components/Panel';
+import apiClient from '../../utils/apiClient';
 import { createDepotMarkerIcon } from '@/utils/helper';
+import { BackButton } from '@/components/BackButton';
 
 export const Route = createFileRoute('/map-view/')({ component: MapView });
 
 function MapView() {
-  const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);
   const date = searchParams.get('date') || '';
 
@@ -39,21 +40,31 @@ function MapView() {
   const excluded = useSelector(
     (s: RootState) => s.excludedAppointments[date] ?? [],
   );
+  const excludedVehicles = useSelector(
+    (s: RootState) => s.excludedVehicles[date] ?? [],
+  );
   const scenario = scenarios.find(
     (s) => s.date.toString() === date.split('"')[1],
   );
+  const solverTime = useSelector((s: RootState) => s.companyInfo.solver_time);
 
   // Prepare appointments payload
   const appointmentsPayload =
-    scenario?.jobs.map((job) => ({
-      address: job.address,
-      number_of_workers: job.number_of_workers,
-      service_time: 30,
-      appointment_start: new Date(job.appointment_start).toISOString(),
-      appointment_end: new Date(job.appointment_end).toISOString(),
-    })) || [];
-
-  // console.log('MapView appointmentsPayload', appointmentsPayload);
+    // Create a shallow copy HERE using the spread syntax [...] before sorting
+    [...(scenario?.jobs || [])]
+      .sort(
+        (a, b) =>
+          new Date(b.appointment_start).getTime() -
+          new Date(a.appointment_start).getTime(),
+      )
+      .map((job) => ({
+        address: job.address,
+        number_of_workers: job.number_of_workers,
+        service_time: 30, // Note: You have this hardcoded
+        appointment_start: new Date(job.appointment_start).toISOString(),
+        appointment_end: new Date(job.appointment_end).toISOString(),
+        appointment_type: job?.appointment_type || 'REAL_APPOINTMENT',
+      }));
 
   const cachedResponses = useSelector(
     (s: RootState) => s.enrichedAppointments[date],
@@ -61,8 +72,8 @@ function MapView() {
   const initialData:
     | { address_responses: EnhancedAddressResponse[]; errors: string[] }
     | undefined = cachedResponses
-      ? { address_responses: cachedResponses, errors: [] }
-      : undefined;
+    ? { address_responses: cachedResponses, errors: [] }
+    : undefined;
 
   interface AppointmentResponse {
     address_responses: EnhancedAddressResponse[];
@@ -110,12 +121,9 @@ function MapView() {
   );
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const companyInfo = useSelector(
-    (s: RootState) => s.companyInfo[date.split('"')[1]] ?? null,
-  );
-  const solution = useSelector(
-    (s: RootState) => s.solutions.byDate[date],
-  );
+  const companyInfo = useSelector((s: RootState) => s.companyInfo);
+  console.log('MapView companyInfo', companyInfo);
+  const solution = useSelector((s: RootState) => s.solutions.byDate[date]);
 
   // console.log('MapView companyInfo', companyInfo);
   const [startLoc, setStartLoc] = useState<{ lat: number; lng: number } | null>(
@@ -138,13 +146,24 @@ function MapView() {
         .then((res) => res.data),
     onSuccess: (data) => {
       dispatch(addSolution({ date, solution: data }));
+
+      // Set route visibility for the new solution
+      data.routes.forEach((route) => {
+        dispatch(
+          setRouteVisibility({
+            date,
+            routeId: route.route_id,
+            isVisible: true,
+          }),
+        );
+      });
       console.log('Received solution:', data);
     },
     onError: (error) => console.error('Failed to get solution:', error),
   });
 
   const handleOptimize = () => {
-    if (!scenario || !companyInfo) {
+    if (!scenario) {
       alert('Please ensure scenario and company information are configured.');
       return;
     }
@@ -154,19 +173,21 @@ function MapView() {
         .filter((_, idx) => !excluded.includes(idx))
         .map((app) => {
           return {
-            appointment_start: new Date(app.appointment_start)
+            appointment_start: new Date(app?.appointment_start)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0]
               .concat('.000'),
-            appointment_end: new Date(app.appointment_end)
+            appointment_end: new Date(app?.appointment_end)
               .toISOString()
               .replace('T', ' ')
               .split('.')[0]
               .concat('.000'),
-            address: app.address,
-            number_of_workers: app.number_of_workers,
-            service_time: 15,
+            address: app?.address,
+            number_of_workers: app?.number_of_workers,
+            service_time: app?.service_time || 30, // Default to 30 minutes if not provided
+            appointment_type: app?.appointment_type || 'REAL_APPOINTMENT',
+            skills_needed: app?.skills_needed || [],
           };
         }) || [];
 
@@ -174,31 +195,41 @@ function MapView() {
     const alteredCompanyInfo = {
       start_address: companyInfo.start_address,
       finish_address: companyInfo.finish_address,
-      vehicles: companyInfo.vehicles.map((v) => ({
-        vehicle_id: v.vehicle_id,
-        skills: v.skills ? [...v.skills] : [],
-        worker_amount: v.worker_amount,
-        operation_hours: v.operation_hours,
-        start_address: v.depot?.start || companyInfo.start_address,
-        finish_address: v.depot?.finish || companyInfo.finish_address,
-      })),
+      vehicles: companyInfo.vehicles
+        .filter((v) => !excludedVehicles.includes(v.vehicle_id))
+        .map((v) => ({
+          vehicle_id: v.vehicle_id,
+          skills: v.skills ? [...v.skills] : [],
+          worker_amount: v.worker_amount,
+          operation_hours: v.operation_hours,
+          start_address: v.depot?.start || companyInfo.start_address,
+          finish_address: v.depot?.finish || companyInfo.finish_address,
+          cost_per_km: v.cost_per_km,
+          cost_per_hour: v.cost_per_hour,
+          vehicle_break: v.vehicle_break || null,
+        })),
     };
 
     // The backend expects an array of skills, not the frontend's string format
     const request: OptimizationRequest = {
-      //@ts-expect-error // The backend expects a specific format for company info
+      //@ts-expect-error - type mismatch due to optional fields
       company_info: alteredCompanyInfo,
+      solver_time: companyInfo.solver_time,
       appointments: enhancedAppointments,
-    } ;
+    };
 
-    // console.log(JSON.stringify(request, null, 2));
+    console.log(JSON.stringify(request, null, 2));
     optimizationMutation.mutate(request);
   };
 
   // Calculate metrics for OptimizationBar
   const includedJobs = scenario ? scenario.jobs.length - excluded.length : 0;
-  const totalWorkers = companyInfo.vehicles.length || 0;
-  const canOptimize = !!scenario && !!companyInfo && includedJobs > 0;
+  const totalWorkers = companyInfo
+    ? companyInfo.vehicles.filter(
+        (v) => !excludedVehicles.includes(v.vehicle_id),
+      ).length
+    : 0;
+  const canOptimize = !!scenario && includedJobs > 0;
 
   // Check if start and end locations are the same (depot scenario)
   const isSameLocation = useMemo(() => {
@@ -211,7 +242,7 @@ function MapView() {
   }, [startLoc, finishLoc]);
 
   useEffect(() => {
-    if (isLoaded && companyInfo) {
+    if (isLoaded) {
       const geocoder = new window.google.maps.Geocoder();
       const formatAddr = (addr: {
         street: string;
@@ -323,21 +354,16 @@ function MapView() {
           <div className="flex-1 flex flex-col">
             {/* Route input Form */}
             <div className="p-2 flex items-center justify-between border-b ">
-              <span className="flex items-center ">
-                <button
-                  onClick={() => navigate({ to: '/scenarios' })}
-                  className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
-                >
-                  ←
-                </button>
-              </span>
+              <BackButton />
+
               <OptimizationBar
                 includedJobs={includedJobs}
                 totalWorkers={totalWorkers}
-                isOptimizing={optimizationMutation.isPending}
+                isOptimizing={optimizationMutation.status === 'pending'}
                 canOptimize={canOptimize}
                 onOptimize={handleOptimize}
                 scenarioDate={scenario ? new Date(scenario.date) : undefined}
+                solverTime={solverTime}
               />
 
               <h2 className="text-lg font-semibold text-primary">
@@ -354,7 +380,7 @@ function MapView() {
             <div className="relative flex-1">
               <Button
                 onClick={goHomeView}
-                className="absolute top-3 right-14 z-10  rounded shadow"
+                className="absolute top-3 right-14 z-10 rounded shadow bg-white text-gray-800 hover:bg-gray-100"
               >
                 <Fullscreen />{' '}
               </Button>
@@ -366,8 +392,8 @@ function MapView() {
               >
                 {locations.map((loc: EnhancedAddressResponse, idx: number) =>
                   !excluded.includes(idx) &&
-                    loc.latitude != null &&
-                    loc.longitude != null ? (
+                  loc.latitude != null &&
+                  loc.longitude != null ? (
                     <Marker
                       key={idx}
                       position={{ lat: loc.latitude, lng: loc.longitude }}
@@ -377,25 +403,26 @@ function MapView() {
                 )}
                 {/* Start and finish markers - or depot marker if same location */}
                 {solution &&
-                solution.routes.map((route) => {
-                  if (route.appointments[0].address.street !== companyInfo?.start_address.street) {
-                    return (
-                      <Marker
-                        key={route.vehicle_id}
-                        position={{
-                          lat: route.appointments[0].location.lat,
-                          lng: route.appointments[0].location.lng,
-                        }}
-                        icon={{
-                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                        }}
-                        title="Depot (Start)"
-                      />
-                    );
-                  }
-                  
-                })
-                }
+                  solution.routes.map((route) => {
+                    if (
+                      route.appointments[0].address.street !==
+                      companyInfo?.start_address.street
+                    ) {
+                      return (
+                        <Marker
+                          key={route.vehicle_id}
+                          position={{
+                            lat: route.appointments[0].location.lat,
+                            lng: route.appointments[0].location.lng,
+                          }}
+                          icon={{
+                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                          }}
+                          title="Depot (Start)"
+                        />
+                      );
+                    }
+                  })}
                 {isSameLocation && startLoc ? (
                   <Marker
                     position={startLoc}
@@ -473,12 +500,7 @@ function MapView() {
         ) : (
           <Skeleton className="flex-1 flex flex-col">
             <div className="p-2 bg-white shadow-md flex items-center justify-between">
-              <button
-                onClick={() => navigate({ to: '/scenarios' })}
-                className="px-3 py-1 text-sm font-medium text-primary"
-              >
-                ← Back
-              </button>
+              <BackButton />
               <span>Loading Locations for map view...</span>
               <h2 className="text-lg font-semibold text-primary">
                 Map for {new Date(scenario.date).toLocaleDateString()}

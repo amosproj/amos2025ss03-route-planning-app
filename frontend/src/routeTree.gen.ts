@@ -14,7 +14,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as WorkerViewIndexImport } from './routes/worker-view/index'
 import { Route as WeekViewIndexImport } from './routes/week-view/index'
+import { Route as TestdataGenerateIndexImport } from './routes/testdata-generate/index'
 import { Route as ScenariosIndexImport } from './routes/scenarios/index'
+import { Route as MultiDaysViewIndexImport } from './routes/multi-days-view/index'
 import { Route as MapViewIndexImport } from './routes/map-view/index'
 import { Route as DailyPlanIndexImport } from './routes/daily-plan/index'
 import { Route as CompanyConfigIndexImport } from './routes/company-config/index'
@@ -39,9 +41,21 @@ const WeekViewIndexRoute = WeekViewIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const TestdataGenerateIndexRoute = TestdataGenerateIndexImport.update({
+  id: '/testdata-generate/',
+  path: '/testdata-generate/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ScenariosIndexRoute = ScenariosIndexImport.update({
   id: '/scenarios/',
   path: '/scenarios/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MultiDaysViewIndexRoute = MultiDaysViewIndexImport.update({
+  id: '/multi-days-view/',
+  path: '/multi-days-view/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,11 +109,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapViewIndexImport
       parentRoute: typeof rootRoute
     }
+    '/multi-days-view/': {
+      id: '/multi-days-view/'
+      path: '/multi-days-view'
+      fullPath: '/multi-days-view'
+      preLoaderRoute: typeof MultiDaysViewIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/scenarios/': {
       id: '/scenarios/'
       path: '/scenarios'
       fullPath: '/scenarios'
       preLoaderRoute: typeof ScenariosIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/testdata-generate/': {
+      id: '/testdata-generate/'
+      path: '/testdata-generate'
+      fullPath: '/testdata-generate'
+      preLoaderRoute: typeof TestdataGenerateIndexImport
       parentRoute: typeof rootRoute
     }
     '/week-view/': {
@@ -126,7 +154,9 @@ export interface FileRoutesByFullPath {
   '/company-config': typeof CompanyConfigIndexRoute
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
+  '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/testdata-generate': typeof TestdataGenerateIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -136,7 +166,9 @@ export interface FileRoutesByTo {
   '/company-config': typeof CompanyConfigIndexRoute
   '/daily-plan': typeof DailyPlanIndexRoute
   '/map-view': typeof MapViewIndexRoute
+  '/multi-days-view': typeof MultiDaysViewIndexRoute
   '/scenarios': typeof ScenariosIndexRoute
+  '/testdata-generate': typeof TestdataGenerateIndexRoute
   '/week-view': typeof WeekViewIndexRoute
   '/worker-view': typeof WorkerViewIndexRoute
 }
@@ -147,7 +179,9 @@ export interface FileRoutesById {
   '/company-config/': typeof CompanyConfigIndexRoute
   '/daily-plan/': typeof DailyPlanIndexRoute
   '/map-view/': typeof MapViewIndexRoute
+  '/multi-days-view/': typeof MultiDaysViewIndexRoute
   '/scenarios/': typeof ScenariosIndexRoute
+  '/testdata-generate/': typeof TestdataGenerateIndexRoute
   '/week-view/': typeof WeekViewIndexRoute
   '/worker-view/': typeof WorkerViewIndexRoute
 }
@@ -159,7 +193,9 @@ export interface FileRouteTypes {
     | '/company-config'
     | '/daily-plan'
     | '/map-view'
+    | '/multi-days-view'
     | '/scenarios'
+    | '/testdata-generate'
     | '/week-view'
     | '/worker-view'
   fileRoutesByTo: FileRoutesByTo
@@ -168,7 +204,9 @@ export interface FileRouteTypes {
     | '/company-config'
     | '/daily-plan'
     | '/map-view'
+    | '/multi-days-view'
     | '/scenarios'
+    | '/testdata-generate'
     | '/week-view'
     | '/worker-view'
   id:
@@ -177,7 +215,9 @@ export interface FileRouteTypes {
     | '/company-config/'
     | '/daily-plan/'
     | '/map-view/'
+    | '/multi-days-view/'
     | '/scenarios/'
+    | '/testdata-generate/'
     | '/week-view/'
     | '/worker-view/'
   fileRoutesById: FileRoutesById
@@ -188,7 +228,9 @@ export interface RootRouteChildren {
   CompanyConfigIndexRoute: typeof CompanyConfigIndexRoute
   DailyPlanIndexRoute: typeof DailyPlanIndexRoute
   MapViewIndexRoute: typeof MapViewIndexRoute
+  MultiDaysViewIndexRoute: typeof MultiDaysViewIndexRoute
   ScenariosIndexRoute: typeof ScenariosIndexRoute
+  TestdataGenerateIndexRoute: typeof TestdataGenerateIndexRoute
   WeekViewIndexRoute: typeof WeekViewIndexRoute
   WorkerViewIndexRoute: typeof WorkerViewIndexRoute
 }
@@ -198,7 +240,9 @@ const rootRouteChildren: RootRouteChildren = {
   CompanyConfigIndexRoute: CompanyConfigIndexRoute,
   DailyPlanIndexRoute: DailyPlanIndexRoute,
   MapViewIndexRoute: MapViewIndexRoute,
+  MultiDaysViewIndexRoute: MultiDaysViewIndexRoute,
   ScenariosIndexRoute: ScenariosIndexRoute,
+  TestdataGenerateIndexRoute: TestdataGenerateIndexRoute,
   WeekViewIndexRoute: WeekViewIndexRoute,
   WorkerViewIndexRoute: WorkerViewIndexRoute,
 }
@@ -217,7 +261,9 @@ export const routeTree = rootRoute
         "/company-config/",
         "/daily-plan/",
         "/map-view/",
+        "/multi-days-view/",
         "/scenarios/",
+        "/testdata-generate/",
         "/week-view/",
         "/worker-view/"
       ]
@@ -234,8 +280,14 @@ export const routeTree = rootRoute
     "/map-view/": {
       "filePath": "map-view/index.tsx"
     },
+    "/multi-days-view/": {
+      "filePath": "multi-days-view/index.tsx"
+    },
     "/scenarios/": {
       "filePath": "scenarios/index.tsx"
+    },
+    "/testdata-generate/": {
+      "filePath": "testdata-generate/index.tsx"
     },
     "/week-view/": {
       "filePath": "week-view/index.tsx"

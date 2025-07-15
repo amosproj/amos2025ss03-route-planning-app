@@ -1,35 +1,41 @@
 from typing import List, Set, Dict
 from collections import defaultdict
-from solver.models import Route, SolutionValidationReport, RouteValidationError
+from solver.models import Route, SolutionValidationReport, RouteValidationError,AppointmentType,EnhancedAppointment
 from solver.util import to_minutes, to_hhmm
+
 
 def validate_solution_and_report(
     routes: List[Route],
     time_matrix: List[List[int]],
     addresses: List[str],
     depot_start_location_id: str,
-    depot_end_location_id: str
+    depot_end_location_id: str,
+    incompatible_appointments: List[EnhancedAppointment]
 ) -> SolutionValidationReport:
     global_errors = []
     route_level_errors = []
     visited_ids: List[str] = []
     location_to_routes = defaultdict(list)
+    depots: List[str] = []
+
+    imp_app_location_ids = []
+
+    for imp_app in incompatible_appointments:
+        imp_app_location_ids.append(imp_app.location.id)
 
     for route in routes:
         appts = route.appointments
         route_errors = []
 
-        if not appts:
-            route_errors.append(f"Route {route.route_id} has no appointments.")
+        if route_errors:
             route_level_errors.append(RouteValidationError(route_id=route.route_id, errors=route_errors))
             continue
 
-        if appts[0].location.id != depot_start_location_id:
-            route_errors.append(f"Route does not start at correct depot: {appts[0].location.id}")
-        if appts[-1].location.id != depot_end_location_id:
-            route_errors.append(f"Route does not end at correct depot: {appts[-1].location.id}")
+        for i, appointment in enumerate(appts[:-1]):
 
-        for i in range(len(appts) - 1):
+            if appointment.appointment_type == AppointmentType.DEPOT:
+                depots.append(appointment.location.id)
+
             current = appts[i]
             nxt = appts[i + 1]
 
@@ -75,7 +81,11 @@ def validate_solution_and_report(
                     f"(Finish: {to_hhmm(arrival_at_next + nxt.service_time)} > Window End: {to_hhmm(nxt_window_end)})."
                 )
 
-            if from_id not in {depot_start_location_id, depot_end_location_id}:
+            if (
+                    appointment.appointment_type == AppointmentType.REAL_APPOINTMENT
+                    and from_id not in {depot_start_location_id, depot_end_location_id}
+                    and from_id not in visited_ids
+            ):
                 visited_ids.append(from_id)
                 location_to_routes[from_id].append(route.route_id)
 
@@ -94,9 +104,16 @@ def validate_solution_and_report(
 
     all_ids = set(addresses) - {depot_start_location_id, depot_end_location_id}
     visited_set: Set[str] = set(visited_ids)
-    missed = list(all_ids - visited_set)
+    depot_set:Set[str] = set(depots)
+    print(f"DEPOTSET: {depot_set}")
+    missed = list(all_ids - visited_set- depot_set)
     if missed:
-        global_errors.append(f"Appointments not visited: {missed}")
+        # Loop through missed appointments and add to global errors if they are impossible or dropped by the solver
+        for missed_id in missed:
+            if missed_id in imp_app_location_ids:
+                global_errors.append(f"Appointment {missed_id} is incompatible.")
+            else:
+                global_errors.append(f"Appointment {missed_id} was not scheduled.")
 
     is_valid = not global_errors and not route_level_errors
 
@@ -105,5 +122,6 @@ def validate_solution_and_report(
         errors=global_errors,
         missing_appointments=missed,
         duplicate_appointments=duplicates,
-        route_level_errors=route_level_errors
+        route_level_errors=route_level_errors,
+        impossible_appointments = imp_app_location_ids
     )

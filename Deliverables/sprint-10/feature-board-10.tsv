@@ -1,0 +1,53 @@
+Title	URL	Assignees	Status	Estimated size	Real size	Labels
+Add “Number of Impossible Appointments” to Validation Report	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/204		Product Backlog	5		backend
+Distinguish Between Appointments and Depots in Validation Report	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/206		Product Backlog	3		backend
+Exclude portion of waiting time from cost to accomodate breaks --> possible ghost appointments for breaks	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/246		Product Backlog			backend
+Implement Hover Effect on Buttons	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/234		Product Backlog			frontend
+Allow Users to Correct Invalid Appointment Addresses in the UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/231		Product Backlog			frontend
+Compare New Solutions to Previous Ones	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/236		Product Backlog			backend, frontend
+Enable Manual Route Editing from the Frontend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/103		Product Backlog			frontend
+Show Skipped Appointments in Route Metrics Solution	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/245		Product Backlog			frontend
+Time Google OR Takes to Solve More Appointments	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/151		Product Backlog			
+Benchmark Distance Matrix Time on Large Datasets	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/152		Product Backlog			
+Update Solver for Higher Appointment Capacity	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/155		Product Backlog			
+Have Time Strings instead of TimeStamps	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/172		Product Backlog			
+Allow User to Configure Service Time per Appointment (With Default Fallback)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/129		Product Backlog			
+Convert Optimization Output to JSON	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/31		Product Backlog			
+Switch Between  Optimization Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/7		Product Backlog	5		
+Implement Caching Strategy for Distance Matrix	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/101		Product Backlog			
+Display and Export Individual Worker Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/128		Product Backlog			
+Improve Post-Validation to Include Service Time and Parameters	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/153		Product Backlog			
+Rewrite Route Metrics Calculation to Be Accurate and Integrated	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/207	SUFelix	In Progress	3		backend
+Show Optimization details on Multi day selection page 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/215	fariarahman15, SK-Subroto	Awaiting Review	8		frontend
+Add Option to Exclude Vehicles	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/235	jkleinau	Awaiting Review	5		frontend
+Enhance Multi-Day selection feature 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/230	SK-Subroto	Awaiting Review	5		frontend
+Back Button in Map View Defaults to Current Month	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/232	fariarahman15	Awaiting Review	2		frontend
+Update Save Button in Company Configuration Page	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/238	fariarahman15	Awaiting Review	2		frontend
+ Integrate Metric Logic into Solver	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/220	fahimu10	Awaiting Review	5		backend
+Add Cost Metrics to Data Structure	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/228	fahimu10	Awaiting Review	3		backend
+Include Depot Departure/Return Time in Route	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/205	SUFelix	Awaiting Review	3		backend
+Set Up Docker for Caching	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/159	fahimu10	Feature Archive	5	5	backend
+Implement Logic for Multiple Depots in the Solver	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/195	SUFelix	Feature Archive	5	13	backend
+Implement Multiple Workers  to One vehicle Logic in Solver	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/197	SUFelix	Feature Archive	3	2	backend
+Implement Caching for Distance Matrix	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/183	fahimu10	Feature Archive	8	8	backend
+Map Vehicle IDs Between Input and Output	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/203	jkleinau	Feature Archive	3	3	backend
+Add More Configuration Parameters to Company Info Page	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/185	jkleinau	Feature Archive	5	5	frontend
+Show Map view redirect button from Daily Plan View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/219	fariarahman15	Feature Archive	2	2	frontend
+Pass Skill Constraint Data to Optimization Logic	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/160	SUFelix	Feature Archive	3	5	backend
+ Vehicle Time Windows – Adjust Data Structure and Pass Data 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/149	jkleinau, SUFelix	Feature Archive	3	3	backend
+Implementing UI Changes for Multiple Depots	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/196	jkleinau	Feature Archive	5	5	frontend
+Unify Design of Calendar View with the Rest of the UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/194	fariarahman15	Feature Archive	3	3	frontend
+Create Button to Navigate from Map View to Daily Plan View and Back and Also from Upload page to Calendar View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/193	fariarahman15	Feature Archive	2	3	frontend
+Allow Multi-Day Selection for Optimization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/184	SK-Subroto	Feature Archive	8	8	frontend
+Write Script for Dummy Test Data Creation	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/150	SUFelix	Feature Archive	5	5	backend
+Add Route Metrics To  Data Structure : Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/178	fahimu10	Feature Archive	3	3	backend
+Calculate Waiting Time in Post Processing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/156	fahimu10	Feature Archive	5	5	backend
+Create Company Info Configuration page	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/174	jkleinau	Feature Archive	8	8	frontend
+Add Colored  Start Address Pin and End Address Pin on the optimised routes	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/170	jkleinau	Feature Archive	3	3	frontend
+Add Button to Daily Plan and Worker Plan from Map View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/158	SK-Subroto	Feature Archive	2	2	frontend
+Separate Pages for daily Plan View and Individual Plan View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/176	fariarahman15	Feature Archive	8	8	frontend
+Figure Starting Time Interval for the Routes 	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/154	SUFelix	Feature Archive	3	2	backend
+(Frontend): Support Route Metrics in Client Data Model	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/179	fariarahman15	Feature Archive	2	2	frontend
+Add Month Support to Calendar View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/157	SK-Subroto	Feature Archive	5	8	frontend
+Implement Frontend Visualization for Information Raised in Preprocessing	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/126	fariarahman15, SK-Subroto	Feature Archive	5	5	
+Update Project Documentation (Ongoing)	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/81	fahimu10, SK-Subroto	Feature Archive	3	5	

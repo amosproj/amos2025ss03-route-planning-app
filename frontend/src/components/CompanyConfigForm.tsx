@@ -10,40 +10,34 @@ import { Address } from '@/types/Address';
 import { CompanyInfo } from '@/types/CompanyInfo';
 import { setCompanyInfo } from '@/store/companyInfoSlice';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from './ui/sonner';
 import { toast } from 'sonner';
-import {AddressSection} from './AddressSection';
-import {VehiclesSection} from './VehiclesSection';
-import {DepotDialog} from './DepotDialog';
+import { AddressSection } from './AddressSection';
+import { VehiclesSection } from './VehiclesSection';
+import { DepotDialog } from './DepotDialog';
 import VehicleCostDialog from './VehicleCostDialog';
+import VehicleBreakDialog from './VehicleBreakDialog';
 
 import { MapPin, Truck } from 'lucide-react';
 
 // default address for fallbacks
 const defaultAddr: Address = { street: '', zip_code: '', city: '' };
 
-
 export function CompanyConfigForm() {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get default company info for all scenarios
-  const scenarios = useSelector((s: RootState) => s.scenarios.scenarios);
-  const firstScenarioDate =
-    scenarios.length > 0 ? scenarios[0].date.toString() : null;
-  const existingCompany = useSelector((state: RootState) =>
-    firstScenarioDate ? state.companyInfo[firstScenarioDate] : null,
-  );
+  // Get company info from the store
+  const existingCompany = useSelector((state: RootState) => state.companyInfo);
 
   const [startAddrObj, setStartAddrObj] = useState<Address>(defaultAddr);
   const [finishAddrObj, setFinishAddrObj] = useState<Address>(defaultAddr);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
+    defaultValues: { solverTime: 15 },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -54,9 +48,18 @@ export function CompanyConfigForm() {
   // Depot dialog state and handlers
   const [depotOpen, setDepotOpen] = useState(false);
   const [currentDepotIdx, setCurrentDepotIdx] = useState<number | null>(null);
-  const initialDepot = currentDepotIdx !== null ? (form.getValues(`vehicles.${currentDepotIdx}.depot`) || null) : null;
-  const openDepotDialog = (idx: number) => { setCurrentDepotIdx(idx); setDepotOpen(true); };
-  const closeDepotDialog = () => { setDepotOpen(false); setCurrentDepotIdx(null); };
+  const initialDepot =
+    currentDepotIdx !== null
+      ? form.getValues(`vehicles.${currentDepotIdx}.depot`) || null
+      : null;
+  const openDepotDialog = (idx: number) => {
+    setCurrentDepotIdx(idx);
+    setDepotOpen(true);
+  };
+  const closeDepotDialog = () => {
+    setDepotOpen(false);
+    setCurrentDepotIdx(null);
+  };
   const handleSaveDepot = (depot: { start: Address; finish: Address }) => {
     if (currentDepotIdx !== null) {
       form.setValue(`vehicles.${currentDepotIdx}.depot`, depot);
@@ -73,18 +76,64 @@ export function CompanyConfigForm() {
   // Cost dialog state and handlers
   const [costOpen, setCostOpen] = useState(false);
   const [currentCostIdx, setCurrentCostIdx] = useState<number | null>(null);
-  const initialCost = currentCostIdx !== null ? {
-    cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
-    cost_per_hour: form.getValues(`vehicles.${currentCostIdx}.cost_per_hour`),
-  } : null;
-  const openCostDialog = (idx: number) => { setCurrentCostIdx(idx); setCostOpen(true); };
-  const closeCostDialog = () => { setCostOpen(false); setCurrentCostIdx(null); };
-  const handleSaveCost = (costs: { cost_per_km: number; cost_per_hour: number }) => {
+  const initialCost =
+    currentCostIdx !== null
+      ? {
+        cost_per_km: form.getValues(`vehicles.${currentCostIdx}.cost_per_km`),
+        cost_per_hour: form.getValues(
+          `vehicles.${currentCostIdx}.cost_per_hour`,
+        ),
+      }
+      : null;
+  const openCostDialog = (idx: number) => {
+    setCurrentCostIdx(idx);
+    setCostOpen(true);
+  };
+  const closeCostDialog = () => {
+    setCostOpen(false);
+    setCurrentCostIdx(null);
+  };
+  const handleSaveCost = (costs: {
+    cost_per_km: number;
+    cost_per_hour: number;
+  }) => {
     if (currentCostIdx !== null) {
-      form.setValue(`vehicles.${currentCostIdx}.cost_per_km`, costs.cost_per_km);
-      form.setValue(`vehicles.${currentCostIdx}.cost_per_hour`, costs.cost_per_hour);
+      form.setValue(
+        `vehicles.${currentCostIdx}.cost_per_km`,
+        costs.cost_per_km,
+      );
+      form.setValue(
+        `vehicles.${currentCostIdx}.cost_per_hour`,
+        costs.cost_per_hour,
+      );
     }
     closeCostDialog();
+  };
+
+  // Vehicle break dialog state and handlers
+  const [breakOpen, setBreakOpen] = useState(false);
+  const [currentBreakIdx, setCurrentBreakIdx] = useState<number | null>(null);
+  const initialBreak =
+    currentBreakIdx !== null
+      ? form.getValues(`vehicles.${currentBreakIdx}.vehicle_break`) || null
+      : null;
+  const openBreakDialog = (idx: number) => {
+    setCurrentBreakIdx(idx);
+    setBreakOpen(true);
+  };
+  const closeBreakDialog = () => {
+    setBreakOpen(false);
+    setCurrentBreakIdx(null);
+  };
+  const handleSaveBreak = (breakInfo: {
+    duration: number;
+    start_min: number;
+    start_max: number;
+  }) => {
+    if (currentBreakIdx !== null) {
+      form.setValue(`vehicles.${currentBreakIdx}.vehicle_break`, breakInfo);
+    }
+    closeBreakDialog();
   };
 
   useEffect(() => {
@@ -108,23 +157,28 @@ export function CompanyConfigForm() {
       form.reset({
         startAddress: displayStart,
         finishAddress: displayFinish,
+        solverTime: existingCompany.solver_time ?? 15,
         vehicles:
           existingCompany.vehicles.length > 0
             ? existingCompany.vehicles.map((vehicle) => ({
-                ...vehicle,
-                operation_hours: vehicle.operation_hours || {
-                  start_minutes: 480,
-                  end_minutes: 960,
-                },
-              }))
+              ...vehicle,
+              operation_hours: vehicle.operation_hours || {
+                start_minutes: 480,
+                end_minutes: 960,
+              },
+              cost_per_km: vehicle.cost_per_km ?? 0.5,
+              cost_per_hour: vehicle.cost_per_hour ?? 45.0,
+            }))
             : [
-                {
-                  vehicle_id: 0,
-                  skills: null,
-                  worker_amount: 1,
-                  operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
-                },
-              ],
+              {
+                vehicle_id: 0,
+                skills: [],
+                worker_amount: 1,
+                operation_hours: { start_minutes: 480, end_minutes: 960 },
+                cost_per_km: 0.5,
+                cost_per_hour: 45.0,
+              },
+            ],
       });
 
       setStartAddrObj(existingCompany.start_address);
@@ -132,25 +186,17 @@ export function CompanyConfigForm() {
     }
   }, [existingCompany, form]);
 
-
-
   const onSubmit = (values: FormSchemaType) => {
     console.log('Form submitted with values:', values);
     const companyInfo: CompanyInfo = {
       start_address: startAddrObj,
       finish_address: finishAddrObj,
       vehicles: values.vehicles,
+      solver_time: values.solverTime,
     };
 
-    // Apply to all scenarios
-    scenarios.forEach((scenario) => {
-      dispatch(
-        setCompanyInfo({
-          date: scenario.date.toString(),
-          companyInfo,
-        }),
-      );
-    });
+    // Save company info to store
+    dispatch(setCompanyInfo(companyInfo));
 
     toast('Company configuration saved successfully!');
   };
@@ -160,12 +206,13 @@ export function CompanyConfigForm() {
       fields.length > 0 ? Math.max(...fields.map((f) => f.vehicle_id)) + 1 : 0;
     append({
       vehicle_id: newId,
-      skills: null,
+      skills: [],
       worker_amount: 1,
       operation_hours: { start_minutes: 480, end_minutes: 960 }, // 8:00 AM to 4:00 PM
+      cost_per_km: 0.5,
+      cost_per_hour: 45.0,
     });
   };
-
 
   return (
     <Form {...form}>
@@ -174,17 +221,28 @@ export function CompanyConfigForm() {
           console.error('Form validation errors:', errors);
         })}
         noValidate
-        className="space-y-8"
+        className="space-y-4"
       >
         <Toaster />
         <Tabs defaultValue="addresses" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="addresses"><span className="flex items-center gap-2"><MapPin className="h-4 w-4" />Addresses</span></TabsTrigger>
-            <TabsTrigger value="vehicles"><span className="flex items-center gap-2"><Truck className="h-4 w-4" />Vehicles</span></TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-3">
+            <TabsTrigger value="addresses">
+              <span className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Addresses
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="vehicles">
+              <span className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                Vehicles
+              </span>
+            </TabsTrigger>
           </TabsList>
           <AddressSection
             initialStartValue={form.watch('startAddress')}
             initialFinishValue={form.watch('finishAddress')}
+            initialSolverTime={form.watch('solverTime')}
             onChangeStart={(addr, value) => {
               setStartAddrObj(addr);
               form.setValue('startAddress', value);
@@ -193,6 +251,7 @@ export function CompanyConfigForm() {
               setFinishAddrObj(addr);
               form.setValue('finishAddress', value);
             }}
+            onChangeSolverTime={(value) => form.setValue('solverTime', value)}
           />
           <VehiclesSection
             fields={fields}
@@ -201,11 +260,16 @@ export function CompanyConfigForm() {
             remove={remove}
             onEditDepot={openDepotDialog}
             onEditCost={openCostDialog}
+            onEditBreak={openBreakDialog}
           />
         </Tabs>
 
         <div className="flex justify-end space-x-4">
-          <Button type="submit" size="lg">
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-sky-600 text-white hover:bg-sky-600/90"
+          >
             Save Company Configuration
           </Button>
         </div>
@@ -225,6 +289,13 @@ export function CompanyConfigForm() {
           initialCosts={initialCost}
           onSave={handleSaveCost}
           onClose={closeCostDialog}
+        />
+        <VehicleBreakDialog
+          open={breakOpen}
+          vehicleIndex={currentBreakIdx}
+          initialBreak={initialBreak}
+          onSave={handleSaveBreak}
+          onClose={closeBreakDialog}
         />
       </form>
     </Form>

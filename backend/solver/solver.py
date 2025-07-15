@@ -1,7 +1,6 @@
-# backend/solver/solver.py
 import math
 import numpy as np
-from typing import Any
+from typing import Any, List
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 from exceptionStrings import APPOINTMENT_OVERLAP_TO_BIG
@@ -10,13 +9,12 @@ from solver.preprocessing import *
 from solver.util import *
 from solver.validation import validate_solution_and_report
 from solver.postprocessing import extract_enriched_metrics
-from typing import List
-
 from solver.models import FilledVehicle
 
-
-def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> List[List[bool]]:
+# Build vehicle-appointment compatibility matrix based on skills and worker count
+def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles: List[FilledVehicle]) -> Tuple[List[List[bool]], List[EnhancedAppointment]]:
     matrix = []
+    incompatible_appointments = []
     for appointment in appointments:
         required_skills = appointment.skills_needed
         required_workers = appointment.number_of_workers
@@ -28,10 +26,14 @@ def build_compatibility_matrix(appointments: List[EnhancedAppointment], vehicles
             has_enough_workers = available_workers >= required_workers
             is_compatible = has_required_skills and has_enough_workers
             row.append(is_compatible)
+
+        if not any(row):
+            incompatible_appointments.append(appointment)
+
         matrix.append(row)
-    return matrix
+    return matrix,incompatible_appointments
 
-
+# Main solver function
 def solve_appointment_routing(
     optimization_request: EnhancedOptimizationRequest,
     slack_max: int = 1440,
@@ -55,7 +57,6 @@ def solve_appointment_routing(
         service_times.append(appt.service_time)
     service_times += [0] * (2 * num_vehicles)
 
-
     vehicle_start_end_indices = list(range(num_locations - 2 * num_vehicles, num_locations))
     start_indices = vehicle_start_end_indices[::2]
     end_indices = vehicle_start_end_indices[1::2]
@@ -64,7 +65,7 @@ def solve_appointment_routing(
     vehicle_index_to_id = {i: vehicle.vehicle_id for i, vehicle in enumerate(optimization_request.company_info.vehicles)}
 
     # Routing setup
-    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, start_indices,end_indices)
+    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, start_indices, end_indices)
     routing = pywrapcp.RoutingModel(manager)
 
     # Time callback (travel time + service time)
@@ -73,15 +74,20 @@ def solve_appointment_routing(
         to_node = manager.IndexToNode(to_index)
         return optimization_request.time_matrix[from_node][to_node] + service_times[from_node]
 
-    def distance_callback(from_index, to_index):
-        from_node = manager.IndexToNode(from_index)
-        to_node = manager.IndexToNode(to_index)
-        return optimization_request.distance_matrix[from_node][to_node]
-
     time_callback_index = routing.RegisterTransitCallback(time_callback)
-    distance_callback_index = routing.RegisterTransitCallback(distance_callback)
-    routing.SetArcCostEvaluatorOfAllVehicles(time_callback_index)
 
+    # Set cost evaluator per vehicle using cost_per_km and distance
+    for vehicle_index, vehicle in enumerate(optimization_request.company_info.vehicles):
+        def vehicle_cost_callback(from_index, to_index, vehicle=vehicle):
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            distance_m = optimization_request.distance_matrix[from_node][to_node]
+            distance_km = distance_m / 1000
+            return int(distance_km * vehicle.cost_per_km * 1000)  # scale for integer precision
+
+        callback_index = routing.RegisterTransitCallback(vehicle_cost_callback)
+        routing.SetArcCostEvaluatorOfVehicle(callback_index, vehicle_index)
+        
     # Add Time Dimension
     routing.AddDimension(
         time_callback_index,
@@ -94,8 +100,23 @@ def solve_appointment_routing(
     # Treat waiting time as equivalent to driving time
     time_dimension.SetSlackCostCoefficientForAllVehicles(1)
     time_dimension.SetGlobalSpanCostCoefficient(100)
+    
+    # Set breaks for vehicles if defined
+    node_visit_transits = [0] * routing.Size()
+    solver = routing.solver()
+    for vehicle_index, vehicle in enumerate(optimization_request.company_info.vehicles):
+        if vehicle.vehicle_break:
+            lunch = solver.FixedDurationIntervalVar(
+                vehicle.vehicle_break.start_min,
+                vehicle.vehicle_break.start_max,
+                vehicle.vehicle_break.duration,
+                False,
+                f"lunch_break_vehicle_{vehicle_index}"
+            )
+            # Add the break to the vehicle
+            time_dimension.SetBreakIntervalsOfVehicle([lunch], vehicle_index, node_visit_transits)
 
-    for vehicle_index, _ in enumerate(optimization_request.company_info.vehicles):
+    for vehicle_index, vehicle in enumerate(optimization_request.company_info.vehicles):
         filled_vehicle = optimization_request.company_info.vehicles[vehicle_index]
 
         start = filled_vehicle.operation_hours.start_minutes
@@ -107,6 +128,13 @@ def solve_appointment_routing(
         time_dimension.CumulVar(start_index).SetRange(start, end)
         time_dimension.CumulVar(end_index).SetRange(start, end)
 
+        # Apply soft cost on working time duration (end - start)
+        cost_per_minute = vehicle.cost_per_hour / 60
+        scaled_cost = int(cost_per_minute * 1000)
+        time_dimension.SetCumulVarSoftUpperBound(end_index, max_time_per_vehicle, scaled_cost)
+        routing.AddVariableMinimizedByFinalizer(time_dimension.CumulVar(start_index))
+        routing.AddVariableMinimizedByFinalizer(time_dimension.CumulVar(end_index))
+
     # Apply time windows and enforce: arrival + service_time <= end
     for idx, (start, end) in enumerate(appointment_time_windows):
         index = manager.NodeToIndex(idx)
@@ -117,7 +145,7 @@ def solve_appointment_routing(
 
     #Allow skipping appointments with very high penalty. This makes possible a fast first valid Solution
     penalty_default = 100000
-    compat_matrix = build_compatibility_matrix(optimization_request.appointments, optimization_request.company_info.vehicles)
+    compat_matrix,incompatible_appointments = build_compatibility_matrix(optimization_request.appointments, optimization_request.company_info.vehicles)
 
     for appt_idx, row in enumerate(compat_matrix):
         # depot = 0, therefore +1
@@ -149,7 +177,14 @@ def solve_appointment_routing(
             max_distance_traveled=0,
             routes=[],
             method_used="No solution",
-            problem_metrics = optimization_problem_information
+            problem_metrics=optimization_problem_information,
+            validation_report=SolutionValidationReport(
+                is_valid=False,
+                errors=["No solution found"],
+                missing_appointments=[],
+                duplicate_appointments=[],
+                route_level_errors=[]
+            )
         )
 
     total_time = 0
@@ -157,6 +192,7 @@ def solve_appointment_routing(
     max_distance = 0
     max_time = 0
     routes: List[Route] = []
+    route_times = []
 
     for vehicle_index in range(num_vehicles):
         # Get the actual vehicle ID from our mapping
@@ -179,23 +215,31 @@ def solve_appointment_routing(
         print(f"  Leaves the depot at {start_hours:02d}:{start_minutes:02d}")
         print(f"  Returns to the depot at {end_hours:02d}:{end_minutes:02d}")
 
+        route_times.append(
+            RouteTimes(
+                route_id = vehicle_index,
+                start_time = start_time,
+                end_time = end_time,
+            )
+        )
+
         route_time = 0
         route_distance = 0
         vehicle_route = []
 
         previous_index = index
 
-        print(f"index: {index}")
-        print(f"num_locations: {num_locations}")
-        print(f"num_vehicles: {num_vehicles}")
         while not routing.IsEnd(index):
             node_index = manager.IndexToNode(index)
-            print(f"node_index:{node_index}")
+
+            # Arrival time at current node
+            arrival_time = solution.Value(time_dimension.CumulVar(index))
 
             # Add appointment if it's not the depot
             try:
                 if 0 < node_index <= len(optimization_request.appointments):
-                    vehicle_route.append(optimization_request.appointments[node_index - 1])
+                    appointment_with_arrival_time = optimization_request.appointments[node_index - 1].copy(update = {"arrival_time": arrival_time})
+                    vehicle_route.append(appointment_with_arrival_time)
             except IndexError:
                 print(f"Invalid node_index={node_index} for appointments (len={len(optimization_request.appointments)})")
 
@@ -204,18 +248,14 @@ def solve_appointment_routing(
             to_node = manager.IndexToNode(next_index)
 
             # Travel time and distance
-
             travel_time = optimization_request.time_matrix[from_node][to_node]
             travel_distance = optimization_request.distance_matrix[from_node][to_node]
-
-            # Arrival time at current node
-            arrival_time = solution.Value(time_dimension.CumulVar(index))
 
             # Service time and waiting time
             waiting_time = 0
             if 0 < node_index <= len(optimization_request.appointments):
                 appt_start = appointment_time_windows[node_index][0]
-                waiting_time = max(0, appt_start - arrival_time) if 0 < node_index <= len(optimization_request.appointments) else 0
+                waiting_time = max(0, appt_start - arrival_time)
 
             service_time = service_times[node_index]
 
@@ -235,29 +275,32 @@ def solve_appointment_routing(
         route_distance += travel_distance_to_depot
 
         # Add dummy depot start and end
-        #get dummy times first
+        # get dummy times first
         start, end = extract_day_bounds(optimization_request.appointments[0].appointment_start)
 
+        vehicle = optimization_request.company_info.vehicles[vehicle_index]
+
         vehicle_route.insert(0, EnhancedAppointment(
-            address=optimization_request.company_info.vehicles[vehicle_id].start_address,
+
+            address=optimization_request.company_info.vehicles[vehicle_index].start_address,
             appointment_start= start,
             appointment_end= end,
             service_time=0,
-            skills_needed = (),
-            location=optimization_request.company_info.vehicles[vehicle_id].start_location,
-            id="depot_start",
-            number_of_workers=0
+            skills_needed = set(),
+            location=optimization_request.company_info.vehicles[vehicle_index].start_location,
+            number_of_workers=0,
+            appointment_type=AppointmentType.DEPOT.value
         ))
 
         vehicle_route.append(EnhancedAppointment(
-            address=optimization_request.company_info.vehicles[vehicle_id].finish_address,
+            address=optimization_request.company_info.vehicles[vehicle_index].finish_address,
             appointment_start= start,
             appointment_end= end,
             service_time=0,
             skills_needed=set(),
-            location=optimization_request.company_info.vehicles[vehicle_id].finish_location,
-            id="depot_end",
-            number_of_workers=0
+            location=optimization_request.company_info.vehicles[vehicle_index].finish_location,
+            number_of_workers=0,
+            appointment_type = AppointmentType.DEPOT.value
         ))
 
         total_time += route_time
@@ -267,22 +310,22 @@ def solve_appointment_routing(
 
         routes.append(
             Route(
-                route_id=vehicle_index,  # Use vehicle_index as route_id for consistency with OR-Tools
-                vehicle_id=actual_vehicle_id,  # Use the actual vehicle ID from the input
+                route_id=vehicle_index,
+                vehicle_id=actual_vehicle_id,
                 distance_traveled=route_distance,
                 time_traveled=route_time,
                 appointments=vehicle_route
             )
         )
 
-
     # Check routes for validity
     report = validate_solution_and_report(
         routes=routes,
         time_matrix=optimization_request.time_matrix,
         addresses=optimization_request.location_ids,
-        depot_start_location_id = generate_location_id(optimization_request.company_info.start_address),
-        depot_end_location_id = generate_location_id(optimization_request.company_info.finish_address)
+        depot_start_location_id=generate_location_id(optimization_request.company_info.start_address),
+        depot_end_location_id=generate_location_id(optimization_request.company_info.finish_address),
+        incompatible_appointments = incompatible_appointments
     )
 
     # Enriched Routes
@@ -290,7 +333,8 @@ def solve_appointment_routing(
         routes=routes,
         time_matrix=optimization_request.time_matrix,
         distance_matrix=optimization_request.distance_matrix,
-        location_ids=optimization_request.location_ids
+        location_ids=optimization_request.location_ids,
+        route_times = route_times
     )
 
     response = Solution(
@@ -298,8 +342,8 @@ def solve_appointment_routing(
         max_distance_traveled=max_distance,
         routes=enriched_routes,
         method_used="Path Cheapest Arc",
-        problem_metrics = optimization_problem_information,
+        problem_metrics=optimization_problem_information,
         validation_report=report
     )
-    
+
     return response

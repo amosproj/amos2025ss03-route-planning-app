@@ -3,11 +3,14 @@ import { z } from 'zod';
 export const formSchema = z.object({
   startAddress: z.string().min(1, 'Start Address is required'),
   finishAddress: z.string().min(1, 'Finish Address is required'),
+  solverTime: z.number()
+    .min(5, 'Solver time must be at least 5 seconds')
+    .max(120, 'Solver time cannot exceed 120 seconds'),
   vehicles: z
     .array(
       z.object({
         vehicle_id: z.number(),
-        skills: z.string().nullable(),
+        skills: z.array(z.string()),
         worker_amount: z
           .number()
           .min(1, 'Worker amount must be at least 1')
@@ -24,15 +27,31 @@ export const formSchema = z.object({
               .max(1440, 'End time cannot exceed 1440 minutes'),
           })
           .refine((period) => {
-            // Check for overlapping periods and ensure end > start
-            if (period.end_minutes <= period.start_minutes) {
-              return false;
-            }
-
-            return true;
+            return period.end_minutes > period.start_minutes;
           }, 'Operation periods cannot overlap and end time must be after start time'),
-        cost_per_km: z.number().min(0, 'Cost per km cannot be negative').optional(),
-        cost_per_hour: z.number().min(0, 'Cost per hour cannot be negative').optional(),
+        vehicle_break: z
+          .object({
+            duration: z
+              .number()
+              .min(1, 'Break duration must be at least 1 minute')
+              .max(480, 'Break duration cannot exceed 480 minutes'),
+            start_min: z
+              .number()
+              .min(0, 'Break start_min must be at least 0 minutes')
+              .max(1440, 'Break start_min cannot exceed 1440 minutes'),
+            start_max: z
+              .number()
+              .min(0, 'Break start_max must be at least 0 minutes')
+              .max(1440, 'Break start_max cannot exceed 1440 minutes'),
+          })
+          .refine((b) => b.start_max > b.start_min, {
+            message: 'Break start_max must be after start_min',
+          })
+          .nullable()
+          .optional(),
+
+        cost_per_km: z.number().min(0, 'Cost per km cannot be negative'),
+        cost_per_hour: z.number().min(0, 'Cost per hour cannot be negative'),
         depot: z
           .object({
             start: z.object({

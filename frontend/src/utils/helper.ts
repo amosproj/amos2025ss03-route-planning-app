@@ -1,20 +1,20 @@
 import { Scenario } from '../types/Scenario';
-import { Vehicle } from '../types/Vehicle';
 import { Appointment } from '../types/Appointment';
-import { CompanyInfo } from '../types/CompanyInfo';
 import { Address } from '../types/Address';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Warehouse } from 'lucide-react';
+import dayjs from 'dayjs';
 
 export function parseScenarioFromCsv(csvData: string): Scenario[] {
   const lines = csvData.trim().split(/\r?\n/);
   lines.shift();
   const jobs: Appointment[] = lines.filter(Boolean).map((line) => {
     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-    const [start, end, streetRaw, zip, city, workers] = values.map((v) =>
+    const [start, end, streetRaw, zip, city, workers, service_time, skills] = values.map((v) =>
       v.replace(/^"|"$/g, ''),
     );
+    const skillsArray = skills && skills.trim() ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
     return {
       appointment_start: new Date(start).toISOString(),
       appointment_end: new Date(end).toISOString(),
@@ -24,8 +24,9 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
         city,
       } as Address,
       number_of_workers: parseInt(workers, 10),
-      service_time: 0,
-      skills: null,
+      service_time: service_time ? parseInt(service_time, 10) : 30, // Default to 30 minutes if not provided
+      skills_needed: skillsArray,
+      appointment_type: 'REAL_APPOINTMENT',
     };
   });
   const groups: Record<number, Appointment[]> = {};
@@ -34,14 +35,9 @@ export function parseScenarioFromCsv(csvData: string): Scenario[] {
     if (!groups[day]) groups[day] = [];
     groups[day].push(job);
   });
-  const defaultVehicle = {
-    vehicle_id: 0,
-    skills: '',
-    worker_amount: 1,
-  } as Vehicle;
   return Object.entries(groups).map(
     ([date, jobs]) =>
-      ({ date: Number(date), jobs, vehicles: [defaultVehicle] }) as Scenario,
+      ({ date: Number(date), jobs } as Scenario),
   );
 }
 export function parseScenariofromJson(jsonData: string): Scenario {
@@ -68,12 +64,6 @@ export function parseScenariofromJson(jsonData: string): Scenario {
         }),
       ),
       date: new Date('2025-05-01').getTime(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vehicles: data.number_of_workers.map((veh: any) => ({
-        vehicle_id: veh.vehicle_id,
-        skills: veh.skills || '',
-        worker_amount: veh.worker_amount || 1,
-      })),
     };
     return scenario;
   } catch (error) {
@@ -81,7 +71,6 @@ export function parseScenariofromJson(jsonData: string): Scenario {
     return {
       jobs: [],
       date: new Date('2025-05-01').getTime(),
-      vehicles: [],
     };
   }
 }
@@ -92,57 +81,6 @@ export function timestampToDateString(timestamp: number | string): string {
     .split('.')[0]
     .concat('.000');
   return dateString;
-}
-
-export function parseCompanyInfoFromCsv(csvData: string): CompanyInfo {
-  const lines = csvData.replace(/\r\n/g, '\n').split('\n');
-  let startStr = '';
-  let finishStr = '';
-  const vehicles: Vehicle[] = [];
-
-  lines.forEach((line) => {
-    if (!line.trim()) return;
-    const idx = line.indexOf(',');
-    if (idx < 0) return;
-    const key = line.slice(0, idx).trim().toLowerCase();
-    let value = line.slice(idx + 1).trim();
-    value = value.replace(/^"|"$/g, '');
-    if (key.includes('start address')) {
-      startStr = value;
-    } else if (key.includes('finish address')) {
-      finishStr = value;
-    } else if (key.includes('workers')) {
-      const num = parseInt(value, 10);
-      for (let i = 0; i < num; i++) {
-        vehicles.push({
-          vehicle_id: i,
-          skills: 'electrician',
-          worker_amount: 1,
-          operation_hours: {
-            start_minutes: 480, // 08:00
-            end_minutes: 960, // 16:00
-          },
-        });
-      }
-    }
-  });
-
-  const parseAddress = (str: string): Address => {
-    const [streetPart, rest = ''] = str.split(',').map((s) => s.trim());
-    const [zip = '', ...cityParts] = rest.split(/\s+/);
-    return {
-      street: streetPart || '',
-      zip_code: zip || '',
-      city: cityParts.join(' ') || '',
-    };
-  };
-
-  const companyInfo: CompanyInfo = {
-    start_address: parseAddress(startStr),
-    finish_address: parseAddress(finishStr),
-    vehicles: vehicles,
-  };
-  return companyInfo;
 }
 
 // Function to create a custom depot marker with warehouse icon
@@ -167,4 +105,31 @@ export const createDepotMarkerIcon = () => {
   `;
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+// Helper functions for week navigation
+export const getWeekStartingSunday = (date: dayjs.Dayjs) => {
+  const yearStart = dayjs(`${date.year()}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  const diffInDays = date.startOf('day').diff(firstSunday, 'day');
+  const week = Math.floor(diffInDays / 7) + 1;
+  return { year: date.year(), week };
+}
+
+export const getStartOfWeek = (year: number, week: number) => {
+  const yearStart = dayjs(`${year}-01-01`);
+  const daysSinceSunday = yearStart.day();
+  const firstSunday = yearStart.subtract(daysSinceSunday, 'day');
+  return firstSunday.add(week - 1, 'week');
+}
+export const minutesToTime = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+export const timeToMinutes = (time: string): number => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
 };

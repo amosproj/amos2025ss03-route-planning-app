@@ -7,14 +7,16 @@ export const Route = createFileRoute('/company-config/')({
 
 function CompanyConfig() {
   return (
-    <div className="container mx-auto mt-8 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-primary mb-8">Company Configuration</h1>
-        <p className="text-gray-600 mb-6">
-          Configure your company information, addresses, and vehicle fleet for route optimization.
-        </p>
-        <CompanyConfigForm />
-      </div>
+    <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg border shadow p-4">
+      <h1 className="text-3xl font-bold text-primary mb-4">
+        Company Configuration
+      </h1>
+      <p className="text-gray-600 mb-3">
+        Configure your company information, addresses, and vehicle fleet for
+        route optimization.
+      </p>
+      <CompanyConfigForm />
     </div>
+
   );
 }

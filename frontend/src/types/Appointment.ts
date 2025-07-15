@@ -8,6 +8,8 @@ export interface Appointment {
   service_time: number;
   travel_time_to_next_min?: number;
   travel_distance_to_next_km?: number;
+  appointment_type?: string;
+  skills_needed?: string[];
 }
 
 export interface EnhancedAppointment extends Appointment {
@@ -17,6 +19,7 @@ export interface EnhancedAppointment extends Appointment {
     lat: number;
     lng: number;
   };
+  arrival_time?: number
 }
 
 export interface EnhancedAddressResponse {

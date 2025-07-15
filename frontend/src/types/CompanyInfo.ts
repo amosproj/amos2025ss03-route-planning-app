@@ -4,4 +4,5 @@ export interface CompanyInfo {
     start_address: Address;
     finish_address: Address;
     vehicles: Vehicle[];
+    solver_time: number;
 }

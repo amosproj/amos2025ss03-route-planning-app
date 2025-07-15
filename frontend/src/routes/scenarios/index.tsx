@@ -2,7 +2,7 @@ import { ScenarioCalendar } from '@/components/ScenarioCalendar'
 import { createFileRoute } from '@tanstack/react-router'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Appointment } from '../../types/Appointment';
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -18,19 +18,30 @@ import { ScenarioByDate } from '@/types/Scenario';
 // data table columns 
 const columns: ColumnDef<Appointment>[] = [
   {
-    accessorKey: "appointment_start",
-    header: "Start",
-    cell: ({ row }) => {
-      const start = new Date(row.original.appointment_start);
-      return start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    header: "Time",
+    accessorFn: (row) => {
+      const start = new Date(row.appointment_start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const end = new Date(row.appointment_end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return `${start} - ${end}`;
     },
+    cell: ({ getValue }) => getValue<string>(),
   },
   {
-    accessorKey: "appointment_end",
-    header: "End",
-    cell: ({ row }) => {
-      const end = new Date(row.original.appointment_end);
-      return end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    header: "Workers",
+    accessorKey: "number_of_workers",
+    cell: ({ getValue }) => getValue<number>(),
+  },
+  {
+    header: "Service Time",
+    accessorKey: "service_time",
+    cell: ({ getValue }) => getValue<number>(),
+  },
+  {
+    header: "Skill Needed",
+    accessorKey: "skills_needed",
+    cell: ({ getValue }) => {
+      const skills = getValue<string[]>();
+      return skills?.length > 0 ? skills.join(', ') : 'None';
     },
   },
   {
@@ -38,11 +49,6 @@ const columns: ColumnDef<Appointment>[] = [
     accessorFn: (row) =>
       `${row.address.street}, ${row.address.zip_code} ${row.address.city}`,
     cell: ({ getValue }) => getValue<string>(),
-  },
-  {
-    header: "Workers",
-    accessorKey: "number_of_workers",
-    cell: ({ getValue }) => getValue<number>(),
   },
 ];
 
@@ -73,6 +79,10 @@ function ScenarioList() {
   const scenariosByDate = new Map(
     sortedScenarios.map((sc) => [new Date(sc.date).toDateString(), sc]),
   );
+
+  useEffect(() => {
+    console.log(selected);
+  }, [selected]);
 
 
   return (

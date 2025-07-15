@@ -6,7 +6,10 @@ import { Solution } from '@/types/Solution';
 import { RouteCard } from '@/components/RouteCard';
 import { getRouteColor } from '@/utils/routeColors';
 import { Button } from '@/components/ui/button';
-import { Download, Map } from 'lucide-react';
+import { Download, Map, AlertTriangle } from 'lucide-react';
+import ValidationReportDialog from '@/components/ValidationReportDialog';
+import { useState } from 'react';
+import { BackButton } from '@/components/BackButton';
 
 export const Route = createFileRoute('/daily-plan/')({
   component: DailyPlan,
@@ -18,6 +21,7 @@ function DailyPlan() {
   const navigate = useNavigate();
   const solutions = useSelector((state: RootState) => state.solutions);
   const solution: Solution = solutions.byDate[date];
+  const [showValidationReport, setShowValidationReport] = useState(false);
 
   useEffect(() => {
     if (!solution) {
@@ -67,37 +71,27 @@ function DailyPlan() {
     document.body.removeChild(a);
   };
 
-  const handleBackButtonClick = () => {
-    const sanitizedDate = date.replace(/"/g, '').trim();
-    const dateObj = new Date(Number(sanitizedDate));
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth();
-    navigate({
-      to: '/scenarios',
-      search: {
-        year: year,
-        month: month,
-      },
-    });
-  };
-
   return (
-    <div className="container my-8">
-      <div className="flex flex-wrap gap-3 my-5 w-full justify-between items-center">
+    <div className="max-w-6xl mx-auto my-6 bg-white rounded-lg border shadow p-4">
+      <div className="flex flex-wrap gap-3 w-full justify-between items-center">
         <h2 className="text-xl text-center text-blue-900 font-semibold my-5">
-          <span className="flex items-center ">
-            <button
-              onClick={handleBackButtonClick}
-              className="pr-2 py-1 font-semibold text-2xl cursor-pointer"
-            >
-              ←
-            </button>
-            Daily Plan for {formatDateString(date)}
-          </span>{' '}
+          <div className="flex items-center ">
+            <BackButton />
+            <span className='pl-4'>Daily Plan for {formatDateString(date)}</span>
+          </div>{' '}
         </h2>
 
         <div className="flex gap-3">
-          {' '}
+          {!solution?.validation_report?.is_valid && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-red-100 text-red-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-red-200 hover:text-red-900 hover:border-red-300"
+              onClick={() => setShowValidationReport(true)}
+            >
+              <AlertTriangle /> Validation Report
+            </Button>
+          )}
           <Button
             variant="outline"
             className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200 hover:text-orange-900 hover:border-orange-300"
@@ -107,7 +101,7 @@ function DailyPlan() {
               })
             }
           >
-            <Map /> Show Daily Plan
+            <Map /> Show Map View
           </Button>
           <Button
             variant="outline"
@@ -118,20 +112,23 @@ function DailyPlan() {
           </Button>
         </div>
       </div>
-      {solution.routes.map((route, idx) => (
-        <RouteCard
-          key={route.route_id}
-          route={route}
-          download={() => downloadRoute(route.route_id)}
-          color={getRouteColor(idx)}
-        />
-      ))}
+      {solution.routes
+        .filter((route) => route.appointments.length > 2)
+        .map((route, idx) => (
+          <RouteCard
+            key={route.route_id}
+            route={route}
+            download={() => downloadRoute(route.route_id)}
+            color={getRouteColor(idx)}
+          />
+        ))}
 
-      {/* <div className="flex justify-end">
-        <Button className="bg-orange-100 text-orange-900 font-semibold px-4 py-1.5 rounded-sm text-sm shadow-sm hover:bg-orange-200">
-          View Metrics & Errors
-        </Button>
-      </div> */}
+      {/* Validation report dialog */}
+      <ValidationReportDialog
+        open={showValidationReport}
+        report={solution.validation_report}
+        onClose={() => setShowValidationReport(false)}
+      />
     </div>
   );
 }
