@@ -1,10 +1,20 @@
 import math
 import os
 import random
-import json
 import csv
 from datetime import datetime, timedelta
 from typing import Any
+import argparse
+from datetime import date
+import sys
+import os
+import json
+from enum import Enum
+
+# Run this script from the root directory of the project
+if __name__ == "__main__":
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 from solver.models import *
 
@@ -156,6 +166,16 @@ def generate_random_address() -> Address:
 def generate_random_vehicle_address() -> Address:
     return generate_random_vehicle_addresses(1)[0]
 
+def get_random_bad_address() -> Address:
+    bad_addresses = [
+        Address(street="!! INVALID STREET", zip_code="00000", city="Errorville"),
+        Address(street="INVALID STREET", zip_code="00000", city="bhjbb"), 
+        Address(street="123 !@#", zip_code="000", city="nbbhjb"),
+        Address(street="NULL NULL NULL", zip_code="7777", city="hgvg"),
+        Address(street="Some Street - No City", zip_code="99999", city="fffg")
+    ]
+    return random.choice(bad_addresses)
+
 def get_random_service_time() -> int:
     choices = [30, 60, 45, 90]
     weights = [0.4, 0.3, 0.15, 0.15]
@@ -259,11 +279,12 @@ def create_testdata_optimization_request(
     )
 
 # === JSON DUMP ===
-
 def save_optimization_request_to_json(opt_req: OptimizationRequest, filename: str):
     def convert_sets(obj: Any):
         if isinstance(obj, set):
             return list(obj)
+        if isinstance(obj, Enum):
+            return obj.value  # convert enum to its underlying value (e.g., string or int)
         raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
     current_folder = os.path.dirname(os.path.abspath(__file__))
@@ -285,7 +306,7 @@ def export_appointments_to_csv(request: OptimizationRequest, filename: str):
         writer.writerow([
             "appointment_start", "appointment_end",
             "street", "zip_code", "city",
-            "service_time", "number_of_workers",
+            "number_of_workers", "service_time", 
             "skills_needed"
         ])
 
@@ -297,22 +318,132 @@ def export_appointments_to_csv(request: OptimizationRequest, filename: str):
                 appt.address.street,
                 appt.address.zip_code,
                 appt.address.city,
-                appt.service_time,
                 appt.number_of_workers,
+                appt.service_time,
                 skills_str
             ])
 
     print(f"CSV File successfully saved here: {file_path}")
 
+# Create and save test data for multiple dates or range of dates
+def create_and_save_appointments_for_date_range(
+    appointments_per_day: int,
+    appointment_duration_factor: float,
+    start_date: date,
+    end_date: date,
+    num_vehicles: int = 7,
+    inject_errors: bool = False
+):
+    all_appointments = []
+    delta = end_date - start_date
+
+    if inject_errors:
+        num_bad_days = min(delta.days + 1, random.randint(1, 2))
+        bad_day_indices = random.sample(range(delta.days + 1), num_bad_days)
+    else:
+        bad_day_indices = []
+
+
+    for i in range(delta.days + 1):
+        current_date = start_date + timedelta(days=i)
+        random_n = random.randint(
+            max(1, appointments_per_day - 5),
+            appointments_per_day + 5
+        )
+
+        daily_appointments = generate_random_appointments(
+            n=random_n,
+            appointment_duration_factor=appointment_duration_factor,
+            month=current_date.month,
+            day=current_date.day
+        )
+
+        # Inject bad addresses
+        if i in bad_day_indices:
+            num_to_corrupt = min(2, len(daily_appointments))
+            indices_to_replace = random.sample(range(len(daily_appointments)), num_to_corrupt)
+
+            for idx in indices_to_replace:
+                old_address = daily_appointments[idx].address
+                new_address = get_random_bad_address()
+                daily_appointments[idx].address = new_address
+                print(f"⚠️ Injected bad address for {current_date.strftime('%Y-%m-%d')} at index {idx}: {old_address} → {new_address}")
+
+        all_appointments.extend(daily_appointments)
+    
+    start_address = generate_random_address()
+    finish_address = start_address
+
+    company_info = CompanyInfo(
+        start_address=start_address,
+        finish_address=finish_address,
+        vehicles =generate_filled_vehicles(num_vehicles)
+    )
+
+    request_obj = OptimizationRequest(
+        company_info=company_info,
+        appointments=all_appointments
+    )
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_filename = f"appointments_range_{timestamp}.csv"
+    json_filename = f"appointments_range_{timestamp}.json"
+
+    export_appointments_to_csv(request_obj, csv_filename)
+    save_optimization_request_to_json(request_obj, json_filename)
+
+    print(f"✅ Appointments saved to:")
+    print(f"   📄 {csv_filename}")
+    print(f"   🗄️ {json_filename}")
+
+
 
 # === OPTIONAL SCRIPT ENTRYPOINT ===
 
 if __name__ == "__main__":
-    request_obj = create_testdata_optimization_request(num_vehicles=7, num_appointments=25)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    json_filename = f"testdata_{timestamp}.json"
-    csv_filename = f"testdata_{timestamp}.csv"
+    # Argument parser for command line options
+    parser = argparse.ArgumentParser(description="Generate appointment test data.")
+    parser.add_argument("--mode", choices=["single", "range"], default="single", help="Mode: 'single' (default) or 'range'")
+    parser.add_argument("--start", type=str, help="Start date in YYYY-MM-DD (required for range)")
+    parser.add_argument("--end", type=str, help="End date in YYYY-MM-DD (required for range)")
+    parser.add_argument("--per-day", type=int, default=25, help="Appointments per day (default: 25)")
+    parser.add_argument("--duration-factor", type=float, default=2.0, help="Appointment duration multiplier")
+    parser.add_argument("--vehicles", type=int, default=7, help="Number of vehicles (default: 7)")
+    parser.add_argument("--inject-errors", action="store_true", help="Inject bad addresses into appointments")
+    # Month and day arguments for single mode
+    parser.add_argument("--month", type=int, default=7, help="Month for single mode (default: 7)")
+    parser.add_argument("--day", type=int, default=29, help="Day for single mode (default: 29)")
 
-    export_appointments_to_csv(request_obj,csv_filename)
-    save_optimization_request_to_json(request_obj, json_filename)
+    args = parser.parse_args()
 
+
+    if args.mode == "range":
+        if not args.start or not args.end:
+            parser.error("--start and --end are required in 'range' mode.")
+
+        start_date = date.fromisoformat(args.start)
+        end_date = date.fromisoformat(args.end)
+
+        create_and_save_appointments_for_date_range(
+            appointments_per_day=args.per_day,
+            appointment_duration_factor=args.duration_factor,
+            start_date=start_date,
+            end_date=end_date,
+            num_vehicles=args.vehicles,
+            inject_errors=args.inject_errors
+        )
+
+    else:
+        request_obj = create_testdata_optimization_request(
+            num_vehicles=args.vehicles,
+            num_appointments=args.per_day,
+            appointment_duration_factor=args.duration_factor,
+            month=4,
+            day=29
+        )
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        csv_filename = f"testdata_{timestamp}.csv"
+        json_filename = f"testdata_{timestamp}.json"
+
+        export_appointments_to_csv(request_obj, csv_filename)
+        save_optimization_request_to_json(request_obj, json_filename)
