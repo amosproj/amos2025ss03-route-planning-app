@@ -140,13 +140,19 @@ The build output will be in the `frontend/dist` directory.
 
 ```env
 VITE_API_URL=http://localhost:8080
-VITE_GOOGLE_MAPS_API_KEY=supersecretkey
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
 
 ### `backend/.env`
 
 ```env
-GOOGLE_MAPS_API_KEY=supersecretkey
+# Google Maps API
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+
+# Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
 ```
 
 ---
