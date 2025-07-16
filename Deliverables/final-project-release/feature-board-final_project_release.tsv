@@ -1,0 +1,35 @@
+Title	URL	Assignees	Status	Estimated size	Real size	Labels
+Implement Penalty Mechanism to Ensure Equal Load Distribution	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/274		Product Backlog			backend
+Enhance Vehicle Configuration on Day Level	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/273		Product Backlog			backend, frontend
+Inconsistent UI Design Across Pages	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/272		Product Backlog			frontend
+Rewrite Route Metrics Calculation to Be Accurate and Integrated	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/207	SUFelix	Product Backlog	3		backend
+Switch Between  Optimization Plans	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/7		Product Backlog	5		
+Compare New Solutions to Previous Ones	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/236		Product Backlog			backend, frontend
+Allow Users to Correct Invalid Appointment Addresses in the UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/231		Product Backlog			frontend
+Show Skipped Appointments in Route Metrics Solution	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/245		Product Backlog			frontend
+Enable Manual Route Editing from the Frontend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/103		Product Backlog			frontend
+Definition of MIssing and Impossible Appointments in the Pop Up	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/304	fariarahman15	Feature Archive	2	2	frontend
+Hide Routes with No Appointments	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/297	SK-Subroto	Feature Archive	3	3	frontend
+Show Required Skills for Appointments	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/306	SK-Subroto	Feature Archive	2	2	frontend
+Create Test Data for Demo Day	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/266	fahimu10	Feature Archive	5	5	backend, frontend
+ Dynamic solver Time & Progress Bar for Optimization	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/303	jkleinau, SUFelix	Feature Archive	8	8	backend, frontend
+Adjust scv import to new format	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/307	jkleinau	Feature Archive	2	2	frontend
+Reset Local Storage Through UI	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/321	SK-Subroto	Feature Archive	2	2	frontend
+Update & Finalize documentation	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/271	fahimu10, fariarahman15, SK-Subroto	Feature Archive	5	5	backend, frontend
+Add Missing Field in Appointments Payload & Update CSV Parser\	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/323	fahimu10	Feature Archive	3	3	backend
+Add CLI Support for Date Range and Fix JSON Export	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/322	fahimu10	Feature Archive	3	3	backend
+Correct Mapping of Location in Optimizer	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/302	SUFelix	Feature Archive	3	3	backend
+Do not show NO_REAL_APPOINTMENT from Backend	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/305	SUFelix	Feature Archive	1	1	backend
+Show the results of the validation report	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/279	fariarahman15	Feature Archive	8	5	frontend
+Route Toggle Switch Requires Page Refresh After Creating New Solution	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/294	SK-Subroto	Feature Archive	2	2	frontend
+Multi-Day Selection Uses Incorrect Company Info	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/270	SK-Subroto	Feature Archive	3	2	frontend
+Checkbox Uncheck Not Properly Removing Appointments from Map View List	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/293	SK-Subroto	Feature Archive	2	2	frontend
+Address Removal After Verification Failure Does Not Trigger Re-Verification	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/267	SK-Subroto	Feature Archive	5	5	frontend
+Back Button from Map View Redirects to Calendar View Instead of Week View	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/269	SK-Subroto	Feature Archive	2	1	frontend
+Refactoring company info storage	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/281	jkleinau	Feature Archive	5	5	frontend
+Arrival and Departure time per App	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/280	jkleinau	Feature Archive	5	5	frontend
+Arrival and Departure Time per Appointment	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/278	SUFelix	Feature Archive	5	3	backend
+Add “Number of Impossible Appointments” to Validation Report	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/204	SUFelix	Feature Archive	5	3	backend
+Apply Multithreaded Geocoding to Geocoding API	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/265	fahimu10	Feature Archive	5	5	backend
+Include Depot Departure/Return Time in Route	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/205	SUFelix	Feature Archive	3	3	backend
+Fixing the Validation report	https://github.com/amosproj/amos2025ss03-route-planning-app/issues/257	SUFelix	Feature Archive	5	2	backend
